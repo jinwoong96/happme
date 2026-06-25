@@ -10,25 +10,15 @@ const tabs = [
 
 export default function Navbar() {
   return (
-    <nav style={{
-      display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-      background: '#fff',
-      borderTop: '1px solid #f0f0f0',
-      padding: '10px 0 12px',
-      flexShrink: 0,
-    }}>
+    <nav className="flex justify-around items-center bg-white border-t border-gray-100 py-2.5 shrink-0">
       {tabs.map(({ to, label, Icon }) => (
         <NavLink key={to} to={to} end style={{ textDecoration: 'none' }}>
           {({ isActive }) => (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 56 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 12,
-                background: isActive ? '#eff6ff' : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div className="flex flex-col items-center gap-1 min-w-[56px]">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? 'bg-blue-50' : 'bg-transparent'}`}>
                 <Icon size={20} color={isActive ? '#3b82f6' : '#aaa'} strokeWidth={isActive ? 2.5 : 1.8} />
               </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? '#3b82f6' : '#aaa' }}>
+              <span className={`text-[11px] font-semibold ${isActive ? 'text-blue-500' : 'text-[#aaa]'}`}>
                 {label}
               </span>
             </div>

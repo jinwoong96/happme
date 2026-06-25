@@ -7,69 +7,48 @@ export default function NotificationPage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '20px 16px 16px', background: '#fff' }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+    <div className="bg-[#f5f6fa] h-full flex flex-col">
+      <div className="flex items-center gap-2 px-4 pt-5 pb-4 bg-white">
+        <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#111' }}>지원금 알림</p>
+        <p className="m-0 text-[18px] font-bold text-[#111]">지원금 알림</p>
       </div>
 
       {/* 검색창 */}
-      <div style={{ padding: '12px 16px', background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f5f6fa', borderRadius: 14, padding: '11px 14px' }}>
+      <div className="px-4 py-3 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-2.5 bg-[#f5f6fa] rounded-[14px] px-3.5 py-[11px]">
           <Search size={16} color="#aaa" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="지원금 검색..."
-            style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, color: '#333', outline: 'none' }}
+            className="flex-1 border-none bg-transparent text-[14px] text-[#333] outline-none"
           />
         </div>
       </div>
 
       {/* 목록 */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="flex-1 overflow-y-auto bg-white">
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: '#aaa' }}>검색 결과가 없습니다.</div>
+          <div className="text-center py-10 text-[13px] text-[#aaa]">검색 결과가 없습니다.</div>
         ) : (
           filtered.map((item, i) => (
             <div
               key={item.id}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 20px',
-                background: '#fff',
-                borderBottom: i < filtered.length - 1 ? '1px solid #f5f5f5' : 'none',
-              }}
+              className={`flex items-center justify-between px-5 py-4 ${i < filtered.length - 1 ? 'border-b border-gray-50' : ''}`}
             >
-              <div style={{ flex: 1, marginRight: 12 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#111' }}>{item.title}</p>
-                <p style={{ margin: '3px 0 0', fontSize: 12, color: '#aaa' }}>
-                  {item.org} · 마감 {item.deadline}
-                </p>
+              <div className="flex-1 mr-3">
+                <p className="m-0 text-[14px] font-semibold text-[#111]">{item.title}</p>
+                <p className="m-0 mt-0.5 text-[12px] text-[#aaa]">{item.org} · 마감 {item.deadline}</p>
               </div>
 
-              {/* 토글 스위치 */}
+              {/* 토글 */}
               <button
                 onClick={() => toggle(item.id)}
-                style={{
-                  width: 46, height: 26, borderRadius: 13,
-                  background: item.on ? '#3b82f6' : '#e5e7eb',
-                  border: 'none', cursor: 'pointer',
-                  position: 'relative', flexShrink: 0,
-                  transition: 'background 0.2s',
-                }}
+                className={`w-[46px] h-[26px] rounded-[13px] border-none cursor-pointer relative shrink-0 transition-colors duration-200 ${item.on ? 'bg-blue-500' : 'bg-gray-200'}`}
               >
-                <div style={{
-                  position: 'absolute',
-                  top: 3, left: item.on ? 23 : 3,
-                  width: 20, height: 20, borderRadius: '50%',
-                  background: '#fff',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-                  transition: 'left 0.2s',
-                }} />
+                <div className={`absolute top-[3px] w-5 h-5 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.2)] transition-all duration-200 ${item.on ? 'left-[23px]' : 'left-[3px]'}`} />
               </button>
             </div>
           ))
