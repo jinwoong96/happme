@@ -1,0 +1,187 @@
+-- ========================================
+-- 지원금 시뮬레이션 및 추천 앱 ERD
+-- ========================================
+
+-- 1. 유저 테이블
+CREATE TABLE user (
+    user_id             BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    name                VARCHAR(100),
+    email               VARCHAR(100)    UNIQUE,
+    password            VARCHAR(255),
+    age                 INT,
+    gender              VARCHAR(10),
+    region              VARCHAR(50),
+    district            VARCHAR(50),
+
+    -- 학력
+    education           VARCHAR(50),
+    school_name         VARCHAR(100),
+    major               VARCHAR(100),
+    student_status      VARCHAR(50),
+    graduation_year     INT,
+
+    -- 취업
+    employment_status   VARCHAR(50),
+    occupation          VARCHAR(50),
+    job_seeking         BOOLEAN         DEFAULT FALSE,
+    career_history      TEXT,
+
+    -- 소득/자산
+    monthly_income          BIGINT,
+    household_income_ratio  INT,
+    household_size          INT,
+    assets                  BIGINT,
+
+    -- 개인정보
+    marital_status      VARCHAR(20),
+    disability          BOOLEAN         DEFAULT FALSE,
+    veteran             BOOLEAN         DEFAULT FALSE,
+    military_status     VARCHAR(20),
+
+    -- 창업
+    startup_interest    BOOLEAN         DEFAULT FALSE,
+    business_owner      BOOLEAN         DEFAULT FALSE,
+    startup_status      VARCHAR(50),
+
+    -- 기타
+    situation           TEXT,
+    housing_status      VARCHAR(50),
+    reason              TEXT,
+
+    role                VARCHAR(20)     DEFAULT 'USER',  -- USER / ADMIN
+    created_at          DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ========================================
+-- 2. 공고문(정책) 테이블
+-- ========================================
+CREATE TABLE policy (
+    policyId            BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    plcyNo              VARCHAR(50)     UNIQUE,
+    plcyNm              VARCHAR(255)    NOT NULL,
+    plcyKywdNm          VARCHAR(255)    NOT NULL,
+    plcyExplnCn         TEXT            NOT NULL,
+    lclsfNm             VARCHAR(100)    NOT NULL,
+    mclsfNm             VARCHAR(100)    NOT NULL,
+    plcySprtCn          TEXT            NOT NULL,
+    sprvsnInstCdNm      VARCHAR(100),
+    sprvsnInstPicNm     VARCHAR(50),
+    operInstCdNm        VARCHAR(100),
+    operInstPicNm       VARCHAR(50),
+    bizPrdBgngYmd       VARCHAR(20),
+    bizPrdEndYmd        VARCHAR(20),
+    bizPrdEtcCn         VARCHAR(255),
+    plcyAplyMthdCn      TEXT,
+    aplyUrlAddr         VARCHAR(500),
+    sbmsnDcmntCn        TEXT            NOT NULL,
+    aplyYmd             VARCHAR(100)    NOT NULL,
+    refUrlAddr1         VARCHAR(500),
+    refUrlAddr2         VARCHAR(500),
+    etcMttrCn           TEXT,
+    sprtSclCnt          INT,
+    sprtTrgtMinAge      INT             NOT NULL,
+    sprtTrgtMaxAge      INT             NOT NULL,
+    earnMinAmt          BIGINT,
+    earnMaxAmt          BIGINT,
+    earnEtcCn           TEXT            NOT NULL,
+    addAplyQlfcCndCn    TEXT            NOT NULL,
+    ptcpPrpTrgtCn       TEXT            NOT NULL,
+    zipCd               VARCHAR(500)    NOT NULL,
+    mrgSttsCd           VARCHAR(20),
+    earnCndSeCd         VARCHAR(20),
+    plcyMajorCd         VARCHAR(20),
+    jobCd               VARCHAR(20),
+    schoolCd            VARCHAR(20),
+    sBizCd              VARCHAR(20),
+    inqCnt              INT             DEFAULT 0,
+    frstRegDt           DATETIME,
+    lastMdfcnDt         DATETIME,
+    createdAt           DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    updatedAt           DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ========================================
+-- 3. 즐겨찾기(알림) 테이블
+-- ========================================
+CREATE TABLE bookmark (
+    bookmark_id         BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    user_id             BIGINT          NOT NULL,
+    policy_id           BIGINT          NOT NULL,
+    alarm_yn            BOOLEAN         DEFAULT FALSE,   -- 알림 설정 여부
+    created_at          DATETIME        DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)   REFERENCES user(user_id),
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
+    UNIQUE (user_id, policy_id)                          -- 중복 즐겨찾기 방지
+);
+
+-- ========================================
+-- 4. 고객센터 문의 테이블
+-- ========================================
+CREATE TABLE inquiry (
+    inquiry_id          BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    user_id             BIGINT,                          -- 비회원도 가능하면 NULL 허용
+    inquiry_type        VARCHAR(50)     NOT NULL,        -- 일반문의 / 광고제휴 / 기업지원금제휴 / 기타
+    title               VARCHAR(255)    NOT NULL,
+    content             TEXT            NOT NULL,
+    answer              TEXT,                            -- 관리자 답변
+    status              VARCHAR(20)     DEFAULT 'PENDING', -- PENDING / ANSWERED
+    created_at          DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    answered_at         DATETIME,
+
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
+-- ========================================
+-- 5. 공지사항 테이블 (관리자)
+-- ========================================
+CREATE TABLE notice (
+    notice_id           BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    admin_id            BIGINT          NOT NULL,        -- 작성한 관리자
+    title               VARCHAR(255)    NOT NULL,
+    content             TEXT            NOT NULL,
+    is_pinned           BOOLEAN         DEFAULT FALSE,   -- 상단 고정 여부
+    created_at          DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (admin_id) REFERENCES user(user_id)
+);
+
+-- ========================================
+-- 6. 시뮬레이션 결과 테이블 
+-- ========================================
+CREATE TABLE simulation_result (
+    result_id           BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    user_id             BIGINT          NOT NULL,
+    policy_id           BIGINT          NOT NULL,
+    simulation_input    VARCHAR(500)    NOT NULL,
+    created_at          DATETIME        DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)   REFERENCES user(user_id),
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+);
+-- ========================================
+-- 7. OCR 사진 결과 테이블 
+-- ========================================
+CREATE TABLE ocr_result (
+    ocr_id          BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    user_id         BIGINT          NOT NULL,
+    extracted_text  TEXT            NOT NULL,
+    policy_id       BIGINT,
+    created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)   REFERENCES user(user_id),
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+);
+-- ========================================
+-- 8. PDF 결과 테이블 
+-- ========================================
+CREATE TABLE pdf_summary (
+    pdf_id          BIGINT          PRIMARY KEY AUTO_INCREMENT,
+    user_id         BIGINT          NOT NULL,
+    summary_text    TEXT            NOT NULL,
+    policy_id       BIGINT,
+    created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)   REFERENCES user(user_id),
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+);
