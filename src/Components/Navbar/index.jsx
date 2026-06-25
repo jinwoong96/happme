@@ -15,10 +15,10 @@ export default function Navbar() {
         <NavLink key={to} to={to} end style={{ textDecoration: 'none' }}>
           {({ isActive }) => (
             <div className="flex flex-col items-center gap-1 min-w-[56px]">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? 'bg-blue-50' : 'bg-transparent'}`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? 'bg-blue-50' : ''}`}>
                 <Icon size={20} color={isActive ? '#3b82f6' : '#aaa'} strokeWidth={isActive ? 2.5 : 1.8} />
               </div>
-              <span className={`text-[11px] font-semibold ${isActive ? 'text-blue-500' : 'text-[#aaa]'}`}>
+              <span className={`text-[11px] font-semibold ${isActive ? 'text-blue-500' : 'text-gray-400'}`}>
                 {label}
               </span>
             </div>
