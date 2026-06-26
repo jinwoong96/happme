@@ -91,34 +91,6 @@ CREATE TABLE policy_region (
     FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
 
-CREATE TABLE policy_job (
-    policy_id   BIGINT      NOT NULL,
-    job_code    VARCHAR(20) NOT NULL,
-    PRIMARY KEY (policy_id, job_code),
-    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
-);
-
-CREATE TABLE policy_school (
-    policy_id   BIGINT      NOT NULL,
-    school_code VARCHAR(20) NOT NULL,
-    PRIMARY KEY (policy_id, school_code),
-    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
-);
-
-CREATE TABLE policy_major (
-    policy_id   BIGINT      NOT NULL,
-    major_code  VARCHAR(20) NOT NULL,
-    PRIMARY KEY (policy_id, major_code),
-    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
-);
-
-CREATE TABLE policy_business (
-    policy_id     BIGINT      NOT NULL,
-    business_code VARCHAR(20) NOT NULL,
-    PRIMARY KEY (policy_id, business_code),
-    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
-);
-
 CREATE TABLE bookmark (
     bookmark_id BIGINT   PRIMARY KEY AUTO_INCREMENT,
     user_id     BIGINT   NOT NULL,
