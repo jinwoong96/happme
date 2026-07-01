@@ -1,10 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.db.crud.user import UserCrud
+from app.db.crud.email_verification import EmailVerificationCrud
+from app.services.email_verification import EmailVerificationService
 from app.db.scheme.user import UserCreate, UserUpdate, UserLogin, UserPasswordUpdate, UserRead
 from app.db.models.user import User
 from app.core.jwt_handle import create_access_token, create_refresh_token, get_password_hash, verify_password
-
+from app.services.email_verification import EmailVerificationService
 
 class UserService:
 
@@ -12,9 +14,11 @@ class UserService:
     async def create_user_svc(db: AsyncSession, data: UserCreate) -> User:
         if await UserCrud.get_by_email(db, data.email):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 이메일입니다.")
+        await EmailVerificationService.ensure_verified(db, data.email)
         data.password = get_password_hash(data.password)
         try:
             user = await UserCrud.create_user(db, data)
+            await EmailVerificationCrud.delete_by_email(db, data.email)
             await db.commit()
             await db.refresh(user)
             return user
