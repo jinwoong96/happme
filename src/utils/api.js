@@ -29,12 +29,13 @@ function toFriendlyMessage(status, err) {
 
 
 async function request(method, endpoint, body) {
+  // const token = localStorage.getItem('token');
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
     credentials: 'include', // httpOnly 쿠키를 주고받기 위해 필수
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      // ...(token && { Authorization: `Bearer ${token}` }),
     },
     ...(body && { body: JSON.stringify(body) }),
   });
