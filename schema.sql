@@ -54,6 +54,15 @@ CREATE TABLE user (
     updated_at        DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE email_verification (
+    id          BIGINT       PRIMARY KEY AUTO_INCREMENT,
+    email       VARCHAR(100) NOT NULL,
+    code        VARCHAR(6)   NOT NULL,
+    is_verified BOOLEAN      DEFAULT FALSE,
+    expires_at  DATETIME     NOT NULL,
+    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE user_profile (
     user_id                BIGINT       PRIMARY KEY,
     age                    INT,

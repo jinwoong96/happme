@@ -9,6 +9,7 @@ from app.db.seed import run_all_seeds
 from app.middleware.token_refresh import RefreshTokenMiddleware
 
 from app.routers.user import router as user_router
+from app.routers.email_verification import router as email_verification_router
 from app.routers.user_profile import router as user_profile_router
 from app.routers.policy import router as policy_router
 from app.routers.bookmark import router as bookmark_router
@@ -52,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(user_router)
+app.include_router(email_verification_router)
 app.include_router(user_profile_router)
 app.include_router(policy_router)
 app.include_router(bookmark_router)

@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     access_token_expire_seconds: int = Field(900, alias="ACCESS_TOKEN_EXPIRE")
     refresh_token_expire_seconds: int = Field(604800, alias="REFRESH_TOKEN_EXPIRE")
 
+    # Email (SMTP)
+    smtp_host: str = Field("smtp.gmail.com", alias="SMTP_HOST")
+    smtp_port: int = Field(587, alias="SMTP_PORT")
+    smtp_user: str = Field("", alias="SMTP_USER")
+    smtp_password: str = Field("", alias="SMTP_PASSWORD")
+    smtp_from: str = Field("", alias="SMTP_FROM")
+    email_code_expire_seconds: int = Field(300, alias="EMAIL_CODE_EXPIRE")
+
     class Config:
         env_file = ".env"
         case_sensitive = True
