@@ -9,10 +9,11 @@ import SummaryPage from './Pages/Summary';
 import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
 import MypagePage from './Pages/Mypage';
+import SignupPage from './Pages/Signup';
 
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
+  const isAuthed = localStorage.getItem('isAuthed') === 'true';
+  return isAuthed ? children : <Navigate to="/login" replace />;
 }
 
 function Layout({ children }) {
@@ -31,6 +32,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route
           path="/"
           element={

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../utils/api';
 
 export default function useLogin() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ id: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,15 +15,34 @@ export default function useLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!form.email) {
+      setError('이메일을 입력해주세요.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError('올바른 이메일 형식이 아니에요.');
+      return;
+    }
+    if (!form.password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
     setLoading(true);
     try {
-      // 임시: 백엔드 연결 전 mock 로그인
-      await new Promise((r) => setTimeout(r, 800));
-      localStorage.setItem('token', 'mock-token');
-      localStorage.setItem('userName', form.id);
+      const data = await api.post('/users/login', {
+        email: form.email,
+        password: form.password,
+      });
+      localStorage.setItem('isAuthed', 'true');
+      if (data?.user?.name) {
+        localStorage.setItem('userName', data.user.name);
+      }
       navigate('/');
-    } catch {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+    } catch (err) {
+      setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {
       setLoading(false);
     }

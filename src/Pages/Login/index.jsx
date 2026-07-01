@@ -1,7 +1,9 @@
 import useLogin from '../../hooks/useLogin';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const { form, loading, error, handleChange, handleLogin } = useLogin();
+  const navigate = useNavigate();
 
   return (
     <div className="h-full flex flex-col items-center justify-center" style={{ backgroundColor: '#f5f6fa', padding: '0 32px' }}>
@@ -24,7 +26,7 @@ export default function LoginPage() {
       {/* 폼 */}
       <form onSubmit={handleLogin} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {[
-          { name: 'id',       label: '아이디',  type: 'text',     ph: '아이디를 입력하세요' },
+          { name: 'email',    label: '이메일',  type: 'email',    ph: '이메일을 입력하세요' },
           { name: 'password', label: '비밀번호', type: 'password', ph: '비밀번호를 입력하세요' },
         ].map(({ name, label, type, ph }) => (
           <div key={name}>
@@ -73,7 +75,7 @@ export default function LoginPage() {
 
       <p className="mt-5 text-[13px] text-gray-400">
         계정이 없으신가요?{' '}
-        <span className="text-blue-500 font-bold cursor-pointer">회원가입</span>
+        <span onClick={() => navigate('/signup')} className="text-blue-500 font-bold cursor-pointer">회원가입</span>
       </p>
 
       <div className="flex items-center gap-2.5 w-full mt-6">
