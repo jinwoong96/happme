@@ -3,21 +3,13 @@ import { Bell, RefreshCw, List, Sparkles, FileText, ScanSearch, BellRing, Bookma
 import useHome from '../../hooks/useHome';
 
 const MENU = [
-  { label: '카테고리', path: '/category', Icon: List },
+  { label: '전체보기', path: '/category', Icon: List },
   { label: '맞춤추천', path: '/recommendation', Icon: Sparkles },
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: 'OCR분석', path: '/ocr', Icon: ScanSearch },
   { label: '지원금알림', path: '/notification', Icon: BellRing },
   { label: '즐겨찾기', path: '/bookmark', Icon: Bookmark },
 ];
-
-const TAG = {
-  인기:   'bg-red-50 text-red-400',
-  마감임박: 'bg-orange-50 text-orange-400',
-  신규:   'bg-green-50 text-green-400',
-  교육:   'bg-blue-50 text-blue-400',
-  취업:   'bg-purple-50 text-purple-400',
-};
 
 export default function HomePage() {
   const { benefits, featured, loading, userName } = useHome();
@@ -105,12 +97,8 @@ export default function HomePage() {
             <div style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, textAlign: 'center', fontSize: 13, color: '#9ca3af', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>불러오는 중...</div>
           ) : benefits.map((item) => (
             <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-              <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${TAG[item.tag] || 'bg-gray-100 text-gray-400'}`}>
-                {item.tag}
-              </span>
-              <p className="mt-2 mb-0.5 text-[15px] font-bold text-gray-900">{item.title}</p>
-              <p className="text-[12px] text-gray-400">{item.org}</p>
-              <p className="mt-1.5 text-[16px] font-extrabold text-blue-500">{item.amount}</p>
+              <p className="text-[15px] font-bold text-gray-900">{item.plcyNm}</p>
+              <p className="mt-1 text-[12px] text-gray-400">{item.aplyYmd}</p>
             </div>
           ))}
         </div>

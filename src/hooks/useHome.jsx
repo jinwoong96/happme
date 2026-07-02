@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
 const MOCK_BENEFITS = [
-  { id: 1, tag: '인기', title: '청년 내일저축계좌', org: '보건복지부', amount: '최대 1,440만원', deadline: '2024.12.31' },
-  { id: 2, tag: '마감임박', title: '청년 주거급여 분리지급', org: '국토교통부', amount: '월 최대 341,000원', deadline: '2024.11.30' },
-  { id: 3, tag: '신규', title: 'K-디지털 트레이닝', org: '고용노동부', amount: '최대 200만원', deadline: '2025.03.31' },
+  { id: 1, plcyNm: '청년 내일저축계좌', aplyYmd: '2024.12.31' },
+  { id: 2, plcyNm: '청년 주거급여 분리지급', aplyYmd: '2024.11.30' },
+  { id: 3, plcyNm: 'K-디지털 트레이닝', aplyYmd: '2025.03.31' },
 ];
 
 const MOCK_FEATURED = {
