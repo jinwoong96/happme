@@ -21,7 +21,7 @@ export default function CategoryPage() {
         <p className="text-[22px] font-extrabold text-gray-900">전체보기</p>
       </div>
 
-      <div className="bg-white border-b border-gray-100 overflow-x-auto" style={{ display: 'flex', gap: 8, padding: '12px 20px' }}>
+      <div className="bg-white border-b border-gray-100 overflow-x-auto no-scrollbar" style={{ display: 'flex', gap: 8, padding: '12px 20px', WebkitOverflowScrolling: 'touch' }}>
         {categories.map((cat) => (
           <button key={cat} onClick={() => setActiveTab(cat)}
             style={{
