@@ -10,6 +10,7 @@ import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
 import MypagePage from './Pages/Mypage';
 import SignupPage from './Pages/Signup';
+import BookmarkPage from './Pages/Bookmark';
 
 function PrivateRoute({ children }) {
   const isAuthed = localStorage.getItem('isAuthed') === 'true';
@@ -78,6 +79,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <NotificationPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookmark"
+          element={
+            <PrivateRoute>
+              <Layout><BookmarkPage /></Layout>
             </PrivateRoute>
           }
         />

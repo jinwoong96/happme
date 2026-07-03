@@ -11,6 +11,17 @@ export default function useCategory() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState(new Set());
+  const [bookmarkIds, setBookmarkIds] = useState(new Map()); // policy_id -> bookmark_id
+
+  useEffect(() => {
+    api.get('/bookmarks/me')
+      .then((data) => {
+        const ids = new Map((data || []).map((b) => [b.policy_id, b.bookmark_id]));
+        setBookmarkIds(ids);
+        setBookmarks(new Set(ids.keys()));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -52,12 +63,35 @@ export default function useCategory() {
     return () => { ignore = true; };
   }, [activeTab, selectedRegion, debouncedKeyword]);
 
-  const toggleBookmark = (id) => {
+  const toggleBookmark = async (id) => {
+    const isBookmarked = bookmarks.has(id);
     setBookmarks((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      isBookmarked ? next.delete(id) : next.add(id);
       return next;
     });
+
+    try {
+      if (isBookmarked) {
+        const bookmarkId = bookmarkIds.get(id);
+        if (bookmarkId) await api.delete(`/bookmarks/${bookmarkId}`);
+        setBookmarkIds((prev) => {
+          const next = new Map(prev);
+          next.delete(id);
+          return next;
+        });
+      } else {
+        const created = await api.post('/bookmarks/', { policy_id: id });
+        setBookmarkIds((prev) => new Map(prev).set(id, created.bookmark_id));
+      }
+    } catch {
+      // 실패 시 낙관적 업데이트 되돌리기
+      setBookmarks((prev) => {
+        const next = new Set(prev);
+        isBookmarked ? next.add(id) : next.delete(id);
+        return next;
+      });
+    }
   };
 
   return {
