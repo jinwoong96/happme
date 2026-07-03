@@ -1,3 +1,6 @@
 .env
 __pycache__
+models/*.pth
+models/*.pt
+tmp_uploads/
 .vscode
