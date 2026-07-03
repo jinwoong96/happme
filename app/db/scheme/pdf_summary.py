@@ -33,3 +33,15 @@ class PdfMatchCreate(BaseModel):
     policy_id: int
     match_score: Optional[float] = None
     match_type: Optional[str] = None
+
+class PdfAnalyzeText(BaseModel):
+    text: str
+
+
+class PdfAnalyzeUrl(BaseModel):
+    url: str
+
+
+class PdfAskQuestion(BaseModel):
+    policy_name: str
+    question: str
