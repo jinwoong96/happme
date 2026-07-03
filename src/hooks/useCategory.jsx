@@ -6,9 +6,16 @@ const CATEGORIES = ['전체', '일자리', '주거', '교육', '복지문화', '
 export default function useCategory() {
   const [activeTab, setActiveTab] = useState('전체');
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState(new Set());
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
 
   useEffect(() => {
     if (activeTab === '지역' && !selectedRegion) {
@@ -26,6 +33,9 @@ export default function useCategory() {
     } else if (activeTab !== '전체') {
       params.set('lclsf', activeTab);
     }
+    if (debouncedKeyword) {
+      params.set('keyword', debouncedKeyword);
+    }
 
     api.get(`/policies/?${params.toString()}`)
       .then((data) => {
@@ -40,7 +50,7 @@ export default function useCategory() {
       });
 
     return () => { ignore = true; };
-  }, [activeTab, selectedRegion]);
+  }, [activeTab, selectedRegion, debouncedKeyword]);
 
   const toggleBookmark = (id) => {
     setBookmarks((prev) => {
@@ -56,6 +66,8 @@ export default function useCategory() {
     setActiveTab,
     selectedRegion,
     setSelectedRegion,
+    keyword,
+    setKeyword,
     items,
     loading,
     bookmarks,
