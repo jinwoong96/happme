@@ -1,4 +1,4 @@
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Search, X } from 'lucide-react';
 import useCategory from '../../hooks/useCategory';
 import { REGIONS } from '../../data/regions';
 
@@ -9,6 +9,8 @@ export default function CategoryPage() {
     setActiveTab,
     selectedRegion,
     setSelectedRegion,
+    keyword,
+    setKeyword,
     items,
     loading,
     bookmarks,
@@ -19,6 +21,38 @@ export default function CategoryPage() {
     <div style={{ backgroundColor: '#f5f6fa' }}>
       <div className="bg-white" style={{ padding: '20px 20px 16px' }}>
         <p className="text-[22px] font-extrabold text-gray-900">전체보기</p>
+      </div>
+
+      <div className="bg-white" style={{ padding: '0 20px 16px' }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="정책명 또는 키워드로 검색"
+            style={{
+              width: '100%',
+              padding: '11px 36px',
+              borderRadius: 999,
+              border: '1px solid #e5e7eb',
+              fontSize: 13,
+              fontWeight: 500,
+              color: '#374151',
+              backgroundColor: '#f9fafb',
+              boxSizing: 'border-box',
+            }}
+          />
+          {keyword && (
+            <button
+              onClick={() => setKeyword('')}
+              className="bg-transparent border-none cursor-pointer p-0"
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex' }}
+            >
+              <X size={16} color="#9ca3af" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white border-b border-gray-100 overflow-x-auto no-scrollbar" style={{ display: 'flex', gap: 8, padding: '12px 20px', WebkitOverflowScrolling: 'touch' }}>
@@ -70,7 +104,9 @@ export default function CategoryPage() {
         ) : loading ? (
           <div className="text-center py-10 text-[13px] text-gray-400">불러오는 중...</div>
         ) : items.length === 0 ? (
-          <div className="text-center py-10 text-[13px] text-gray-400">항목이 없습니다.</div>
+          <div className="text-center py-10 text-[13px] text-gray-400">
+            {keyword ? `'${keyword}'에 대한 검색 결과가 없습니다.` : '항목이 없습니다.'}
+          </div>
         ) : items.map((item) => (
           <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <div style={{ flex: 1 }}>

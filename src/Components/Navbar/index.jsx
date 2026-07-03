@@ -3,7 +3,7 @@ import { Home, Grid2x2, Headphones, User } from 'lucide-react';
 
 const tabs = [
   { to: '/', label: '홈', Icon: Home },
-  { to: '/category', label: '카테고리', Icon: Grid2x2 },
+  { to: '/category', label: '전체보기', Icon: Grid2x2 },
   { to: '/support', label: '고객센터', Icon: Headphones },
   { to: '/mypage', label: '마이', Icon: User },
 ];
