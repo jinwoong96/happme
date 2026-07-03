@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import asynccontextmanager
+from app.core.model_downloader import ensure_models_downloaded
 
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
@@ -12,11 +13,12 @@ from app.services.image_analyze.analyze import ImageAnalyzeService
 from app.routers.image_analyze import router as image_analyze_router
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 무거운 모델들은 서버 시작 시 한 번만 로드합니다.
     print("[bene_ai] 모델 로드 시작...")
+
+    ensure_models_downloaded()  # 로컬에 없으면 S3에서 자동 다운로드
 
     detection_service = DetectionService()
     ocr_service = OcrService()
@@ -29,7 +31,6 @@ async def lifespan(app: FastAPI):
         search_service=search_service,
         llm_service=llm_service,
     )
-
 
     print("[bene_ai] 모든 모델 로드 완료, 서비스 준비됨")
     yield
@@ -46,8 +47,6 @@ app.add_middleware(
 )
 
 app.include_router(image_analyze_router)
-
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)

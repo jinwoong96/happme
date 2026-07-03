@@ -14,10 +14,23 @@ class Settings(BaseSettings):
     text_region_detector_weights: str = Field(..., alias="TEXT_REGION_DETECTOR_WEIGHTS")
     text_region_detector_conf: float = Field(0.5, alias="TEXT_REGION_DETECTOR_CONF")
 
+    # 모델 가중치 S3 자동 다운로드 (git에는 올리지 않고, 서버 시작 시 없으면 내려받음)
+    # MODEL_S3_BUCKET이 비어있으면 다운로드를 건너뛰고 로컬 파일을 그대로 사용합니다.
+    model_s3_bucket: str = Field("", alias="MODEL_S3_BUCKET")
+    model_s3_public: bool = Field(False, alias="MODEL_S3_PUBLIC")
+    notice_detector_s3_key: str = Field("", alias="NOTICE_DETECTOR_S3_KEY")
+    text_region_detector_s3_key: str = Field("", alias="TEXT_REGION_DETECTOR_S3_KEY")
+
     crop_padding: float = Field(0.05, alias="CROP_PADDING")
 
     # 정책 검색 (Sentence-BERT)
-    policy_json_path: str = Field(..., alias="POLICY_JSON_PATH")
+    # 정책 데이터는 bene_backend와 동일한 RDS MySQL(policy 테이블)에서 읽어옵니다.
+    db_host: str = Field(..., alias="DB_HOST")
+    db_port: int = Field(3306, alias="DB_PORT")
+    db_user: str = Field(..., alias="DB_USER")
+    db_password: str = Field(..., alias="DB_PASSWORD")
+    db_name: str = Field(..., alias="DB_NAME")
+
     embedding_model_name: str = Field("jhgan/ko-sroberta-multitask", alias="EMBEDDING_MODEL_NAME")
     policy_embedding_cache: str = Field("./policy_embeddings.npy", alias="POLICY_EMBEDDING_CACHE")
     top_k: int = Field(3, alias="TOP_K")

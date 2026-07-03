@@ -7,11 +7,6 @@ TARGET_REGION_CLASSES = ("title", "text_area")
 
 
 class ImageAnalyzeService:
-    """
-    탐지 -> OCR -> 정책 검색 -> LLM 요약을 순서대로 실행하는 오케스트레이션 서비스.
-    각 하위 서비스(DetectionService/OcrService/SearchService/LlmService)는
-    무거운 모델을 들고 있으므로, 앱 시작 시(lifespan) 한 번만 생성해서 주입받아 재사용하세요.
-    """
 
     def __init__(
         self,
@@ -33,7 +28,16 @@ class ImageAnalyzeService:
             {
               "extracted_text": str,
               "detected_objects": int,
-              "matches": [{"plcyNo": str, "plcyNm": str, "score": float}, ...],
+              "matches": [
+                {
+                  "policy_id": int, "plcyNo": str, "plcyNm": str, "score": float,
+                  "plcyExplnCn": str,
+                  "sprtTrgtMinAge": int | None, "sprtTrgtMaxAge": int | None,
+                  "plcySprtCn": str, "aplyYmd": str,
+                  "plcyAplyMthdCn": str, "sbmsnDcmntCn": str,
+                  "aplyUrlAddr": str,
+                }, ...
+              ],
               "summary_text": str | None,
               "message": str | None,
             }
@@ -65,7 +69,20 @@ class ImageAnalyzeService:
             "extracted_text": extracted_text,
             "detected_objects": len(objects),
             "matches": [
-                {"plcyNo": m["plcyNo"], "plcyNm": m["plcyNm"], "score": m["score"]}
+                {
+                    "policy_id": m["policy_id"],
+                    "plcyNo": m["plcyNo"],
+                    "plcyNm": m["plcyNm"],
+                    "score": m["score"],
+                    "plcyExplnCn": m["policy_raw"].get("plcyExplnCn") or "",
+                    "sprtTrgtMinAge": m["policy_raw"].get("sprtTrgtMinAge"),
+                    "sprtTrgtMaxAge": m["policy_raw"].get("sprtTrgtMaxAge"),
+                    "plcySprtCn": m["policy_raw"].get("plcySprtCn") or "",
+                    "aplyYmd": m["policy_raw"].get("aplyYmd") or m["policy_raw"].get("bizPrdEtcCn") or "",
+                    "plcyAplyMthdCn": m["policy_raw"].get("plcyAplyMthdCn") or "",
+                    "sbmsnDcmntCn": m["policy_raw"].get("sbmsnDcmntCn") or "",
+                    "aplyUrlAddr": m["policy_raw"].get("aplyUrlAddr") or "",
+                }
                 for m in matches
             ],
             "summary_text": summary_text,
