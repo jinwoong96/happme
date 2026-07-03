@@ -54,4 +54,21 @@ export const api = {
   post: (endpoint, body) => request('POST', endpoint, body),
   put: (endpoint, body) => request('PUT', endpoint, body),
   delete: (endpoint) => request('DELETE', endpoint),
+  postForm: (endpoint, formData) => requestForm('POST', endpoint, formData),
 };
+
+async function requestForm(method, endpoint, formData) {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method,
+    credentials: 'include',
+    body: formData, // FormData는 Content-Type을 직접 지정하면 안 됨 (브라우저가 boundary 포함해서 자동 설정)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(toFriendlyMessage(res.status, err));
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
