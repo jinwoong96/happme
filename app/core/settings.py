@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     watsonx_model_id: str = Field("meta-llama/llama-3-3-70b-instruct", alias="WATSONX_MODEL_ID")
     enable_llm_summary: bool = Field(True, alias="ENABLE_LLM_SUMMARY")
 
+    # 정책 일정 추출 (rule-engine + LLM)
+    schedule_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="SCHEDULE_MODEL_ID")
+
     # 서비스
     temp_upload_dir: str = Field("./tmp_uploads", alias="TEMP_UPLOAD_DIR")
 

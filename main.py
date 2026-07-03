@@ -8,8 +8,10 @@ from app.services.image_analyze.ocr import OcrService
 from app.services.image_analyze.search import SearchService
 from app.services.image_analyze.llm import LlmService
 from app.services.image_analyze.analyze import ImageAnalyzeService
+from app.services.schedule_extract import ScheduleService
 
 from app.routers.image_analyze import router as image_analyze_router
+from app.routers.schedule import router as schedule_router
 
 
 
@@ -29,6 +31,7 @@ async def lifespan(app: FastAPI):
         search_service=search_service,
         llm_service=llm_service,
     )
+    app.state.schedule_service = ScheduleService()
 
 
     print("[bene_ai] 모든 모델 로드 완료, 서비스 준비됨")
@@ -46,6 +49,7 @@ app.add_middleware(
 )
 
 app.include_router(image_analyze_router)
+app.include_router(schedule_router)
 
 
 
