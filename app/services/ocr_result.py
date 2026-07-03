@@ -4,6 +4,7 @@ from app.db.crud.ocr_result import OcrResultCrud
 from app.db.crud.user import UserCrud
 from app.db.scheme.ocr_result import OcrResultCreate, OcrMatchCreate
 from app.db.models.ocr_result import OcrResult, OcrResultMatch
+from app.services.ai_client import AiClient
 
 
 class OcrResultService:
@@ -57,3 +58,68 @@ class OcrResultService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OCR 결과 삭제에 실패했습니다.")
+
+    # 이미지 업로드 -> bene_ai 분석 -> OCR 결과 + 매칭 저장
+    @staticmethod
+    async def analyze_image_svc(
+        db: AsyncSession, user_id: int, image_bytes: bytes, filename: str, content_type: str
+    ) -> dict:
+        if not await UserCrud.get_user(db, user_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유저를 찾을 수 없습니다.")
+
+        if not content_type or not content_type.startswith("image/"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미지 파일만 업로드 가능합니다.")
+
+        ai_result = await AiClient.analyze_image(image_bytes, filename, content_type)
+
+        extracted_text = ai_result.get("extracted_text", "")
+        ai_matches = ai_result.get("matches", [])  # [{policy_id, plcyNo, plcyNm, score}, ...]
+        summary_text = ai_result.get("summary_text")
+
+        if not extracted_text:
+            return {
+                "extracted_text": "",
+                "matches": [],
+                "summary_text": None,
+                "message": ai_result.get("message", "텍스트를 추출하지 못했습니다."),
+            }
+
+        try:
+            ocr = await OcrResultCrud.create_ocr(db, OcrResultCreate(user_id=user_id, extracted_text=extracted_text))
+            await db.flush()
+
+            for m in ai_matches:
+                await OcrResultCrud.add_match(
+                    db, OcrMatchCreate(ocr_id=ocr.ocr_id, policy_id=m["policy_id"], match_score=m["score"], match_type="ocr")
+                )
+
+            # LLM 요약이 있으면 pdf_summary에도 같이 저장 (기존 PdfSummaryService 재사용)
+            pdf_id = None
+            if summary_text:
+                from app.services.pdf_summary import PdfSummaryService
+                from app.db.scheme.pdf_summary import PdfSummaryCreate, PdfMatchCreate
+                from app.db.crud.pdf_summary import PdfSummaryCrud
+
+                pdf = await PdfSummaryCrud.create_pdf(db, PdfSummaryCreate(user_id=user_id, summary_text=summary_text))
+                await db.flush()
+                pdf_id = pdf.pdf_id
+                for m in ai_matches:
+                    await PdfSummaryCrud.add_match(
+                        db, PdfMatchCreate(pdf_id=pdf.pdf_id, policy_id=m["policy_id"], match_score=m["score"], match_type="llm")
+                    )
+
+            await db.commit()
+            await db.refresh(ocr)
+        except HTTPException:
+            raise
+        except Exception:
+            await db.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="분석 결과 저장에 실패했습니다.")
+
+        return {
+            "ocr_id": ocr.ocr_id,
+            "pdf_id": pdf_id,
+            "extracted_text": extracted_text,
+            "matches": ai_matches,
+            "summary_text": summary_text,
+        }
