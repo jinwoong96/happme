@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import asynccontextmanager
 
+<<<<<<< HEAD
 # from app.services.image_analyze.detection import DetectionService
 # from app.services.image_analyze.ocr import OcrService
 # from app.services.image_analyze.search import SearchService
@@ -16,6 +17,17 @@ from app.routers.policy_summary import router as policy_summary_router
 
 
 
+=======
+from app.services.image_analyze.detection import DetectionService
+from app.services.image_analyze.ocr import OcrService
+from app.services.image_analyze.search import SearchService
+from app.services.image_analyze.llm import LlmService
+from app.services.image_analyze.analyze import ImageAnalyzeService
+from app.services.schedule_extract import ScheduleService
+
+from app.routers.image_analyze import router as image_analyze_router
+from app.routers.schedule import router as schedule_router
+>>>>>>> main
 
 
 
@@ -29,6 +41,7 @@ async def lifespan(app: FastAPI):
     # search_service = SearchService()
     # llm_service = LlmService()
 
+<<<<<<< HEAD
     # app.state.image_analyze_service = ImageAnalyzeService(
     #     detection_service=detection_service,
     #     ocr_service=ocr_service,
@@ -37,6 +50,15 @@ async def lifespan(app: FastAPI):
     # )
     app.state.pdf_summary_service = PdfSummaryService()
     app.state.web_summary_service = WebSummaryService(app.state.pdf_summary_service)
+=======
+    app.state.image_analyze_service = ImageAnalyzeService(
+        detection_service=detection_service,
+        ocr_service=ocr_service,
+        search_service=search_service,
+        llm_service=llm_service,
+    )
+    app.state.schedule_service = ScheduleService()
+>>>>>>> main
 
 
     print("[bene_ai] 모든 모델 로드 완료, 서비스 준비됨")
@@ -53,8 +75,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+<<<<<<< HEAD
 # app.include_router(image_analyze_router)
 app.include_router(policy_summary_router)
+=======
+app.include_router(image_analyze_router)
+app.include_router(schedule_router)
+>>>>>>> main
 
 
 
