@@ -5,13 +5,13 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     # 공고물 위치 탐지기 (banner/poster/card_news) — Faster R-CNN
-    notice_detector_weights: str = Field(..., alias="NOTICE_DETECTOR_WEIGHTS")
+    notice_detector_weights: str = Field("", alias="NOTICE_DETECTOR_WEIGHTS")
     notice_detector_conf: float = Field(0.9, alias="NOTICE_DETECTOR_CONF")
     notice_detector_num_classes: int = Field(5, alias="NOTICE_DETECTOR_NUM_CLASSES")
     notice_detector_coco_ann: str = Field("", alias="NOTICE_DETECTOR_COCO_ANN")
 
     # 텍스트 영역 탐지기 (title/text_area) — YOLOv11n
-    text_region_detector_weights: str = Field(..., alias="TEXT_REGION_DETECTOR_WEIGHTS")
+    text_region_detector_weights: str = Field("", alias="TEXT_REGION_DETECTOR_WEIGHTS")
     text_region_detector_conf: float = Field(0.5, alias="TEXT_REGION_DETECTOR_CONF")
 
     crop_padding: float = Field(0.05, alias="CROP_PADDING")
@@ -35,6 +35,12 @@ class Settings(BaseSettings):
 
     # 서비스
     temp_upload_dir: str = Field("./tmp_uploads", alias="TEMP_UPLOAD_DIR")
+
+    # 청년정책 PDF/텍스트/URL 요약 (policy_summary)
+    policy_summary_json_path: str = Field(..., alias="POLICY_SUMMARY_JSON_PATH")
+    policy_summary_embed_model: str = Field("intfloat/multilingual-e5-large", alias="POLICY_SUMMARY_EMBED_MODEL")
+    policy_summary_embed_cache: str = Field("./policy_summary_embeddings_cache.npz", alias="POLICY_SUMMARY_EMBED_CACHE")
+    policy_summary_llm_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="POLICY_SUMMARY_LLM_MODEL_ID")
 
     class Config:
         env_file = ".env"
