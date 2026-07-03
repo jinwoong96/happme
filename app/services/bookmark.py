@@ -3,8 +3,9 @@ from fastapi import HTTPException, status
 from app.db.crud.bookmark import BookmarkCrud
 from app.db.crud.user import UserCrud
 from app.db.crud.policy import PolicyCrud
-from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate
+from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate, BookmarkCalendarItem
 from app.db.models.bookmark import Bookmark
+from app.db.models.policy import Policy
 
 
 class BookmarkService:
@@ -58,3 +59,27 @@ class BookmarkService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="즐겨찾기 삭제에 실패했습니다.")
+
+    @staticmethod
+    async def get_calendar_svc(db: AsyncSession, user_id: int) -> list[BookmarkCalendarItem]:
+        """즐겨찾기 캘린더는 미리 적재해둔 policy_schedule_event/policy_ai_tip과
+        policy.aplyYmd만 읽는다. LLM을 그 자리에서 호출하지 않으므로 지연이 없다."""
+        bookmarks = await BookmarkCrud.get_by_user_with_policy(db, user_id)
+
+        items = []
+        for bookmark in bookmarks:
+            policy = bookmark.policy
+            events = [
+                {"event_type": e.event_type, "event_date": e.event_date, "raw_text": e.raw_text}
+                for e in policy.schedule_events
+            ]
+            items.append(BookmarkCalendarItem(
+                bookmark_id=bookmark.bookmark_id,
+                policy_id=policy.policy_id,
+                plcyNm=policy.plcyNm,
+                sprvsnInstCdNm=policy.sprvsnInstCdNm,
+                aplyYmd=policy.aplyYmd,
+                events=events,
+                prep_tip=policy.ai_tip.tip if policy.ai_tip else None,
+            ))
+        return items

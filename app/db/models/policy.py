@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from .simulation_result import SimulationResult
     from .ocr_result import OcrResultMatch
     from .pdf_summary import PdfSummaryMatch
+    from .policy_schedule_event import PolicyScheduleEvent
+    from .policy_ai_tip import PolicyAiTip
 
 
 class Policy(Base):
@@ -32,6 +34,7 @@ class Policy(Base):
     bizPrdEndYmd:    Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)
     bizPrdEtcCn:     Mapped[Optional[str]]  = mapped_column(String(255), nullable=True)
     plcyAplyMthdCn:  Mapped[Optional[str]]  = mapped_column(Text, nullable=True)
+    srngMthdCn:      Mapped[Optional[str]]  = mapped_column(Text, nullable=True)
     aplyUrlAddr:     Mapped[Optional[str]]  = mapped_column(String(500), nullable=True)
     sbmsnDcmntCn:    Mapped[str]            = mapped_column(Text, nullable=False)
     aplyYmd:         Mapped[str]            = mapped_column(String(100), nullable=False)
@@ -60,3 +63,5 @@ class Policy(Base):
     simulation_results: Mapped[List["SimulationResult"]] = relationship("SimulationResult", back_populates="policy", cascade="all, delete-orphan")
     ocr_matches:        Mapped[List["OcrResultMatch"]]   = relationship("OcrResultMatch", back_populates="policy")
     pdf_matches:        Mapped[List["PdfSummaryMatch"]]  = relationship("PdfSummaryMatch", back_populates="policy")
+    schedule_events:    Mapped[List["PolicyScheduleEvent"]] = relationship("PolicyScheduleEvent", back_populates="policy", cascade="all, delete-orphan")
+    ai_tip:             Mapped[Optional["PolicyAiTip"]]   = relationship("PolicyAiTip", back_populates="policy", uselist=False, cascade="all, delete-orphan")

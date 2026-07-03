@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.db.models.bookmark import Bookmark
+from app.db.models.policy import Policy
 from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate
 
 
@@ -28,6 +30,18 @@ class BookmarkCrud:
     @staticmethod
     async def get_by_user(db: AsyncSession, user_id: int) -> list[Bookmark]:
         result = await db.execute(select(Bookmark).where(Bookmark.user_id == user_id))
+        return list(result.scalars().all())
+
+    @staticmethod
+    async def get_by_user_with_policy(db: AsyncSession, user_id: int) -> list[Bookmark]:
+        result = await db.execute(
+            select(Bookmark)
+            .options(
+                selectinload(Bookmark.policy).selectinload(Policy.schedule_events),
+                selectinload(Bookmark.policy).selectinload(Policy.ai_tip),
+            )
+            .where(Bookmark.user_id == user_id)
+        )
         return list(result.scalars().all())
 
     @staticmethod
