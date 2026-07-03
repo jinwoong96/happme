@@ -66,22 +66,30 @@ export default function useBookmark() {
     });
   }, [rawItems]);
 
-  // 날짜별( "YYYY-MM-DD" ) -> [{ color, policyId, label }]
+  // 날짜별( "YYYY-MM-DD" ) -> [{ color, policyId, policyName, label, rawText, dateStr }]
   const dotsByDate = useMemo(() => {
     const map = {};
-    const addDot = (date, color, policyId, label) => {
+    const addDot = (date, entry) => {
       if (!date) return;
       const key = dateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
       if (!map[key]) map[key] = [];
-      if (!map[key].some((d) => d.policyId === policyId)) {
-        map[key].push({ color, policyId, label });
+      if (!map[key].some((d) => d.policyId === entry.policyId && d.label === entry.label)) {
+        map[key].push(entry);
       }
     };
 
     items.forEach((item) => {
-      if (item.aplyEnd) addDot(item.aplyEnd, item.color, item.policy_id, '신청마감');
+      if (item.aplyEnd) {
+        addDot(item.aplyEnd, {
+          color: item.color, policyId: item.policy_id, policyName: item.plcyNm,
+          label: '신청마감', rawText: null, dateStr: item.aplyYmd,
+        });
+      }
       (item.events || []).forEach((e) => {
-        parseEventDate(e.event_date).forEach((d) => addDot(d, item.color, item.policy_id, e.event_type));
+        parseEventDate(e.event_date).forEach((d) => addDot(d, {
+          color: item.color, policyId: item.policy_id, policyName: item.plcyNm,
+          label: e.event_type, rawText: e.raw_text, dateStr: e.event_date,
+        }));
       });
     });
 

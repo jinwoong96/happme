@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Search, X, Sparkles } from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
+import Modal from '../../Components/Modal';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -21,8 +22,10 @@ export default function BookmarkPage() {
   const { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey } = useBookmark();
   const [searchOpen, setSearchOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
 
   const cells = buildCalendarCells(cursor.year, cursor.month);
+  const selectedDots = selectedDate ? (dotsByDate[selectedDate] || []) : [];
   const filteredItems = keyword.trim()
     ? items.filter((item) => item.plcyNm.includes(keyword.trim()))
     : items;
@@ -89,7 +92,15 @@ export default function BookmarkPage() {
                 && cursor.month === new Date().getMonth()
                 && day === new Date().getDate();
               return (
-                <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 0', minHeight: 40 }}>
+                <button
+                  key={key}
+                  onClick={() => dots.length > 0 && setSelectedDate(key)}
+                  disabled={dots.length === 0}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 0', minHeight: 40,
+                    background: 'transparent', border: 'none', cursor: dots.length > 0 ? 'pointer' : 'default',
+                  }}
+                >
                   {day && (
                     <>
                       <span
@@ -106,12 +117,12 @@ export default function BookmarkPage() {
                       </span>
                       <div style={{ display: 'flex', gap: 2, marginTop: 3, height: 5 }}>
                         {dots.slice(0, 3).map((d) => (
-                          <span key={d.policyId} style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: d.color }} />
+                          <span key={`${d.policyId}-${d.label}`} style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: d.color }} />
                         ))}
                       </div>
                     </>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -174,6 +185,30 @@ export default function BookmarkPage() {
           ))}
         </div>
       </div>
+
+      <Modal
+        isOpen={!!selectedDate}
+        onClose={() => setSelectedDate(null)}
+        title={selectedDate ? `${Number(selectedDate.split('-')[1])}월 ${Number(selectedDate.split('-')[2])}일 일정` : ''}
+      >
+        <div className="flex flex-col gap-3">
+          {selectedDots.map((d) => (
+            <div key={`${d.policyId}-${d.label}`} style={{ padding: '12px 14px', borderRadius: 14, backgroundColor: '#f8f9ff', borderLeft: `4px solid ${d.color}` }}>
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-bold text-gray-900">{d.policyName}</span>
+                <span
+                  className="text-[11px] font-bold"
+                  style={{ padding: '2px 8px', borderRadius: 999, backgroundColor: `${d.color}22`, color: d.color }}
+                >
+                  {d.label}
+                </span>
+              </div>
+              {d.rawText && <p className="mt-1.5 text-[12px] text-gray-500">"{d.rawText}"</p>}
+              {d.dateStr && <p className="mt-1 text-[11px] text-gray-400">{d.dateStr}</p>}
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }
