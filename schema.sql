@@ -113,6 +113,7 @@ CREATE TABLE policy (
     bizPrdEndYmd    VARCHAR(20),
     bizPrdEtcCn     VARCHAR(255),
     plcyAplyMthdCn  TEXT,
+    srngMthdCn      TEXT,
     aplyUrlAddr     VARCHAR(500),
     sbmsnDcmntCn    TEXT         NOT NULL,
     aplyYmd         VARCHAR(100) NOT NULL,
@@ -137,6 +138,24 @@ CREATE TABLE policy (
 );
 
 CREATE INDEX idx_policy_age ON policy (sprtTrgtMinAge, sprtTrgtMaxAge);
+
+CREATE TABLE policy_schedule_event (
+    event_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+    policy_id  BIGINT      NOT NULL,
+    event_type VARCHAR(20) NOT NULL,
+    event_date VARCHAR(50) NOT NULL,
+    raw_text   TEXT        NOT NULL,
+    created_at DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
+    UNIQUE (policy_id, event_type, event_date)
+);
+
+CREATE TABLE policy_ai_tip (
+    policy_id    BIGINT PRIMARY KEY,
+    tip          TEXT     NOT NULL,
+    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+);
 
 CREATE TABLE policy_region (
     policy_id BIGINT      NOT NULL,

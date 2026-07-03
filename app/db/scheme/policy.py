@@ -19,6 +19,7 @@ class PolicyCreate(BaseModel):
     bizPrdEndYmd: Optional[str] = None
     bizPrdEtcCn: Optional[str] = None
     plcyAplyMthdCn: Optional[str] = None
+    srngMthdCn: Optional[str] = None
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: str
     aplyYmd: str
@@ -54,6 +55,7 @@ class PolicyUpdate(BaseModel):
     bizPrdEndYmd: Optional[str] = None
     bizPrdEtcCn: Optional[str] = None
     plcyAplyMthdCn: Optional[str] = None
+    srngMthdCn: Optional[str] = None
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: Optional[str] = None
     aplyYmd: Optional[str] = None
@@ -98,6 +100,7 @@ class PolicyRead(BaseModel):
     bizPrdEndYmd: Optional[str] = None
     bizPrdEtcCn: Optional[str] = None
     plcyAplyMthdCn: Optional[str] = None
+    srngMthdCn: Optional[str] = None
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: str
     aplyYmd: str

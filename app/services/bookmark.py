@@ -1,10 +1,14 @@
+import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from app.core.settings import settings
 from app.db.crud.bookmark import BookmarkCrud
 from app.db.crud.user import UserCrud
 from app.db.crud.policy import PolicyCrud
-from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate
+from app.db.crud.policy_schedule_event import PolicyScheduleEventCrud
+from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate, BookmarkCalendarItem
 from app.db.models.bookmark import Bookmark
+from app.db.models.policy import Policy
 
 
 class BookmarkService:
@@ -58,3 +62,68 @@ class BookmarkService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="즐겨찾기 삭제에 실패했습니다.")
+
+    @staticmethod
+    async def _ensure_schedule(db: AsyncSession, policy: Policy) -> tuple[list[dict], str | None]:
+        """정책의 일정/팁이 DB에 없으면 bene_ai를 호출해서 추출하고 저장한다.
+        bene_ai가 꺼져있거나 실패해도 예외를 삼키고 빈 결과로 degrade 한다.
+        반환값은 항상 {event_type, event_date, raw_text} 형태의 dict 리스트로 정규화한다."""
+        if policy.schedule_events or policy.ai_tip:
+            events_read = [
+                {"event_type": e.event_type, "event_date": e.event_date, "raw_text": e.raw_text}
+                for e in policy.schedule_events
+            ]
+            return events_read, (policy.ai_tip.tip if policy.ai_tip else None)
+
+        payload = {
+            "plcyNm": policy.plcyNm,
+            "plcyExplnCn": policy.plcyExplnCn or "",
+            "plcyAplyMthdCn": policy.plcyAplyMthdCn or "",
+            "srngMthdCn": policy.srngMthdCn or "",
+            "aplyYmd": policy.aplyYmd or "",
+            "frstRegDt": policy.frstRegDt.isoformat() if policy.frstRegDt else "",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(f"{settings.ai_service_url}/schedule/extract", json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+        except Exception:
+            return [], None
+
+        raw_events = data.get("events") or []
+        prep_tip = data.get("prep_tip")
+        events_read = [
+            {"event_type": e["type"], "event_date": e["date"], "raw_text": e["raw_text"]}
+            for e in raw_events
+        ]
+
+        try:
+            if raw_events:
+                await PolicyScheduleEventCrud.bulk_create(db, policy.policy_id, raw_events)
+            if prep_tip:
+                await PolicyScheduleEventCrud.create_tip(db, policy.policy_id, prep_tip)
+            await db.commit()
+        except Exception:
+            await db.rollback()
+
+        return events_read, prep_tip
+
+    @staticmethod
+    async def get_calendar_svc(db: AsyncSession, user_id: int) -> list[BookmarkCalendarItem]:
+        bookmarks = await BookmarkCrud.get_by_user_with_policy(db, user_id)
+
+        items = []
+        for bookmark in bookmarks:
+            policy = bookmark.policy
+            events, prep_tip = await BookmarkService._ensure_schedule(db, policy)
+            items.append(BookmarkCalendarItem(
+                bookmark_id=bookmark.bookmark_id,
+                policy_id=policy.policy_id,
+                plcyNm=policy.plcyNm,
+                sprvsnInstCdNm=policy.sprvsnInstCdNm,
+                aplyYmd=policy.aplyYmd,
+                events=events,
+                prep_tip=prep_tip,
+            ))
+        return items
