@@ -45,6 +45,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:5174",
         "http://localhost:4173",
+        "http://localhost:5173",
+        "http://d26uutajlu47ap.cloudfront.net", 
     ],
     allow_origin_regex=r"https://.*\.ngrok-free\.app",
     allow_credentials=True,
