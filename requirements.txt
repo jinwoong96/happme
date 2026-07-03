@@ -3,6 +3,9 @@ uvicorn[standard]
 python-multipart
 python-dotenv
 pydantic-settings
+PyMySQL
+cryptography
+boto3
 
 torch
 torchvision
