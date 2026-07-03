@@ -23,8 +23,6 @@ class Settings(BaseSettings):
     smtp_from: str = Field("", alias="SMTP_FROM")
     email_code_expire_seconds: int = Field(300, alias="EMAIL_CODE_EXPIRE")
 
-    ai_service_url: str = Field("http://localhost:8090", alias="AI_SERVICE_URL")
-
     class Config:
         env_file = ".env"
         case_sensitive = True
