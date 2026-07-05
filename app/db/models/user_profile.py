@@ -36,6 +36,7 @@ class UserProfile(Base):
     startup_interest:       Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     business_owner:         Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     startup_status:         Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
+    company_type:           Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     situation:              Mapped[Optional[str]]   = mapped_column(Text, nullable=True)
     housing_status:         Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     reason:                 Mapped[Optional[str]]   = mapped_column(Text, nullable=True)

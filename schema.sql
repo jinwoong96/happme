@@ -89,6 +89,7 @@ CREATE TABLE user_profile (
     startup_interest       BOOLEAN      DEFAULT FALSE,
     business_owner         BOOLEAN      DEFAULT FALSE,
     startup_status         VARCHAR(50),
+    company_type           VARCHAR(50),
     situation              TEXT,
     housing_status         VARCHAR(50),
     reason                 TEXT,

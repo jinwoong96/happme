@@ -20,6 +20,7 @@ from app.routers.simulation_result import router as simulation_router
 from app.routers.ocr_result import router as ocr_router
 from app.routers.pdf_summary import router as pdf_router
 from app.routers.code_master import router as code_router
+from app.routers.recommendation import router as recommendation_router
 
 load_dotenv(dotenv_path=".env")
 
@@ -64,6 +65,7 @@ app.include_router(simulation_router)
 app.include_router(ocr_router)
 app.include_router(pdf_router)
 app.include_router(code_router)
+app.include_router(recommendation_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8082, reload=True,

@@ -29,6 +29,7 @@ class UserProfileCreate(BaseModel):
     startup_interest: bool = False
     business_owner: bool = False
     startup_status: Optional[str] = None
+    company_type: Optional[str] = None
     situation: Optional[str] = None
     housing_status: Optional[str] = None
     reason: Optional[str] = None
@@ -59,6 +60,7 @@ class UserProfileUpdate(BaseModel):
     startup_interest: Optional[bool] = None
     business_owner: Optional[bool] = None
     startup_status: Optional[str] = None
+    company_type: Optional[str] = None
     situation: Optional[str] = None
     housing_status: Optional[str] = None
     reason: Optional[str] = None
@@ -90,6 +92,7 @@ class UserProfileRead(BaseModel):
     startup_interest: bool = False
     business_owner: bool = False
     startup_status: Optional[str] = None
+    company_type: Optional[str] = None
     situation: Optional[str] = None
     housing_status: Optional[str] = None
     reason: Optional[str] = None
