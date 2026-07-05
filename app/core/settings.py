@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     policy_embedding_cache: str = Field("./policy_embeddings.npy", alias="POLICY_EMBEDDING_CACHE")
     top_k: int = Field(3, alias="TOP_K")
 
+    # 맞춤형 정책 추천 (rule engine)
+    zipcd_mapping_path: str = Field("./data/zipcd_mapping.csv", alias="ZIPCD_MAPPING_PATH")
+
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
     ocr_min_score: float = Field(0.5, alias="OCR_MIN_SCORE")

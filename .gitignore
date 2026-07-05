@@ -1,3 +1,6 @@
 .env
 __pycache__
 .vscode
+data
+models
+policy_embeddings.npy
