@@ -184,21 +184,6 @@ export default function RecommendationProfilePage() {
             <Textarea value={form.career_history} onChange={set('career_history')} placeholder="주요 경력을 입력해주세요" />
           </Field>
 
-          <p style={sectionTitleStyle}>소득/자산 정보</p>
-
-          <Field label="월 소득 (원)">
-            <TextInput type="number" value={form.monthly_income} onChange={set('monthly_income')} placeholder="예: 2000000" />
-          </Field>
-          <Field label="기준 중위소득 비율 (%)">
-            <TextInput type="number" value={form.household_income_ratio} onChange={set('household_income_ratio')} placeholder="예: 120" />
-          </Field>
-          <Field label="가구원 수">
-            <TextInput type="number" value={form.household_size} onChange={set('household_size')} placeholder="예: 3" />
-          </Field>
-          <Field label="재산 (원)">
-            <TextInput type="number" value={form.assets} onChange={set('assets')} placeholder="예: 50000000" />
-          </Field>
-
           <p style={sectionTitleStyle}>혼인/특수 상태</p>
 
           <Field label="혼인상태">
