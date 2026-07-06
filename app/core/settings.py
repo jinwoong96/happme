@@ -23,6 +23,9 @@ class Settings(BaseSettings):
 
     crop_padding: float = Field(0.05, alias="CROP_PADDING")
 
+    # 정책 파일 경로(임시)
+    policy_json_path: str = Field("./data/ontongAPI.json", alias="POLICY_JSON_PATH")
+
     # 정책 검색 (Sentence-BERT)
     # 정책 데이터는 bene_backend와 동일한 RDS MySQL(policy 테이블)에서 읽어옵니다.
     db_host: str = Field(..., alias="DB_HOST")
