@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     smtp_from: str = Field("", alias="SMTP_FROM")
     email_code_expire_seconds: int = Field(300, alias="EMAIL_CODE_EXPIRE")
 
+    # Google OAuth
+    google_client_id: str = Field("", alias="GOOGLE_CLIENT_ID")
+    google_client_secret: str = Field("", alias="GOOGLE_CLIENT_SECRET")
+    google_redirect_uri: str = Field("http://localhost:8082/auth/google/callback", alias="GOOGLE_REDIRECT_URI")
+
     # AI 분석 마이크로서비스 (bene_ai) — ECS 태스크 정의에 이미 등록된 이름과 통일
     ai_service_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")
 
