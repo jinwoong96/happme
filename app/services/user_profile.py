@@ -55,6 +55,25 @@ class UserProfileService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="프로필 수정에 실패했습니다.")
 
     @staticmethod
+    async def upsert_profile_svc(db: AsyncSession, user_id: int, data: UserProfileUpdate) -> UserProfile:
+        await UserProfileService._require_user(db, user_id)
+        profile = await UserProfileCrud.get_profile(db, user_id)
+        try:
+            if profile:
+                updated = await UserProfileCrud.update_profile(db, profile, data)
+            else:
+                create_data = UserProfileCreate(user_id=user_id, **data.model_dump(exclude_unset=True))
+                updated = await UserProfileCrud.create_profile(db, create_data)
+                user = await UserCrud.get_user(db, user_id)
+                user.profile_completed = True
+            await db.commit()
+            await db.refresh(updated)
+            return updated
+        except Exception:
+            await db.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="프로필 저장에 실패했습니다.")
+
+    @staticmethod
     async def delete_profile_svc(db: AsyncSession, user_id: int) -> dict:
         profile = await UserProfileCrud.get_profile(db, user_id)
         if not profile:

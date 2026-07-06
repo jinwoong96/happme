@@ -33,6 +33,12 @@ async def update_my_profile(data: UserProfileUpdate, db: AsyncSession = Depends(
     return await profile_svc.update_profile_svc(db, current_user.user_id, data)
 
 
+# 생성 또는 수정 - 내 프로필 (있으면 수정, 없으면 생성)
+@router.put("/me", response_model=UserProfileRead)
+async def upsert_my_profile(data: UserProfileUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return await profile_svc.upsert_profile_svc(db, current_user.user_id, data)
+
+
 # U 수정 - user_id로
 @router.patch("/{user_id}", response_model=UserProfileRead)
 async def update_profile(user_id: int, data: UserProfileUpdate, db: AsyncSession = Depends(get_db)):
