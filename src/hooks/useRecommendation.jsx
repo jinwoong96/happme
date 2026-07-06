@@ -1,24 +1,50 @@
 import { useState } from 'react';
+import { api } from '../utils/api';
 
 export default function useRecommendation() {
   const [scenario, setScenario] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [policyLoading, setPolicyLoading] = useState(false);
 
   const handleAnalyze = async () => {
     if (!scenario.trim()) return;
     setLoading(true);
+    setError('');
     try {
-      // 임시: 백엔드 AI 연결 전 mock 결과
-      await new Promise((r) => setTimeout(r, 1500));
-      setResults([
-        { id: 1, title: '청년 내일저축계좌', reason: '독립 거주 + SW 교육 중인 청년에게 적합', amount: '최대 1,440만원' },
-        { id: 2, title: 'K-디지털 트레이닝', reason: 'IT 취업 준비 중인 청년 대상', amount: '최대 200만원' },
-      ]);
+      const data = await api.post('/recommendations/chat', { chat: scenario });
+      setResults({
+        available: data?.available_policies || [],
+        unavailable: data?.unavailable_policies || [],
+      });
+    } catch (err) {
+      setError(err.message || 'AI 분석에 실패했습니다.');
+      setResults(null);
     } finally {
       setLoading(false);
     }
   };
 
-  return { scenario, setScenario, results, loading, handleAnalyze };
+  const openPolicy = async (policyId, fallbackName, fallbackBookmarked) => {
+    setSelectedPolicy({ policy_id: policyId, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked });
+    setPolicyLoading(true);
+    try {
+      const data = await api.get(`/policies/${policyId}`);
+      setSelectedPolicy({ ...data, is_bookmarked: fallbackBookmarked });
+    } catch (err) {
+      setSelectedPolicy({ policy_id: policyId, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked, error: err.message || '정책 정보를 불러오지 못했습니다.' });
+    } finally {
+      setPolicyLoading(false);
+    }
+  };
+
+  const closePolicy = () => setSelectedPolicy(null);
+
+  return {
+    scenario, setScenario, results, loading, error, handleAnalyze,
+    selectedPolicy, policyLoading, openPolicy, closePolicy,
+  };
 }

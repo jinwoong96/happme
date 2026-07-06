@@ -4,6 +4,7 @@ import LoginPage from './Pages/Login';
 import HomePage from './Pages/Home';
 import CategoryPage from './Pages/Category';
 import RecommendationPage from './Pages/Recommendation';
+import RecommendationProfilePage from './Pages/Recommendation/Profile';
 import OCRPage from './Pages/OCR';
 import SummaryPage from './Pages/Summary';
 import NotificationPage from './Pages/Notification';
@@ -46,6 +47,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <Layout><CategoryPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/recommendation/profile"
+          element={
+            <PrivateRoute>
+              <RecommendationProfilePage />
             </PrivateRoute>
           }
         />
