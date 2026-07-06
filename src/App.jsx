@@ -10,11 +10,14 @@ import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
 import MypagePage from './Pages/Mypage';
 import SignupPage from './Pages/Signup';
-import BookmarkPage from './Pages/Bookmark';
+import useAuth from './hooks/useAuth';
 
 function PrivateRoute({ children }) {
-  const isAuthed = localStorage.getItem('isAuthed') === 'true';
-  return isAuthed ? children : <Navigate to="/login" replace />;
+  const { status } = useAuth();
+
+  if (status === 'loading') return null;
+  if (status === 'unauthed') return <Navigate to="/login" replace />;
+  return children;
 }
 
 function Layout({ children }) {
@@ -79,14 +82,6 @@ export default function App() {
           element={
             <PrivateRoute>
               <NotificationPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/bookmark"
-          element={
-            <PrivateRoute>
-              <Layout><BookmarkPage /></Layout>
             </PrivateRoute>
           }
         />
