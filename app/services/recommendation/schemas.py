@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ class UserProfileIn(BaseModel):
     """backend의 UserProfileRead와 필드 구조를 맞춘 사용자 프로필 입력 스키마."""
 
     user_id: int
+    birth_date: Optional[date] = None
     age: Optional[int] = None
     gender: Optional[str] = None
     region: Optional[str] = None
@@ -21,10 +22,6 @@ class UserProfileIn(BaseModel):
     occupation: Optional[str] = None
     job_seeking: bool = False
     career_history: Optional[str] = None
-    monthly_income: Optional[int] = None
-    household_income_ratio: Optional[int] = None
-    household_size: Optional[int] = None
-    assets: Optional[int] = None
     marital_status: Optional[str] = None
     disability: bool = False
     veteran: bool = False

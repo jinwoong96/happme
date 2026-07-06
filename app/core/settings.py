@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     # 맞춤형 정책 추천 (rule engine)
     zipcd_mapping_path: str = Field("./data/zipcd_mapping.csv", alias="ZIPCD_MAPPING_PATH")
 
+    # 채팅 기반 정책 유사도 검색
+    similarity_model_name: str = Field("BAAI/bge-m3", alias="SIMILARITY_MODEL_NAME")
+    similarity_embeddings_path: str = Field(
+        "./data/embeddings/search_docs_full_text_embeddings.npy", alias="SIMILARITY_EMBEDDINGS_PATH"
+    )
+    similarity_docs_path: str = Field("./data/policy_search_docs.json", alias="SIMILARITY_DOCS_PATH")
+
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
     ocr_min_score: float = Field(0.5, alias="OCR_MIN_SCORE")
