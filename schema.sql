@@ -65,8 +65,8 @@ CREATE TABLE email_verification (
 
 CREATE TABLE user_profile (
     user_id                BIGINT       PRIMARY KEY,
-    age                    INT,
-    gender                 VARCHAR(10),
+    birth_date             DATE,          -- age는 저장하지 않고 조회 시 계산
+    gender                 VARCHAR(10),   -- AI rule engine 라벨값(남/여), code_master 아님
     region                 VARCHAR(50),
     district               VARCHAR(50),
     education              VARCHAR(50),
@@ -74,15 +74,11 @@ CREATE TABLE user_profile (
     major                  VARCHAR(100),
     student_status         VARCHAR(50),
     graduation_year        INT,
-    employment_status      VARCHAR(50),
+    employment_status      VARCHAR(50),   -- AI rule engine 라벨값(code_mapping.py JOB_MAP), code_master 아님
     occupation             VARCHAR(50),
     job_seeking            BOOLEAN      DEFAULT FALSE,
     career_history         TEXT,
-    monthly_income         BIGINT,
-    household_income_ratio INT,
-    household_size         INT,
-    assets                 BIGINT,
-    marital_status         VARCHAR(20),
+    marital_status         VARCHAR(20),   -- AI rule engine 라벨값(code_mapping.py MARRIAGE_MAP), code_master 아님
     disability             BOOLEAN      DEFAULT FALSE,
     veteran                BOOLEAN      DEFAULT FALSE,
     military_status        VARCHAR(20),

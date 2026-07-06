@@ -7,12 +7,17 @@ class AiClient:
 
     @staticmethod
     async def recommend(user_profile: dict) -> dict:
+        return await AiClient._post("/recommendations/", {"user_profile": user_profile})
+
+    @staticmethod
+    async def recommend_chat(user_profile: dict, chat: str) -> list[dict]:
+        return await AiClient._post("/recommendations/chat", {"user_profile": user_profile, "chat": chat})
+
+    @staticmethod
+    async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
-                response = await client.post(
-                    "/recommendations/",
-                    json={"user_profile": user_profile},
-                )
+                response = await client.post(path, json=payload)
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPStatusError:
