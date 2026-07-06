@@ -4,3 +4,6 @@ models/*.pth
 models/*.pt
 tmp_uploads/
 .vscode
+data
+models
+policy_embeddings.npy
