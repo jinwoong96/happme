@@ -45,10 +45,6 @@ class UserProfileUpdate(BaseModel):
     occupation: Optional[str] = None
     job_seeking: Optional[bool] = None
     career_history: Optional[str] = None
-    monthly_income: Optional[int] = None
-    household_income_ratio: Optional[int] = None
-    household_size: Optional[int] = None
-    assets: Optional[int] = None
     marital_status: Optional[str] = None
     disability: Optional[bool] = None
     veteran: Optional[bool] = None
@@ -77,10 +73,6 @@ class UserProfileRead(BaseModel):
     occupation: Optional[str] = None
     job_seeking: bool = False
     career_history: Optional[str] = None
-    monthly_income: Optional[int] = None
-    household_income_ratio: Optional[int] = None
-    household_size: Optional[int] = None
-    assets: Optional[int] = None
     marital_status: Optional[str] = None
     disability: bool = False
     veteran: bool = False
