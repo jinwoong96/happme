@@ -11,10 +11,18 @@ export default function useHome() {
   const [benefits, setBenefits] = useState([]);
   const [featured, setFeatured] = useState(null);
   const [loading, setLoading] = useState(true);
-  const userName = localStorage.getItem('username') || '홍길동';
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     let ignore = false;
+
+    api.get('/users/me')
+      .then((data) => {
+        if (!ignore) setUserName(data.name || '사용자');
+      })
+      .catch(() => {
+        if (!ignore) setUserName(localStorage.getItem('username') || '사용자');
+      });
 
     api.get('/policies/?limit=3')
       .then((data) => {

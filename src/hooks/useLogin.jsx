@@ -38,7 +38,7 @@ export default function useLogin() {
       });
       localStorage.setItem('isAuthed', 'true');
       if (data?.user?.name) {
-        localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('username', data.user.name);
       }
       navigate('/');
     } catch (err) {
