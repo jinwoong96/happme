@@ -11,7 +11,7 @@ export default function useHome() {
   const [benefits, setBenefits] = useState([]);
   const [featured, setFeatured] = useState(null);
   const [loading, setLoading] = useState(true);
-  const userName = localStorage.getItem('userName') || '홍길동';
+  const userName = localStorage.getItem('username') || '홍길동';
 
   useEffect(() => {
     let ignore = false;

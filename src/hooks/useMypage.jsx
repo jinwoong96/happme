@@ -8,7 +8,7 @@ export default function useMypage() {
   useEffect(() => {
     // 임시: 백엔드 연결 전 mock
     setUser({
-      name: localStorage.getItem('userName') || '홍길동',
+      name: localStorage.getItem('username') || '홍길동',
       email: 'user@example.com',
       bookmarkCount: 3,
     });

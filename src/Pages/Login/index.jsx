@@ -2,7 +2,7 @@ import useLogin from '../../hooks/useLogin';
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
-  const { form, loading, error, handleChange, handleLogin } = useLogin();
+  const { form, loading, error, handleChange, handleLogin, handleGoogleLogin } = useLogin();
   const navigate = useNavigate();
 
   return (
@@ -86,12 +86,13 @@ export default function LoginPage() {
 
       <div className="flex gap-4 mt-4">
         {[
-          { label: 'K', bg: '#FEE500', color: '#3C1E1E' },
-          { label: 'N', bg: '#03C75A', color: '#fff' },
-          { label: 'G', bg: '#fff',    color: '#555', border: '1px solid #e5e7eb' },
-        ].map(({ label, bg, color, border }) => (
+          { label: 'K', bg: '#FEE500', color: '#3C1E1E', onClick: undefined },
+          { label: 'N', bg: '#03C75A', color: '#fff', onClick: undefined },
+          { label: 'G', bg: '#fff',    color: '#555', border: '1px solid #e5e7eb', onClick: handleGoogleLogin },
+        ].map(({ label, bg, color, border, onClick }) => (
           <button
             key={label}
+            onClick={onClick}
             style={{
               width: 48, height: 48, borderRadius: '50%',
               backgroundColor: bg, color, border: border || 'none',

@@ -48,5 +48,9 @@ export default function useLogin() {
     }
   };
 
-  return { form, loading, error, handleChange, handleLogin };
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:8082/auth/google/login';
+  };
+
+  return { form, loading, error, handleChange, handleLogin, handleGoogleLogin };
 }
