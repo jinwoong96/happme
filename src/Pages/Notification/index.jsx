@@ -3,7 +3,7 @@ import { ChevronLeft, Search } from 'lucide-react';
 import useNotification from '../../hooks/useNotification';
 
 export default function NotificationPage() {
-  const { filtered, search, setSearch, toggle } = useNotification();
+  const { filtered, search, setSearch, toggle, loading, isEmpty } = useNotification();
   const navigate = useNavigate();
 
   return (
@@ -30,7 +30,11 @@ export default function NotificationPage() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#fff' }}>
-        {filtered.length === 0
+        {loading
+          ? <div className="text-center py-10 text-[13px] text-gray-400">불러오는 중...</div>
+          : isEmpty
+          ? <div className="text-center py-10 text-[13px] text-gray-400">즐겨찾기한 지원금이 없어요. 전체보기에서 관심있는 정책을 즐겨찾기 해보세요.</div>
+          : filtered.length === 0
           ? <div className="text-center py-10 text-[13px] text-gray-400">검색 결과가 없습니다.</div>
           : filtered.map((item, i) => (
             <div key={item.id} style={{
@@ -40,7 +44,7 @@ export default function NotificationPage() {
             }}>
               <div style={{ flex: 1, marginRight: 12 }}>
                 <p className="text-[14px] font-semibold text-gray-900">{item.title}</p>
-                <p className="mt-0.5 text-[12px] text-gray-400">{item.org} · 마감 {item.deadline}</p>
+                <p className="mt-0.5 text-[12px] text-gray-400">{item.org ? `${item.org} · ` : ''}마감 {item.deadline}</p>
               </div>
               <button onClick={() => toggle(item.id)}
                 style={{
