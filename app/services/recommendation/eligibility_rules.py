@@ -85,6 +85,11 @@ class PolicyEligibilityEngine:
         0057003 = 마감
         0057002 = 상시
         0057001 = 특정기간
+
+        policy_value["status"]로 실패 사유를 구분합니다(추천 결과 탭 분류에 사용):
+        - CLOSED_CODE: 원본 API가 명시적으로 마감 코드(0057003)를 준 경우
+        - NOT_STARTED / ENDED: 날짜 계산으로 판단한 신청 전/신청기간 종료
+        - OPEN / OPEN_ALWAYS / OPEN_UNKNOWN: 신청 가능(또는 판단 불가로 통과)
         """
         today = datetime.today().date()
 
@@ -98,9 +103,11 @@ class PolicyEligibilityEngine:
         }
 
         if period_code == "0057003":
+            policy_value["status"] = "CLOSED_CODE"
             return make_result(False, "신청기간이 마감된 정책", str(today), policy_value)
 
         if period_code == "0057002":
+            policy_value["status"] = "OPEN_ALWAYS"
             return make_result(True, "상시 신청 가능 정책", str(today), policy_value)
 
         start_date, end_date = self._parse_apply_period(period_text)
@@ -110,6 +117,7 @@ class PolicyEligibilityEngine:
             policy_value["end_date"] = str(end_date)
 
             if today < start_date:
+                policy_value["status"] = "NOT_STARTED"
                 return make_result(
                     False,
                     f"신청 시작 전 정책입니다. 신청 시작일은 {start_date}입니다.",
@@ -118,6 +126,7 @@ class PolicyEligibilityEngine:
                 )
 
             if today > end_date:
+                policy_value["status"] = "ENDED"
                 return make_result(
                     False,
                     f"신청기간이 종료된 정책입니다. 신청 종료일은 {end_date}입니다.",
@@ -125,9 +134,11 @@ class PolicyEligibilityEngine:
                     policy_value,
                 )
 
+            policy_value["status"] = "OPEN"
             return make_result(True, "현재 신청기간 내에 있는 정책", str(today), policy_value)
 
         if period_code == "0057001":
+            policy_value["status"] = "OPEN_UNKNOWN"
             return make_result(
                 True,
                 "특정기간 정책이지만 신청기간 문자열을 해석하지 못해 통과",
@@ -135,6 +146,7 @@ class PolicyEligibilityEngine:
                 policy_value,
             )
 
+        policy_value["status"] = "OPEN_UNKNOWN"
         return make_result(True, "신청기간 조건 판단 정보 없음", str(today), policy_value)
 
     @staticmethod

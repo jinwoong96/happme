@@ -169,9 +169,7 @@ class RegionMatcher:
         for zip_code in policy_zip_list:
             row = self.zipcd_df[self.zipcd_df["시군구코드"] == zip_code]
             if not row.empty:
-                sido = row.iloc[0].get("시도명", "")
-                sigungu = row.iloc[0].get("시군구명", "")
-                region_names.append(f"{sido} {sigungu}".strip())
+                region_names.append(str(row.iloc[0].get("지역명", "")).strip())
 
         return {
             "type": "일부지역",

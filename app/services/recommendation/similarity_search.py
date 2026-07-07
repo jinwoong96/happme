@@ -19,7 +19,8 @@ class PolicySimilarityService:
         self.embeddings = np.load(settings.similarity_embeddings_path)
         self.policy_docs = self._load_json(settings.similarity_docs_path)
 
-        self._policy_index_by_id = {
+        # policy_search_docs.json의 자체 필드명은 "policy_id"이지만 실제 값은 plcyNo입니다.
+        self._plcyno_index = {
             str(doc.get("policy_id")): idx for idx, doc in enumerate(self.policy_docs)
         }
 
@@ -34,16 +35,16 @@ class PolicySimilarityService:
     def search(self, query_text: str, candidate_policies: list[dict], top_k: int = 5) -> list[dict]:
         """
         query_text: 사용자 채팅
-        candidate_policies: rule engine을 통과한 정책 dict 목록 (policy_id == plcyNo)
-        반환: 유사도 상위 top_k개의 {policy_id, policy_name, policy_summary}
+        candidate_policies: rule engine을 통과한 정책 dict 목록 (plcyNo 키 사용)
+        반환: 유사도 상위 top_k개의 {plcyNo, policy_name, policy_summary}
               (policy_name/policy_summary는 policy_search_docs.json 기준)
         """
-        candidate_ids = {str(p.get("policy_id")) for p in candidate_policies}
+        candidate_plcynos = {str(p.get("plcyNo")) for p in candidate_policies}
 
         candidate_indices = [
-            self._policy_index_by_id[policy_id]
-            for policy_id in candidate_ids
-            if policy_id in self._policy_index_by_id
+            self._plcyno_index[plcyno]
+            for plcyno in candidate_plcynos
+            if plcyno in self._plcyno_index
         ]
         if not candidate_indices:
             return []
@@ -55,7 +56,7 @@ class PolicySimilarityService:
 
         return [
             {
-                "policy_id": self.policy_docs[idx].get("policy_id"),
+                "plcyNo": self.policy_docs[idx].get("policy_id"),
                 "policy_name": self.policy_docs[idx].get("policy_name"),
                 "policy_summary": self.policy_docs[idx].get("summary"),
             }
