@@ -1,3 +1,7 @@
+import os
+import httpx
+from sqlalchemy import select
+from app.db.models.policy import Policy
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.db.crud.pdf_summary import PdfSummaryCrud
@@ -5,6 +9,7 @@ from app.db.crud.user import UserCrud
 from app.db.scheme.pdf_summary import PdfSummaryCreate, PdfMatchCreate
 from app.db.models.pdf_summary import PdfSummary, PdfSummaryMatch
 
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8090")
 
 class PdfSummaryService:
 
@@ -57,3 +62,82 @@ class PdfSummaryService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF 요약 삭제에 실패했습니다.")
+    # ---------- 여기부터 AI 연동 추가분 (ai_client.py 없이 직접 호출) ----------
+
+    @staticmethod
+    async def _find_policy_id(db: AsyncSession, policy_name: str) -> int | None:
+        result = await db.execute(select(Policy.policy_id).where(Policy.plcyNm == policy_name))
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def _save_ai_result_svc(db: AsyncSession, user_id: int, ai_result: dict) -> dict:
+        results = ai_result.get("results", [])
+        matched = [r for r in results if r.get("matched") and r.get("summary")]
+
+        if not matched:
+            return {"ai_result": ai_result, "saved": None}
+
+        summary_text = ai_result.get("comparison") or matched[0]["summary"]
+
+        pdf = await PdfSummaryService.create_pdf_svc(
+            db, PdfSummaryCreate(user_id=user_id, summary_text=summary_text)
+        )
+
+        saved_count = 0
+        for r in matched:
+            policy_id = await PdfSummaryService._find_policy_id(db, r["policy_name"])
+            if policy_id is None:
+                continue
+            await PdfSummaryService.add_match_svc(
+                db, PdfMatchCreate(pdf_id=pdf.pdf_id, policy_id=policy_id, match_type=r.get("method"))
+            )
+            saved_count += 1
+
+        return {"ai_result": ai_result, "saved": {"pdf_id": pdf.pdf_id, "matches": saved_count}}
+
+    @staticmethod
+    async def analyze_pdf_svc(db: AsyncSession, user_id: int, files: list[tuple[str, bytes]]) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                multipart = [("files", (filename, content, "application/pdf")) for filename, content in files]
+                resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/pdf", files=multipart)
+                resp.raise_for_status()
+                ai_result = resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+        return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
+
+    @staticmethod
+    async def analyze_text_svc(db: AsyncSession, user_id: int, text: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/text", json={"text": text})
+                resp.raise_for_status()
+                ai_result = resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+        return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
+
+    @staticmethod
+    async def analyze_url_svc(db: AsyncSession, user_id: int, url: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/url", json={"url": url})
+                resp.raise_for_status()
+                ai_result = resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+        return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
+
+    @staticmethod
+    async def ask_svc(policy_name: str, question: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    f"{AI_SERVICE_URL}/policy-summary/ask",
+                    json={"policy_name": policy_name, "question": question},
+                )
+                resp.raise_for_status()
+                return resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
