@@ -1,8 +1,16 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Sparkles, Bot, Bookmark, ExternalLink } from 'lucide-react';
 import useRecommendation from '../../hooks/useRecommendation';
 import useBookmarks from '../../hooks/useBookmarks';
 import Modal from '../../Components/Modal';
+
+const TABS = [
+  { key: 'available', label: '조건 만족', empty: '조건에 맞는 정책을 찾지 못했어요.' },
+  { key: 'closed', label: '신청 마감', empty: '신청이 마감된 정책이 없어요.' },
+  { key: 'expired', label: '신청기간 종료', empty: '신청기간이 종료된 정책이 없어요.' },
+  { key: 'unavailable', label: '조건 불만족', empty: '조건이 맞지 않는 정책이 없어요.' },
+];
 
 function PolicyCard({ policy, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, children }) {
   return (
@@ -14,9 +22,9 @@ function PolicyCard({ policy, onOpen, isBookmarked, onToggleBookmark, bookmarkDi
         <p className="text-[15px] font-bold text-gray-900">{policy.policy_name}</p>
         <button
           onClick={(e) => { e.stopPropagation(); onToggleBookmark(policy.policy_id); }}
-          disabled={bookmarkDisabled}
+          disabled={bookmarkDisabled || policy.policy_id == null}
           className="bg-transparent border-none p-0.5 shrink-0"
-          style={{ cursor: bookmarkDisabled ? 'default' : 'pointer' }}
+          style={{ cursor: bookmarkDisabled || policy.policy_id == null ? 'default' : 'pointer' }}
         >
           <Bookmark size={18} color={isBookmarked ? '#3b82f6' : '#ccc'} fill={isBookmarked ? '#3b82f6' : 'none'} />
         </button>
@@ -35,6 +43,7 @@ export default function RecommendationPage() {
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
   const can = !loading && scenario.trim();
+  const [activeTab, setActiveTab] = useState('available');
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -103,46 +112,51 @@ export default function RecommendationPage() {
         {results && (
           <div style={{ marginTop: 24 }}>
             <p className="mb-3 text-[16px] font-bold text-gray-900">추천 결과</p>
-            {results.available.length === 0 ? (
-              <p className="text-[13px] text-gray-400">조건에 맞는 정책을 찾지 못했어요.</p>
+
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar mb-3.5">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: 999,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: activeTab === tab.key ? '#3b82f6' : '#f3f4f6',
+                    color: activeTab === tab.key ? '#fff' : '#4b5563',
+                  }}
+                >
+                  {tab.label} ({results[tab.key].length})
+                </button>
+              ))}
+            </div>
+
+            {results[activeTab].length === 0 ? (
+              <p className="text-[13px] text-gray-400">{TABS.find((t) => t.key === activeTab).empty}</p>
             ) : (
               <div className="flex flex-col gap-2.5">
-                {results.available.map((r) => (
+                {results[activeTab].map((r) => (
                   <PolicyCard
-                    key={r.policy_id}
+                    key={r.plcyNo}
                     policy={r}
                     onOpen={openPolicy}
                     isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
                     onToggleBookmark={toggleBookmark}
                     bookmarkDisabled={bookmarksLoading}
-                  />
+                  >
+                    {r.fail_reasons?.length > 0 && (
+                      <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
+                        {r.fail_reasons.map((fr, i) => (
+                          <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </PolicyCard>
                 ))}
-              </div>
-            )}
-
-            {results.unavailable.length > 0 && (
-              <div style={{ marginTop: 24 }}>
-                <p className="mb-3 text-[16px] font-bold text-gray-900">조건에 맞지 않는 정책</p>
-                <div className="flex flex-col gap-2.5">
-                  {results.unavailable.map((r) => (
-                    <PolicyCard
-                      key={r.policy_id}
-                      policy={r}
-                      onOpen={openPolicy}
-                      isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
-                      onToggleBookmark={toggleBookmark}
-                      bookmarkDisabled={bookmarksLoading}
-                    >
-                      {r.fail_reasons?.length > 0 && (
-                        <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
-                          {r.fail_reasons.map((fr, i) => (
-                            <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </PolicyCard>
-                  ))}
-                </div>
               </div>
             )}
           </div>
@@ -154,9 +168,9 @@ export default function RecommendationPage() {
           <div className="flex flex-col gap-4">
             <button
               onClick={() => toggleBookmark(selectedPolicy.policy_id)}
-              disabled={bookmarksLoading}
+              disabled={bookmarksLoading || selectedPolicy.policy_id == null}
               className="flex items-center gap-1.5 bg-transparent border-none p-0 self-start"
-              style={{ cursor: bookmarksLoading ? 'default' : 'pointer' }}
+              style={{ cursor: bookmarksLoading || selectedPolicy.policy_id == null ? 'default' : 'pointer' }}
             >
               <Bookmark
                 size={18}

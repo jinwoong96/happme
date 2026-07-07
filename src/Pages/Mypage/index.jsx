@@ -1,10 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { Bookmark, Bell, UserPen, Lock, Headphones, FileText, ChevronRight } from 'lucide-react';
 import useMypage from '../../hooks/useMypage';
 
 const MENU = [
   { Icon: Bookmark,   label: '즐겨찾기 목록' },
   { Icon: Bell,       label: '알림 설정' },
-  { Icon: UserPen,    label: '프로필 수정' },
+  { Icon: UserPen,    label: '프로필 수정', path: '/recommendation/profile', state: { from: 'mypage' } },
   { Icon: Lock,       label: '비밀번호 변경' },
   { Icon: Headphones, label: '고객센터' },
   { Icon: FileText,   label: '이용약관' },
@@ -12,6 +13,7 @@ const MENU = [
 
 export default function MypagePage() {
   const { user, handleLogout } = useMypage();
+  const navigate = useNavigate();
   if (!user) return null;
 
   return (
@@ -48,8 +50,9 @@ export default function MypagePage() {
 
       {/* 메뉴 */}
       <div style={{ margin: '12px 20px 0', backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-        {MENU.map(({ Icon, label }, i) => (
+        {MENU.map(({ Icon, label, path, state }, i) => (
           <button key={label}
+            onClick={() => path && navigate(path, { state })}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 18px',
