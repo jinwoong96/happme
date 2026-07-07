@@ -167,17 +167,19 @@ class PdfSummaryService:
 
         instructions = []
         if explain:
-            instructions.append("- 한줄요약: 정책 설명을 한 문장으로 요약")
+            instructions.append("- 한줄요약: 정책의 핵심 목적만 간결한 구(句) 형태로 (완전한 문장 X)")
         if target or age_str:
-            instructions.append("- 지원대상: 지원 대상과 연령 조건을 정리")
+            instructions.append("- 지원대상: 연령·자격 조건만 나열식으로 간결하게 (완전한 문장 X)")
         if support:
-            instructions.append("- 지원내용: 구체적인 지원 금액/내용을 정리")
+            instructions.append("- 지원내용: 지원 금액/내용 핵심만 간결하게 (완전한 문장 X)")
         if apply_method or apply_url:
-            instructions.append("- 신청방법: 신청 방법과 URL을 정리")
+            instructions.append("- 신청방법: 신청 방법과 URL만 간결하게 (완전한 문장 X)")
         if apply_period:
             instructions.append(f"- 신청기간: {apply_period} 그대로 표기")
         if institution:
             instructions.append(f"- 담당기관: {institution} 그대로 표기")
+
+        instructions_text = "\n".join(instructions)
 
         prompt = f"""아래 청년 정책 정보를 보기 쉽게 요약해줘.
 
@@ -185,18 +187,21 @@ class PdfSummaryService:
 {info_text}
 
 아래 라벨들을 각각 정확히 한 번씩만 사용해서, "**라벨**: 내용" 형식으로 한 줄씩 정리해줘.
+각 항목은 완전한 문장(~합니다, ~됩니다, ~하는 자 등)으로 쓰지 말고, 핵심 키워드/조건 위주로 짧게 정리해줘.
 라벨 이름이나 지시문을 그대로 출력하지 말고, 실제 요약 내용만 채워써. 원본에 없는 내용은 추측해서 만들지 말고, 아래 목록에 없는 항목은 출력하지 마.
 
-{chr(10).join(instructions)}
+{instructions_text}
 
-각 항목은 1~2문장으로 간결하게 작성하고, 지시문이나 예시 문구는 절대 출력하지 마."""
+답변:"""
 
         try:
-            return self.llm_model.generate_text(prompt=prompt).strip()
+            raw = self.llm_model.generate(prompt=prompt)
+            print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
+            response = raw["results"][0]["generated_text"]
+            return response.strip()
         except Exception as e:
             print(f"[PdfSummaryService] 요약 생성 오류: {e}")
             return None
-
     # ---------- PDF 전용 ----------
 
     @staticmethod
@@ -303,8 +308,12 @@ class PdfSummaryService:
 | 담당기관 | (각 정책 담당기관) |
 
 **💡 추천**: (어떤 상황에 어떤 정책이 더 적합한지)"""
+            
         try:
-            return self.llm_model.generate_text(prompt=prompt).strip()
+            raw = self.llm_model.generate(prompt=prompt)
+            print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
+            response = raw["results"][0]["generated_text"]
+            return response.strip()
         except Exception as e:
-            print(f"[PdfSummaryService] 비교 분석 오류: {e}")
+            print(f"[PdfSummaryService] 요약 생성 오류: {e}")
             return None
