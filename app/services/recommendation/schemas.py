@@ -16,6 +16,7 @@ class UserProfileIn(BaseModel):
     education: Optional[str] = None
     school_name: Optional[str] = None
     major: Optional[str] = None
+    major_category: Optional[str] = None
     student_status: Optional[str] = None
     graduation_year: Optional[int] = None
     employment_status: Optional[str] = None
@@ -24,8 +25,8 @@ class UserProfileIn(BaseModel):
     career_history: Optional[str] = None
     marital_status: Optional[str] = None
     disability: bool = False
-    veteran: bool = False
-    military_status: Optional[str] = None
+    basic_livelihood: bool = False
+    single_parent: bool = False
     startup_interest: bool = False
     business_owner: bool = False
     startup_status: Optional[str] = None

@@ -1,16 +1,18 @@
 import re
 from datetime import datetime
 
-from app.services.recommendation.code_mapping import JOB_MAP, MARRIAGE_MAP, SBIZ_MAP, SCHOOL_MAP
+from app.services.recommendation.code_mapping import JOB_MAP, MAJOR_MAP, MARRIAGE_MAP, SBIZ_MAP, SCHOOL_MAP
 from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
 
 SBIZ_USER_CHECK = {
     "중소기업": lambda u: u.get("company_type") == "중소기업",
     "여성": lambda u: u.get("gender") == "여",
+    "기초생활수급자": lambda u: u.get("basic_livelihood") is True,
+    "한부모가정": lambda u: u.get("single_parent") is True,
     "장애인": lambda u: u.get("disability") is True,
-    "농업인": lambda u: u.get("occupation") == "농업인",
-    "군인": lambda u: u.get("military_status") in ["군필", "현역"],
+    "농업인": lambda u: u.get("employment_status") == "영농종사자",
+    "군인": lambda u: u.get("employment_status") == "군인",
 }
 
 
@@ -30,6 +32,7 @@ class PolicyEligibilityEngine:
             "region": self.region_matcher.match(user, policy),
             "marriage": self._match_marriage(user, policy),
             "school_status": self._match_school_status(user, policy),
+            "major": self._match_major(user, policy),
             "sbiz": self._match_sbiz(user, policy),
             "job": self._match_job(user, policy),
         }
@@ -181,7 +184,7 @@ class PolicyEligibilityEngine:
 
         allowed_value = MARRIAGE_MAP.get(policy_marriage)
 
-        if allowed_value is None:
+        if is_empty_or_unlimited(allowed_value):
             return make_result(True, "혼인 제한 없음")
 
         user_value = user.get("marital_status")
@@ -200,7 +203,7 @@ class PolicyEligibilityEngine:
 
         allowed_value = SCHOOL_MAP.get(policy_school)
 
-        if allowed_value is None:
+        if is_empty_or_unlimited(allowed_value):
             return make_result(True, "학력 제한 없음")
 
         user_value = user.get("education")
@@ -209,6 +212,25 @@ class PolicyEligibilityEngine:
             return make_result(False, f"학력이 정책 조건({allowed_value})과 다름", user_value, allowed_value)
 
         return make_result(True, "학력 조건 충족", user_value, allowed_value)
+
+    @staticmethod
+    def _match_major(user, policy):
+        policy_major = policy.get("plcyMajorCd")
+
+        if is_empty_or_unlimited(policy_major):
+            return make_result(True, "전공계열 제한 없음")
+
+        allowed_value = MAJOR_MAP.get(policy_major)
+
+        if is_empty_or_unlimited(allowed_value):
+            return make_result(True, "전공계열 제한 없음")
+
+        user_value = user.get("major_category")
+
+        if user_value != allowed_value:
+            return make_result(False, f"전공계열이 정책 조건({allowed_value})과 다름", user_value, allowed_value)
+
+        return make_result(True, "전공계열 조건 충족", user_value, allowed_value)
 
     @staticmethod
     def _match_sbiz(user, policy):
@@ -223,6 +245,9 @@ class PolicyEligibilityEngine:
         user_value = {
             "gender": user.get("gender"),
             "disability": user.get("disability"),
+            "basic_livelihood": user.get("basic_livelihood"),
+            "single_parent": user.get("single_parent"),
+            "employment_status": user.get("employment_status"),
             "occupation": user.get("occupation"),
             "company_type": user.get("company_type"),
         }
@@ -230,7 +255,7 @@ class PolicyEligibilityEngine:
         for code in policy_sbiz_codes:
             allowed_value = SBIZ_MAP.get(code)
 
-            if allowed_value is None:
+            if is_empty_or_unlimited(allowed_value):
                 return make_result(True, "특수계층 제한 없음", user_value, policy_values)
 
             policy_values.append({"code": code, "name": allowed_value})
@@ -254,25 +279,24 @@ class PolicyEligibilityEngine:
 
         policy_job_codes = [c.strip() for c in str(policy_job).split(",") if c.strip()]
         user_status = user.get("employment_status")
+        # 군인은 별도 취업상태 코드가 없어 '기타' 코드로 취급합니다(군필/미필 여부는 보지 않음).
+        job_check_status = "기타" if user_status == "군인" else user_status
 
         policy_values = []
 
         for code in policy_job_codes:
-            allowed_statuses = JOB_MAP.get(code)
+            allowed_value = JOB_MAP.get(code)
 
-            if allowed_statuses is None:
+            if is_empty_or_unlimited(allowed_value):
                 return make_result(True, "취업 상태 제한 없음", user_status, policy_job)
 
-            policy_values.append({
-                "code": code,
-                "allowed_statuses": allowed_statuses,
-            })
+            policy_values.append({"code": code, "name": allowed_value})
 
             if code == "0013006":
                 if user.get("startup_interest") is True or user.get("occupation") == "창업자":
                     return make_result(True, "창업 관련 조건 충족", user_status, policy_values)
 
-            if user_status in allowed_statuses:
+            if job_check_status == allowed_value:
                 return make_result(True, "취업 상태 조건 충족", user_status, policy_values)
 
         return make_result(False, "취업 상태 조건 불충족", user_status, policy_values)
