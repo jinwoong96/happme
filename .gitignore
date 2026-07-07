@@ -1,3 +1,7 @@
 .env
 __pycache__
 fastapi/
+
+report.html
+report.txt
+scenario_to_testprofile.py
