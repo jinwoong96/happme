@@ -66,6 +66,16 @@ COLUMNS = list(FIELD_MAP.keys())
 
 EPOCH_MS_FIELDS = {"rcptbgndt", "rcptenddt", "svcopnbgndt", "svcopnenddt"}
 
+# 청년 혜택 서비스이므로 아래 대상만 콕 집은(=성인이 함께 명시되지 않은) 서비스는 제외한다.
+EXCLUDE_KEYWORDS = ["어린이", "초등학생", "중학생", "고등학생", "노인", "어르신", "중장년층"]
+KEEP_KEYWORD = "성인"
+
+
+def is_excluded_target(usetgtinfo: str) -> bool:
+    if not usetgtinfo:
+        return False
+    return any(kw in usetgtinfo for kw in EXCLUDE_KEYWORDS) and KEEP_KEYWORD not in usetgtinfo
+
 
 def parse_epoch_ms(value):
     if value in (None, "", 0):
@@ -111,6 +121,23 @@ def load_json_files(root: Path):
     return files
 
 
+def cleanup_excluded(conn) -> int:
+    """이미 local_program에 들어가있는 행 중 제외 대상(EXCLUDE_KEYWORDS)인 것들을 삭제."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT svcid, usetgtinfo FROM local_program")
+        rows = cur.fetchall()
+
+    svcids_to_delete = [svcid for svcid, usetgtinfo in rows if is_excluded_target(usetgtinfo)]
+    if not svcids_to_delete:
+        return 0
+
+    with conn.cursor() as cur:
+        placeholders = ", ".join(["%s"] * len(svcids_to_delete))
+        cur.execute(f"DELETE FROM local_program WHERE svcid IN ({placeholders})", svcids_to_delete)
+    conn.commit()
+    return len(svcids_to_delete)
+
+
 def insert_batch(conn, rows: list):
     if not rows:
         return 0
@@ -147,25 +174,38 @@ def main():
     print(f"DB 연결 성공: {DB_CONFIG['host']}/{DB_CONFIG['database']}")
 
     total = 0
+    total_skipped = 0
     try:
+        deleted = cleanup_excluded(conn)
+        print(f"기존 local_program에서 제외 대상(어린이/초등학생/중학생/고등학생/노인/어르신/중장년층, "
+              f"단 '성인' 병기된 경우는 제외 안 함) {deleted}건 삭제")
+
         for fp in files:
             with open(fp, encoding="utf-8") as f:
-                raw = json.load(f)
+                try:
+                    raw = json.load(f)
+                except json.JSONDecodeError as e:
+                    print(f"  [스킵] {fp.name}: JSON 파싱 실패 ({e})")
+                    continue
 
             items = raw.get("DATA", [])
             if not items:
                 print(f"  [스킵] {fp.name}: DATA 없음")
                 continue
 
-            rows = [row_from_item(item) for item in items]
+            kept_items = [item for item in items if not is_excluded_target(item.get("usetgtinfo"))]
+            skipped = len(items) - len(kept_items)
+            total_skipped += skipped
+
+            rows = [row_from_item(item) for item in kept_items]
             inserted = insert_batch(conn, rows)
             total += inserted
-            print(f"  [{fp.parent.name}] {fp.name}: {inserted}건")
+            print(f"  [{fp.parent.name}] {fp.name}: {inserted}건 적재 (제외 {skipped}건)")
 
     finally:
         conn.close()
 
-    print(f"완료. 총 {total}건 적재/업데이트.")
+    print(f"완료. 총 {total}건 적재/업데이트, 신규 적재 시 제외 {total_skipped}건, 기존 데이터 삭제 {deleted}건.")
 
 
 if __name__ == "__main__":
