@@ -72,6 +72,7 @@ CREATE TABLE user_profile (
     education              VARCHAR(50),
     school_name            VARCHAR(100),
     major                  VARCHAR(100),
+    major_category         VARCHAR(50),   -- 전공계열, AI rule engine 라벨값(code_mapping.py MAJOR_MAP)
     student_status         VARCHAR(50),
     graduation_year        INT,
     employment_status      VARCHAR(50),   -- AI rule engine 라벨값(code_mapping.py JOB_MAP), code_master 아님
@@ -80,8 +81,8 @@ CREATE TABLE user_profile (
     career_history         TEXT,
     marital_status         VARCHAR(20),   -- AI rule engine 라벨값(code_mapping.py MARRIAGE_MAP), code_master 아님
     disability             BOOLEAN      DEFAULT FALSE,
-    veteran                BOOLEAN      DEFAULT FALSE,
-    military_status        VARCHAR(20),
+    basic_livelihood       BOOLEAN      DEFAULT FALSE,  -- 기초생활수급자 여부
+    single_parent          BOOLEAN      DEFAULT FALSE,  -- 한부모가정 여부
     startup_interest       BOOLEAN      DEFAULT FALSE,
     business_owner         BOOLEAN      DEFAULT FALSE,
     startup_status         VARCHAR(50),

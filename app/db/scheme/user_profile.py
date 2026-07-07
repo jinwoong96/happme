@@ -12,6 +12,7 @@ class UserProfileCreate(BaseModel):
     education: Optional[str] = None
     school_name: Optional[str] = None
     major: Optional[str] = None
+    major_category: Optional[str] = None
     student_status: Optional[str] = None
     graduation_year: Optional[int] = None
     employment_status: Optional[str] = None
@@ -20,8 +21,8 @@ class UserProfileCreate(BaseModel):
     career_history: Optional[str] = None
     marital_status: Optional[str] = None
     disability: bool = False
-    veteran: bool = False
-    military_status: Optional[str] = None
+    basic_livelihood: bool = False
+    single_parent: bool = False
     startup_interest: bool = False
     business_owner: bool = False
     startup_status: Optional[str] = None
@@ -39,6 +40,7 @@ class UserProfileUpdate(BaseModel):
     education: Optional[str] = None
     school_name: Optional[str] = None
     major: Optional[str] = None
+    major_category: Optional[str] = None
     student_status: Optional[str] = None
     graduation_year: Optional[int] = None
     employment_status: Optional[str] = None
@@ -47,8 +49,8 @@ class UserProfileUpdate(BaseModel):
     career_history: Optional[str] = None
     marital_status: Optional[str] = None
     disability: Optional[bool] = None
-    veteran: Optional[bool] = None
-    military_status: Optional[str] = None
+    basic_livelihood: Optional[bool] = None
+    single_parent: Optional[bool] = None
     startup_interest: Optional[bool] = None
     business_owner: Optional[bool] = None
     startup_status: Optional[str] = None
@@ -67,6 +69,7 @@ class UserProfileRead(BaseModel):
     education: Optional[str] = None
     school_name: Optional[str] = None
     major: Optional[str] = None
+    major_category: Optional[str] = None
     student_status: Optional[str] = None
     graduation_year: Optional[int] = None
     employment_status: Optional[str] = None
@@ -75,8 +78,8 @@ class UserProfileRead(BaseModel):
     career_history: Optional[str] = None
     marital_status: Optional[str] = None
     disability: bool = False
-    veteran: bool = False
-    military_status: Optional[str] = None
+    basic_livelihood: bool = False
+    single_parent: bool = False
     startup_interest: bool = False
     business_owner: bool = False
     startup_status: Optional[str] = None
