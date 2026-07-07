@@ -11,23 +11,24 @@ const EMPTY_FORM = {
   education: '',
   school_name: '',
   major: '',
+  major_category: '기타',
   student_status: '',
   graduation_year: '',
 
-  employment_status: '',
+  employment_status: '기타',
   occupation: '',
   job_seeking: false,
   career_history: '',
 
   marital_status: '',
   disability: false,
-  veteran: false,
-  military_status: '',
+  basic_livelihood: false,
+  single_parent: false,
 
   startup_interest: false,
   business_owner: false,
   startup_status: '',
-  company_type: '',
+  company_type: '해당 없음',
 
   housing_status: '',
   situation: '',
@@ -35,7 +36,10 @@ const EMPTY_FORM = {
 };
 
 const NUMBER_FIELDS = ['graduation_year'];
-const BOOLEAN_FIELDS = ['job_seeking', 'disability', 'veteran', 'startup_interest', 'business_owner'];
+const BOOLEAN_FIELDS = [
+  'job_seeking', 'disability', 'basic_livelihood', 'single_parent',
+  'startup_interest', 'business_owner',
+];
 
 export default function useRecommendationProfile() {
   const navigate = useNavigate();

@@ -11,17 +11,17 @@ export const MARITAL_OPTIONS = [
   { value: '기혼', label: '기혼' },
 ];
 
+// code_mapping.py JOB_MAP과 맞춘 취업상태 값
 export const EMPLOYMENT_OPTIONS = [
-  { value: '재직', label: '재직' },
-  { value: '자영업', label: '자영업' },
-  { value: '미취업', label: '미취업' },
-  { value: '취업준비생', label: '취업준비생' },
+  { value: '재직자', label: '재직자' },
+  { value: '자영업자', label: '자영업자' },
+  { value: '미취업자', label: '미취업자' },
   { value: '프리랜서', label: '프리랜서' },
   { value: '일용근로자', label: '일용근로자' },
-  { value: '예비창업', label: '예비창업' },
-  { value: '창업자', label: '창업자' },
+  { value: '(예비)창업자', label: '(예비)창업자' },
   { value: '단기근로자', label: '단기근로자' },
   { value: '영농종사자', label: '영농종사자' },
+  { value: '군인', label: '군인' },
   { value: '기타', label: '기타' },
 ];
 
@@ -38,12 +38,16 @@ export const EDUCATION_OPTIONS = [
   { value: '기타', label: '기타' },
 ];
 
-// code_mapping.py SBIZ_USER_CHECK("군인")과 맞춘 값(군필/현역만 매칭 대상)
-export const MILITARY_OPTIONS = [
-  { value: '미필', label: '미필' },
-  { value: '현역', label: '현역' },
-  { value: '군필', label: '군필' },
-  { value: '면제', label: '면제' },
+// code_mapping.py MAJOR_MAP과 맞춘 전공계열 값
+export const MAJOR_CATEGORY_OPTIONS = [
+  { value: '인문계열', label: '인문계열' },
+  { value: '사회계열', label: '사회계열' },
+  { value: '상경계열', label: '상경계열' },
+  { value: '이학계열', label: '이학계열' },
+  { value: '공학계열', label: '공학계열' },
+  { value: '예체능계열', label: '예체능계열' },
+  { value: '농산업계열', label: '농산업계열' },
+  { value: '기타', label: '기타' },
 ];
 
 // rule engine에서 직접 참조하지 않는 필드 - code_master 라벨 그대로 사용
@@ -65,6 +69,15 @@ export const HOUSING_OPTIONS = [
   { value: '전세', label: '전세' },
   { value: '월세', label: '월세' },
   { value: '기숙사', label: '기숙사' },
+  { value: '기타', label: '기타' },
+];
+
+// code_mapping.py SBIZ_USER_CHECK("중소기업")과 맞춘 기업 형태 값
+export const COMPANY_TYPE_OPTIONS = [
+  { value: '해당 없음', label: '해당 없음' },
+  { value: '중소기업', label: '중소기업' },
+  { value: '중견기업', label: '중견기업' },
+  { value: '대기업', label: '대기업' },
   { value: '기타', label: '기타' },
 ];
 

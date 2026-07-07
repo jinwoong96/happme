@@ -7,10 +7,11 @@ import {
   MARITAL_OPTIONS,
   EMPLOYMENT_OPTIONS,
   EDUCATION_OPTIONS,
-  MILITARY_OPTIONS,
+  MAJOR_CATEGORY_OPTIONS,
   STUDENT_STATUS_OPTIONS,
   STARTUP_STATUS_OPTIONS,
   HOUSING_OPTIONS,
+  COMPANY_TYPE_OPTIONS,
   YES_NO_OPTIONS,
 } from '../../data/codeOptions';
 
@@ -162,6 +163,9 @@ export default function RecommendationProfilePage() {
           <Field label="전공">
             <TextInput value={form.major} onChange={set('major')} placeholder="예: 컴퓨터공학과" />
           </Field>
+          <Field label="전공계열">
+            <Select value={form.major_category} onChange={set('major_category')} options={MAJOR_CATEGORY_OPTIONS} />
+          </Field>
           <Field label="재학 상태">
             <Select value={form.student_status} onChange={set('student_status')} options={STUDENT_STATUS_OPTIONS} />
           </Field>
@@ -171,7 +175,7 @@ export default function RecommendationProfilePage() {
 
           <p style={sectionTitleStyle}>취업/직업 정보</p>
 
-          <Field label="학업/취업상태">
+          <Field label="취업상태">
             <Select value={form.employment_status} onChange={set('employment_status')} options={EMPLOYMENT_OPTIONS} />
           </Field>
           <Field label="직업/업종">
@@ -189,14 +193,14 @@ export default function RecommendationProfilePage() {
           <Field label="혼인상태">
             <Select value={form.marital_status} onChange={set('marital_status')} options={MARITAL_OPTIONS} />
           </Field>
+          <Field label="기초생활수급자 여부">
+            <ToggleGroup options={YES_NO_OPTIONS} value={form.basic_livelihood} onChange={set('basic_livelihood')} />
+          </Field>
+          <Field label="한부모가정 여부">
+            <ToggleGroup options={YES_NO_OPTIONS} value={form.single_parent} onChange={set('single_parent')} />
+          </Field>
           <Field label="장애 여부">
             <ToggleGroup options={YES_NO_OPTIONS} value={form.disability} onChange={set('disability')} />
-          </Field>
-          <Field label="국가유공자 여부">
-            <ToggleGroup options={YES_NO_OPTIONS} value={form.veteran} onChange={set('veteran')} />
-          </Field>
-          <Field label="병역 상태">
-            <Select value={form.military_status} onChange={set('military_status')} options={MILITARY_OPTIONS} />
           </Field>
 
           <p style={sectionTitleStyle}>창업 정보</p>
@@ -211,7 +215,7 @@ export default function RecommendationProfilePage() {
             <Select value={form.startup_status} onChange={set('startup_status')} options={STARTUP_STATUS_OPTIONS} />
           </Field>
           <Field label="기업 형태">
-            <TextInput value={form.company_type} onChange={set('company_type')} placeholder="예: 중소기업" />
+            <Select value={form.company_type} onChange={set('company_type')} options={COMPANY_TYPE_OPTIONS} />
           </Field>
 
           <p style={sectionTitleStyle}>기타</p>
