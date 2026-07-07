@@ -49,10 +49,28 @@ async function request(method, endpoint, body) {
   return text ? JSON.parse(text) : null;
 }
 
+async function requestForm(method, endpoint, formData) {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method,
+    credentials: 'include',
+    body: formData, // FormData는 Content-Type을 직접 지정하면 안 됨
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(toFriendlyMessage(res.status, err));
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export const api = {
   get: (endpoint) => request('GET', endpoint),
   post: (endpoint, body) => request('POST', endpoint, body),
   put: (endpoint, body) => request('PUT', endpoint, body),
   patch: (endpoint, body) => request('PATCH', endpoint, body),
   delete: (endpoint) => request('DELETE', endpoint),
+  postForm: (endpoint, formData) => requestForm('POST', endpoint, formData),
 };
+
