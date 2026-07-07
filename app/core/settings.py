@@ -23,10 +23,23 @@ class Settings(BaseSettings):
     smtp_from: str = Field("", alias="SMTP_FROM")
     email_code_expire_seconds: int = Field(300, alias="EMAIL_CODE_EXPIRE")
 
+    # AI Server
+    ai_server_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")
+
     # Google OAuth
     google_client_id: str = Field("", alias="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field("", alias="GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str = Field("http://localhost:8082/auth/google/callback", alias="GOOGLE_REDIRECT_URI")
+
+    # Kakao OAuth
+    kakao_client_id: str = Field("", alias="KAKAO_CLIENT_ID")
+    kakao_client_secret: str = Field("", alias="KAKAO_CLIENT_SECRET")
+    kakao_redirect_uri: str = Field("http://localhost:8082/auth/kakao/callback", alias="KAKAO_REDIRECT_URI")
+
+    # Naver OAuth
+    naver_client_id: str = Field("", alias="NAVER_CLIENT_ID")
+    naver_client_secret: str = Field("", alias="NAVER_CLIENT_SECRET")
+    naver_redirect_uri: str = Field("http://localhost:8082/auth/naver/callback", alias="NAVER_REDIRECT_URI")
 
     # AI 분석 마이크로서비스 (bene_ai) — ECS 태스크 정의에 이미 등록된 이름과 통일
     ai_service_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")

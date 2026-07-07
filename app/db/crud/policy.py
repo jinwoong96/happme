@@ -51,6 +51,15 @@ class PolicyCrud:
         return list(result.scalars().unique().all())
 
     @staticmethod
+    async def get_policy_ids_by_plcyno(db: AsyncSession, plcy_nos: list[str]) -> dict[str, int]:
+        if not plcy_nos:
+            return {}
+        result = await db.execute(
+            select(Policy.plcyNo, Policy.policy_id).where(Policy.plcyNo.in_(plcy_nos))
+        )
+        return {row.plcyNo: row.policy_id for row in result.all()}
+
+    @staticmethod
     async def update_policy(db: AsyncSession, policy: Policy, data: PolicyUpdate) -> Policy:
         for key, value in data.model_dump(exclude_unset=True).items():
             setattr(policy, key, value)

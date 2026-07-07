@@ -45,7 +45,7 @@ class EmailVerificationService:
 
     @staticmethod
     async def send_code_svc(db: AsyncSession, data: EmailVerificationSend) -> dict:
-        if await UserCrud.get_by_email(db, data.email):
+        if await UserCrud.get_by_email_and_provider(db, data.email, "local"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 이메일입니다.")
 
         code = _generate_code()
