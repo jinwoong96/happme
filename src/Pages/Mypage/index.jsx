@@ -1,17 +1,19 @@
 import { Bookmark, Bell, UserPen, Lock, Headphones, FileText, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import useMypage from '../../hooks/useMypage';
 
 const MENU = [
   { Icon: Bookmark,   label: '즐겨찾기 목록' },
   { Icon: Bell,       label: '알림 설정' },
   { Icon: UserPen,    label: '프로필 수정' },
-  { Icon: Lock,       label: '비밀번호 변경' },
-  { Icon: Headphones, label: '고객센터' },
+  { Icon: Lock,       label: '비밀번호 변경', path: '/mypage/password' },
+  { Icon: Headphones, label: '고객센터', path: '/support' },
   { Icon: FileText,   label: '이용약관' },
 ];
 
 export default function MypagePage() {
   const { user, handleLogout } = useMypage();
+  const navigate = useNavigate();
   if (!user) return null;
 
   return (
@@ -48,13 +50,16 @@ export default function MypagePage() {
 
       {/* 메뉴 */}
       <div style={{ margin: '12px 20px 0', backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-        {MENU.map(({ Icon, label }, i) => (
+        {MENU
+          .filter(({ label }) => label !== '비밀번호 변경' || user.hasPassword)
+          .map(({ Icon, label, path }, i, arr) => (
           <button key={label}
+            onClick={path ? () => navigate(path) : undefined}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 18px',
               backgroundColor: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-              borderBottom: i < MENU.length - 1 ? '1px solid #f9fafb' : 'none',
+              borderBottom: i < arr.length - 1 ? '1px solid #f9fafb' : 'none',
             }}>
             <Icon size={18} color="#555" strokeWidth={1.8} />
             <span className="flex-1 text-[14px] text-gray-700 font-medium">{label}</span>
