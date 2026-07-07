@@ -49,19 +49,11 @@ async function request(method, endpoint, body) {
   return text ? JSON.parse(text) : null;
 }
 
-export const api = {
-  get: (endpoint) => request('GET', endpoint),
-  post: (endpoint, body) => request('POST', endpoint, body),
-  put: (endpoint, body) => request('PUT', endpoint, body),
-  delete: (endpoint) => request('DELETE', endpoint),
-  postForm: (endpoint, formData) => requestForm('POST', endpoint, formData),
-};
-
 async function requestForm(method, endpoint, formData) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
     credentials: 'include',
-    body: formData, // FormData는 Content-Type을 직접 지정하면 안 됨 (브라우저가 boundary 포함해서 자동 설정)
+    body: formData, // FormData는 Content-Type을 직접 지정하면 안 됨
   });
 
   if (!res.ok) {
@@ -72,3 +64,12 @@ async function requestForm(method, endpoint, formData) {
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
+
+export const api = {
+  get: (endpoint) => request('GET', endpoint),
+  post: (endpoint, body) => request('POST', endpoint, body),
+  put: (endpoint, body) => request('PUT', endpoint, body),
+  delete: (endpoint) => request('DELETE', endpoint),
+  postForm: (endpoint, formData) => requestForm('POST', endpoint, formData),
+};
+
