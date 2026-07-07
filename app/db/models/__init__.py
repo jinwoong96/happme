@@ -13,3 +13,4 @@ from .simulation_result import SimulationResult
 from .ocr_result import OcrResult, OcrResultMatch
 from .pdf_summary import PdfSummary, PdfSummaryMatch
 from .email_verification import EmailVerification
+from .local_program import LocalProgram
