@@ -8,6 +8,8 @@ from .policy_ai_tip import PolicyAiTip
 from .bookmark import Bookmark
 from .notification import Notification
 from .inquiry import Inquiry
+from .ad_partnership_inquiry import AdPartnershipInquiry
+from .corporate_support_inquiry import CorporateSupportInquiry
 from .notice import Notice
 from .simulation_result import SimulationResult
 from .ocr_result import OcrResult, OcrResultMatch
