@@ -1,7 +1,7 @@
 from app.db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Boolean, BigInteger, Text, DateTime, ForeignKey, func
-from datetime import datetime
+from sqlalchemy import String, Integer, Boolean, BigInteger, Text, DateTime, Date, ForeignKey, func
+from datetime import datetime, date
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ class UserProfile(Base):
     __tablename__ = "user_profile"
 
     user_id:                Mapped[int]            = mapped_column(Integer, ForeignKey("user.user_id"), primary_key=True)
-    age:                    Mapped[Optional[int]]   = mapped_column(Integer, nullable=True)
+    birth_date:             Mapped[Optional[date]]  = mapped_column(Date, nullable=True)
     gender:                 Mapped[Optional[str]]   = mapped_column(String(10), nullable=True)
     region:                 Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     district:               Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
@@ -25,10 +25,6 @@ class UserProfile(Base):
     occupation:             Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     job_seeking:            Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     career_history:         Mapped[Optional[str]]   = mapped_column(Text, nullable=True)
-    monthly_income:         Mapped[Optional[int]]   = mapped_column(BigInteger, nullable=True)
-    household_income_ratio: Mapped[Optional[int]]   = mapped_column(Integer, nullable=True)
-    household_size:         Mapped[Optional[int]]   = mapped_column(Integer, nullable=True)
-    assets:                 Mapped[Optional[int]]   = mapped_column(BigInteger, nullable=True)
     marital_status:         Mapped[Optional[str]]   = mapped_column(String(20), nullable=True)
     disability:             Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     veteran:                Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
@@ -36,6 +32,7 @@ class UserProfile(Base):
     startup_interest:       Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     business_owner:         Mapped[bool]            = mapped_column(Boolean, nullable=False, default=False)
     startup_status:         Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
+    company_type:           Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     situation:              Mapped[Optional[str]]   = mapped_column(Text, nullable=True)
     housing_status:         Mapped[Optional[str]]   = mapped_column(String(50), nullable=True)
     reason:                 Mapped[Optional[str]]   = mapped_column(Text, nullable=True)

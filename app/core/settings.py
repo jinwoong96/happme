@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     smtp_from: str = Field("", alias="SMTP_FROM")
     email_code_expire_seconds: int = Field(300, alias="EMAIL_CODE_EXPIRE")
 
+    # AI Server
+    ai_server_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")
+
     # Google OAuth
     google_client_id: str = Field("", alias="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field("", alias="GOOGLE_CLIENT_SECRET")
