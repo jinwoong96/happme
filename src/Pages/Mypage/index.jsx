@@ -5,6 +5,7 @@ import useMypage from '../../hooks/useMypage';
 const MENU = [
   { Icon: Bookmark,   label: '즐겨찾기', path: '/bookmark' },
   { Icon: Bell,       label: '알림 설정' },
+  { Icon: Bell,       label: '알림함', path: '/alerts' },
   { Icon: UserPen,    label: '프로필 수정', path: '/recommendation/profile', state: { from: 'mypage' } },
   { Icon: Lock,       label: '비밀번호 변경', path: '/mypage/password' },
   { Icon: Headphones, label: '고객센터', path: '/support' },
