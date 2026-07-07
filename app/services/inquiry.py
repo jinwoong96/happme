@@ -1,7 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.db.crud.inquiry import InquiryCrud
+from app.db.crud.notification import NotificationCrud
 from app.db.scheme.inquiry import InquiryCreate
+from app.db.scheme.notification import NotificationCreate
 from app.db.models.inquiry import Inquiry
 
 
@@ -40,6 +42,13 @@ class InquiryService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="문의를 찾을 수 없습니다.")
         try:
             updated = await InquiryCrud.answer_inquiry(db, inquiry, answer)
+            if updated.user_id is not None:
+                await NotificationCrud.create_notification(db, NotificationCreate(
+                    user_id=updated.user_id,
+                    notify_type="INQUIRY_ANSWER",
+                    title="문의하신 내용에 답변이 등록되었습니다",
+                    content=answer,
+                ))
             await db.commit()
             await db.refresh(updated)
             return updated
