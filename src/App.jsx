@@ -9,6 +9,7 @@ import OCRPage from './Pages/OCR';
 import SummaryPage from './Pages/Summary';
 import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
+import InquiryFormPage from './Pages/Support/InquiryForm';
 import MypagePage from './Pages/Mypage';
 import SignupPage from './Pages/Signup';
 import useAuth from './hooks/useAuth';
@@ -118,6 +119,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <Layout><SupportPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/support/:type"
+          element={
+            <PrivateRoute>
+              <Layout><InquiryFormPage /></Layout>
             </PrivateRoute>
           }
         />
