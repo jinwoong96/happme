@@ -38,7 +38,7 @@ export default function useLogin() {
       });
       localStorage.setItem('isAuthed', 'true');
       if (data?.user?.name) {
-        localStorage.setItem('username', data.user.name);
+        localStorage.setItem('userName', data.user.name);
       }
       navigate('/');
     } catch (err) {
@@ -52,5 +52,13 @@ export default function useLogin() {
     window.location.href = 'http://localhost:8082/auth/google/login';
   };
 
-  return { form, loading, error, handleChange, handleLogin, handleGoogleLogin };
+  const handleKakaoLogin = () => {
+    window.location.href = 'http://localhost:8082/auth/kakao/login';
+  };
+
+  const handleNaverLogin = () => {
+    window.location.href = 'http://localhost:8082/auth/naver/login';
+  };
+
+  return { form, loading, error, handleChange, handleLogin, handleGoogleLogin, handleKakaoLogin, handleNaverLogin };
 }
