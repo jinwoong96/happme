@@ -67,7 +67,7 @@ COLUMNS = list(FIELD_MAP.keys())
 EPOCH_MS_FIELDS = {"rcptbgndt", "rcptenddt", "svcopnbgndt", "svcopnenddt"}
 
 # 청년 혜택 서비스이므로 아래 대상만 콕 집은(=성인이 함께 명시되지 않은) 서비스는 제외한다.
-EXCLUDE_KEYWORDS = ["어린이", "초등학생", "중학생", "고등학생", "노인", "어르신", "중장년층"]
+EXCLUDE_KEYWORDS = ["유아","어린이", "초등학생", "중학생", "고등학생", "노인", "어르신", "중장년층"]
 KEEP_KEYWORD = "성인"
 
 
@@ -177,7 +177,7 @@ def main():
     total_skipped = 0
     try:
         deleted = cleanup_excluded(conn)
-        print(f"기존 local_program에서 제외 대상(어린이/초등학생/중학생/고등학생/노인/어르신/중장년층, "
+        print(f"기존 local_program에서 제외 대상(유아/어린이/초등학생/중학생/고등학생/노인/어르신/중장년층, "
               f"단 '성인' 병기된 경우는 제외 안 함) {deleted}건 삭제")
 
         for fp in files:
