@@ -3,7 +3,7 @@ import { Bookmark, Bell, UserPen, Lock, Headphones, FileText, ChevronRight } fro
 import useMypage from '../../hooks/useMypage';
 
 const MENU = [
-  { Icon: Bookmark,   label: '즐겨찾기 목록' },
+  { Icon: Bookmark,   label: '즐겨찾기', path: '/bookmark' },
   { Icon: Bell,       label: '알림 설정' },
   { Icon: UserPen,    label: '프로필 수정', path: '/recommendation/profile', state: { from: 'mypage' } },
   { Icon: Lock,       label: '비밀번호 변경', path: '/mypage/password' },

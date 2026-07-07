@@ -14,6 +14,7 @@ import SignupPage from './Pages/Signup';
 import useAuth from './hooks/useAuth';
 import ChangePasswordPage from './Pages/ChangePassword';
 import BookmarkPage from './Pages/Bookmark';
+import RegionPage from './Pages/Region';
 
 function PrivateRoute({ children }) {
   const { status } = useAuth();
@@ -101,6 +102,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <Layout><BookmarkPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/region"
+          element={
+            <PrivateRoute>
+              <Layout><RegionPage /></Layout>
             </PrivateRoute>
           }
         />

@@ -8,7 +8,7 @@ const MENU = [
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
   { label: '지원금알림', path: '/notification', Icon: BellRing },
-  { label: '즐겨찾기', path: '/bookmark', Icon: Bookmark },
+  { label: '지역혜택', path: '/region', Icon: Bookmark },
 ];
 
 export default function HomePage() {
