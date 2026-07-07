@@ -65,10 +65,10 @@ class KakaoAuthService:
             kakao_id = user_info.get("id")
             email = f"kakao_{kakao_id}@kakao.com"
 
-        user = await UserCrud.get_by_email(db, email)
+        user = await UserCrud.get_by_email_and_provider(db, email, "kakao")
         if not user:
             try:
-                data = UserCreate(name=name, email=email, password="")
+                data = UserCreate(name=name, email=email, password="", provider="kakao")
                 user = await UserCrud.create_user(db, data)
                 await db.commit()
                 await db.refresh(user)

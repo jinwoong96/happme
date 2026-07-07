@@ -24,6 +24,13 @@ class UserCrud:
         return result.scalar_one_or_none()
 
     @staticmethod
+    async def get_by_email_and_provider(db: AsyncSession, email: str, provider: str) -> User | None:
+        result = await db.execute(
+            select(User).where(User.email == email, User.provider == provider)
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
     async def get_all(db: AsyncSession) -> list[User]:
         result = await db.execute(select(User))
         return list(result.scalars().all())

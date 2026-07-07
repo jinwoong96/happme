@@ -12,7 +12,8 @@ class UserService:
 
     @staticmethod
     async def create_user_svc(db: AsyncSession, data: UserCreate) -> User:
-        if await UserCrud.get_by_email(db, data.email):
+        data.provider = "local"  # 클라이언트가 무엇을 보내든 일반 회원가입은 항상 local로 고정
+        if await UserCrud.get_by_email_and_provider(db, data.email, "local"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 이메일입니다.")
         await EmailVerificationService.ensure_verified(db, data.email)
         data.password = get_password_hash(data.password)
@@ -82,7 +83,7 @@ class UserService:
 
     @staticmethod
     async def login_svc(db: AsyncSession, data: UserLogin):
-        user = await UserCrud.get_by_email(db, data.email)
+        user = await UserCrud.get_by_email_and_provider(db, data.email, "local")
         if not user or not verify_password(data.password, user.password):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="잘못된 이메일 혹은 비밀번호입니다.")
         access_token = create_access_token(user.user_id)

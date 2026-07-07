@@ -59,10 +59,10 @@ class GoogleAuthService:
         if not email:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google 계정에서 이메일을 가져올 수 없습니다.")
 
-        user = await UserCrud.get_by_email(db, email)
+        user = await UserCrud.get_by_email_and_provider(db, email, "google")
         if not user:
             try:
-                data = UserCreate(name=name, email=email, password="")
+                data = UserCreate(name=name, email=email, password="", provider="google")
                 user = await UserCrud.create_user(db, data)
                 await db.commit()
                 await db.refresh(user)
@@ -70,7 +70,7 @@ class GoogleAuthService:
                 await db.rollback()
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="소셜 회원가입에 실패했습니다.")
         else:
-            # 기존 유저면 Google 이름으로 업데이트
+            # 기존 구글 계정이면 Google 이름으로 업데이트
             if name and user.name != name:
                 user.name = name
                 await db.commit()

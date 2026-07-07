@@ -21,6 +21,7 @@ class User(Base):
     user_id:           Mapped[int]            = mapped_column(Integer, primary_key=True, autoincrement=True)
     name:              Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)
     email:             Mapped[Optional[str]]  = mapped_column(String(100), unique=True, nullable=True)
+    provider:          Mapped[str]            = mapped_column(String(20), nullable=False, server_default=text("'local'"))
     password:          Mapped[Optional[str]]  = mapped_column(String(255), nullable=True)
     role:              Mapped[str]            = mapped_column(String(20), nullable=False, server_default=text("'USER'"))
     profile_completed: Mapped[bool]           = mapped_column(Boolean, nullable=False, server_default=text("0"))

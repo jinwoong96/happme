@@ -66,10 +66,10 @@ class NaverAuthService:
             naver_id = response.get("id")
             email = f"naver_{naver_id}@naver.com"
 
-        user = await UserCrud.get_by_email(db, email)
+        user = await UserCrud.get_by_email_and_provider(db, email, "naver")
         if not user:
             try:
-                data = UserCreate(name=name, email=email, password="")
+                data = UserCreate(name=name, email=email, password="", provider="naver")
                 user = await UserCrud.create_user(db, data)
                 await db.commit()
                 await db.refresh(user)
