@@ -79,6 +79,7 @@ class BookmarkService:
                 plcyNm=policy.plcyNm,
                 sprvsnInstCdNm=policy.sprvsnInstCdNm,
                 aplyYmd=policy.aplyYmd,
+                alarm_yn=bookmark.alarm_yn,
                 events=events,
                 prep_tip=policy.ai_tip.tip if policy.ai_tip else None,
             ))

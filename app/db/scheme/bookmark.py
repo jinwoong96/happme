@@ -31,5 +31,6 @@ class BookmarkCalendarItem(BaseModel):
     plcyNm: str
     sprvsnInstCdNm: Optional[str] = None
     aplyYmd: str
+    alarm_yn: bool
     events: list[PolicyScheduleEventRead] = []
     prep_tip: Optional[str] = None
