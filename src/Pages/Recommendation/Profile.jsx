@@ -105,7 +105,7 @@ function Textarea({ value, onChange, placeholder }) {
 
 export default function RecommendationProfilePage() {
   const navigate = useNavigate();
-  const { form, handleChange, handleSubmit, loading, saving, error } = useRecommendationProfile();
+  const { form, handleChange, handleSubmit, loading, saving, error, from } = useRecommendationProfile();
 
   if (loading) {
     return (
@@ -245,7 +245,7 @@ export default function RecommendationProfilePage() {
               boxShadow: saving ? 'none' : '0 6px 18px rgba(59,130,246,0.38)',
             }}
           >
-            {saving ? '저장 중...' : '다음'}
+            {saving ? '저장 중...' : from === 'mypage' ? '완료' : '다음'}
           </button>
         </form>
       </div>

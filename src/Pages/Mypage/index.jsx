@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Bookmark, Bell, UserPen, Lock, Headphones, FileText, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useMypage from '../../hooks/useMypage';
@@ -5,7 +6,7 @@ import useMypage from '../../hooks/useMypage';
 const MENU = [
   { Icon: Bookmark,   label: '즐겨찾기 목록' },
   { Icon: Bell,       label: '알림 설정' },
-  { Icon: UserPen,    label: '프로필 수정' },
+  { Icon: UserPen,    label: '프로필 수정', path: '/recommendation/profile', state: { from: 'mypage' } },
   { Icon: Lock,       label: '비밀번호 변경', path: '/mypage/password' },
   { Icon: Headphones, label: '고객센터', path: '/support' },
   { Icon: FileText,   label: '이용약관' },
@@ -50,11 +51,14 @@ export default function MypagePage() {
 
       {/* 메뉴 */}
       <div style={{ margin: '12px 20px 0', backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+                {/* {MENU.map(({ Icon, label, path, state }, i) => (
+          <button key={label}
+            onClick={() => path && navigate(path, { state })} */}
         {MENU
           .filter(({ label }) => label !== '비밀번호 변경' || user.hasPassword)
           .map(({ Icon, label, path }, i, arr) => (
           <button key={label}
-            onClick={path ? () => navigate(path) : undefined}
+            onClick={path ? () => navigate(path) : undefined}  
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 18px',

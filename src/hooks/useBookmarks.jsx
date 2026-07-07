@@ -34,6 +34,8 @@ export default function useBookmarks() {
   }, [bookmarkMap, loading]);
 
   const toggleBookmark = useCallback(async (policyId) => {
+    if (policyId == null) return;
+
     const bookmarkId = bookmarkMap[policyId];
     try {
       if (bookmarkId) {

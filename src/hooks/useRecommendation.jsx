@@ -18,6 +18,8 @@ export default function useRecommendation() {
       const data = await api.post('/recommendations/chat', { chat: scenario });
       setResults({
         available: data?.available_policies || [],
+        closed: data?.closed_policies || [],
+        expired: data?.expired_policies || [],
         unavailable: data?.unavailable_policies || [],
       });
     } catch (err) {
@@ -29,6 +31,14 @@ export default function useRecommendation() {
   };
 
   const openPolicy = async (policyId, fallbackName, fallbackBookmarked) => {
+    if (policyId == null) {
+      setSelectedPolicy({
+        policy_id: null, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked,
+        error: '아직 정책 DB에 등록되지 않아 상세 정보를 볼 수 없어요.',
+      });
+      return;
+    }
+
     setSelectedPolicy({ policy_id: policyId, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked });
     setPolicyLoading(true);
     try {

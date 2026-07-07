@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 
 const EMPTY_FORM = {
@@ -19,11 +19,6 @@ const EMPTY_FORM = {
   job_seeking: false,
   career_history: '',
 
-  monthly_income: '',
-  household_income_ratio: '',
-  household_size: '',
-  assets: '',
-
   marital_status: '',
   disability: false,
   veteran: false,
@@ -39,11 +34,13 @@ const EMPTY_FORM = {
   reason: '',
 };
 
-const NUMBER_FIELDS = ['graduation_year', 'monthly_income', 'household_income_ratio', 'household_size', 'assets'];
+const NUMBER_FIELDS = ['graduation_year'];
 const BOOLEAN_FIELDS = ['job_seeking', 'disability', 'veteran', 'startup_interest', 'business_owner'];
 
 export default function useRecommendationProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from === 'mypage' ? 'mypage' : 'recommendation';
   const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -94,7 +91,7 @@ export default function useRecommendationProfile() {
       // 프로필이 있으면 수정, 없으면 생성 (백엔드에서 통합 처리)
       await api.put('/profiles/me', payload);
 
-      navigate('/recommendation');
+      navigate(from === 'mypage' ? '/mypage' : '/recommendation');
     } catch (err) {
       setError(err.message || '프로필 저장에 실패했습니다.');
     } finally {
@@ -102,5 +99,5 @@ export default function useRecommendationProfile() {
     }
   };
 
-  return { form, handleChange, handleSubmit, loading, saving, error };
+  return { form, handleChange, handleSubmit, loading, saving, error, from };
 }
