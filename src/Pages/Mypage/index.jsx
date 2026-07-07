@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, Bell, UserPen, Lock, Headphones, FileText, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import useMypage from '../../hooks/useMypage';
 
 const MENU = [
