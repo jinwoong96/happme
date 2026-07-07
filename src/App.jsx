@@ -13,6 +13,7 @@ import MypagePage from './Pages/Mypage';
 import SignupPage from './Pages/Signup';
 import useAuth from './hooks/useAuth';
 import ChangePasswordPage from './Pages/ChangePassword';
+import BookmarkPage from './Pages/Bookmark';
 
 function PrivateRoute({ children }) {
   const { status } = useAuth();
@@ -92,6 +93,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <NotificationPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookmark"
+          element={
+            <PrivateRoute>
+              <Layout><BookmarkPage /></Layout>
             </PrivateRoute>
           }
         />
