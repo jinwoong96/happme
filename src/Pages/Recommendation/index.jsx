@@ -4,13 +4,29 @@ import { ChevronLeft, Sparkles, Bot, Bookmark, ExternalLink } from 'lucide-react
 import useRecommendation from '../../hooks/useRecommendation';
 import useBookmarks from '../../hooks/useBookmarks';
 import Modal from '../../Components/Modal';
+import { ChoiceButtonsWithInput } from '../../Components/ChoiceButtons';
+import { REGION_CHOICE_OPTIONS, EMPLOYMENT_CHOICE_OPTIONS } from '../../data/codeOptions';
 
 const TABS = [
   { key: 'available', label: '조건 만족', empty: '조건에 맞는 정책을 찾지 못했어요.' },
-  { key: 'closed', label: '신청 마감', empty: '신청이 마감된 정책이 없어요.' },
-  { key: 'expired', label: '신청기간 종료', empty: '신청기간이 종료된 정책이 없어요.' },
+  { key: 'closedOrExpired', label: '마감/종료', empty: '마감되었거나 신청기간이 종료된 정책이 없어요.' },
   { key: 'unavailable', label: '조건 불만족', empty: '조건이 맞지 않는 정책이 없어요.' },
 ];
+
+// bene_ai가 정규화해서 내려주는 category 값과 순서를 맞춘다.
+const CATEGORY_ORDER = ['일자리', '주거', '교육', '복지문화', '참여권리', '기타'];
+
+function groupByCategory(policies) {
+  const groups = new Map();
+  for (const policy of policies) {
+    const category = policy.category || '기타';
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push(policy);
+  }
+  return CATEGORY_ORDER
+    .filter((category) => groups.has(category))
+    .map((category) => ({ category, policies: groups.get(category) }));
+}
 
 // 마감/종료는 이미 계산된 탭 분류를 그대로 쓰고, 상시는 카드 데이터의 apply_period_type을 봅니다.
 // (특정기간이면서 아직 열려있는 경우엔 배지 없이 날짜만 보여줍니다.)
@@ -76,12 +92,14 @@ function PolicyCard({ policy, tabKey, onOpen, isBookmarked, onToggleBookmark, bo
 
 export default function RecommendationPage() {
   const {
-    scenario, setScenario, results, loading, error, handleAnalyze,
+    regionChoice, setRegionChoice, regionText, setRegionText,
+    employmentChoice, setEmploymentChoice, employmentOther, setEmploymentOther,
+    situation, setSituation,
+    canAnalyze, results, loading, error, handleAnalyze,
     selectedPolicy, policyLoading, openPolicy, closePolicy,
   } = useRecommendation();
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
-  const can = !loading && scenario.trim();
   const [activeTab, setActiveTab] = useState('available');
 
   return (
@@ -101,10 +119,30 @@ export default function RecommendationPage() {
           <p className="text-[13px] text-gray-600 leading-relaxed">현재 상황과 미래 계획을 입력하면 AI가 최적의 지원금을 추천해요.</p>
         </div>
 
-        <p style={{ marginBottom: 8, fontSize: 14, fontWeight: 600, color: '#374151' }}>시나리오 입력</p>
+        <p style={{ marginBottom: 8, fontSize: 14, fontWeight: 600, color: '#374151' }}>Q1. 지역이동을 하실 건가요?</p>
+        <ChoiceButtonsWithInput
+          options={REGION_CHOICE_OPTIONS}
+          value={regionChoice}
+          onChange={setRegionChoice}
+          textValue={regionText}
+          onTextChange={setRegionText}
+          textPlaceholder="이동할 지역을 입력하세요 (예: 수원, 제주도)"
+        />
+
+        <p style={{ margin: '20px 0 8px', fontSize: 14, fontWeight: 600, color: '#374151' }}>Q2. 회사 관련 변화가 있나요?</p>
+        <ChoiceButtonsWithInput
+          options={EMPLOYMENT_CHOICE_OPTIONS}
+          value={employmentChoice}
+          onChange={setEmploymentChoice}
+          textValue={employmentOther}
+          onTextChange={setEmploymentOther}
+          textPlaceholder="어떤 상황인지 입력하세요"
+        />
+
+        <p style={{ margin: '20px 0 8px', fontSize: 14, fontWeight: 600, color: '#374151' }}>Q3. 지금 상황을 자유롭게 설명해주세요</p>
         <textarea
-          value={scenario} onChange={(e) => setScenario(e.target.value)}
-          placeholder={'예: 내년에 IT 회사 입사를 준비 중이고, 현재 SW 교육을\n받고 있습니다. 부모님과 따로 거주 중이며…'}
+          value={situation} onChange={(e) => setSituation(e.target.value)}
+          placeholder={'예: 수원에 가서 살고 싶어. 무슨 혜택이 있을까?'}
           rows={5}
           style={{
             width: '100%',
@@ -124,23 +162,23 @@ export default function RecommendationPage() {
           }}
         />
 
-        <button onClick={handleAnalyze} disabled={!can}
+        <button onClick={handleAnalyze} disabled={!canAnalyze}
           style={{
             marginTop: 14,
             width: '100%',
             padding: '16px 0',
             borderRadius: 16,
-            background: can ? 'linear-gradient(135deg, #60a5fa, #3b82f6)' : '#e5e7eb',
-            color: can ? '#fff' : '#9ca3af',
+            background: canAnalyze ? 'linear-gradient(135deg, #60a5fa, #3b82f6)' : '#e5e7eb',
+            color: canAnalyze ? '#fff' : '#9ca3af',
             fontSize: 16,
             fontWeight: 700,
             border: 'none',
-            cursor: can ? 'pointer' : 'default',
+            cursor: canAnalyze ? 'pointer' : 'default',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
-            boxShadow: can ? '0 6px 18px rgba(59,130,246,0.38)' : 'none',
+            boxShadow: canAnalyze ? '0 6px 18px rgba(59,130,246,0.38)' : 'none',
           }}>
           <Sparkles size={18} />
           {loading ? '분석 중...' : 'AI 분석 시작'}
@@ -177,25 +215,32 @@ export default function RecommendationPage() {
             {results[activeTab].length === 0 ? (
               <p className="text-[13px] text-gray-400">{TABS.find((t) => t.key === activeTab).empty}</p>
             ) : (
-              <div className="flex flex-col gap-2.5">
-                {results[activeTab].map((r) => (
-                  <PolicyCard
-                    key={r.plcyNo}
-                    policy={r}
-                    tabKey={activeTab}
-                    onOpen={openPolicy}
-                    isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
-                    onToggleBookmark={toggleBookmark}
-                    bookmarkDisabled={bookmarksLoading}
-                  >
-                    {r.fail_reasons?.length > 0 && (
-                      <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
-                        {r.fail_reasons.map((fr, i) => (
-                          <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </PolicyCard>
+              <div className="flex flex-col gap-4">
+                {groupByCategory(results[activeTab]).map(({ category, policies }) => (
+                  <div key={category}>
+                    <p className="mb-2 text-[13px] font-bold text-gray-500">{category} ({policies.length})</p>
+                    <div className="flex flex-col gap-2.5">
+                      {policies.map((r) => (
+                        <PolicyCard
+                          key={r.plcyNo}
+                          policy={r}
+                          tabKey={activeTab}
+                          onOpen={openPolicy}
+                          isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
+                          onToggleBookmark={toggleBookmark}
+                          bookmarkDisabled={bookmarksLoading}
+                        >
+                          {r.fail_reasons?.length > 0 && (
+                            <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
+                              {r.fail_reasons.map((fr, i) => (
+                                <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </PolicyCard>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

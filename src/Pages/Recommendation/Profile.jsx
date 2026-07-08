@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, UserPen } from 'lucide-react';
 import useRecommendationProfile from '../../hooks/useRecommendationProfile';
+import { ToggleGroup } from '../../Components/ChoiceButtons';
 import { REGIONS } from '../../data/regions';
 import {
   GENDER_OPTIONS,
@@ -35,36 +36,6 @@ function Field({ label, children }) {
     <div>
       <p style={labelStyle}>{label}</p>
       {children}
-    </div>
-  );
-}
-
-function ToggleGroup({ options, value, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: 10 }}>
-      {options.map((opt) => {
-        const active = value === opt.value;
-        return (
-          <button
-            key={String(opt.value)}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            style={{
-              flex: 1,
-              padding: '13px 0',
-              borderRadius: 14,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: active ? '1.5px solid #3b82f6' : '1.5px solid #e5e7eb',
-              backgroundColor: active ? '#eff6ff' : '#fff',
-              color: active ? '#3b82f6' : '#6b7280',
-            }}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
     </div>
   );
 }

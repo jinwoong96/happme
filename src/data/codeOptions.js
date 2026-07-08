@@ -85,3 +85,19 @@ export const YES_NO_OPTIONS = [
   { value: true, label: '예' },
   { value: false, label: '아니오' },
 ];
+
+// 시나리오 Q1: 지역이동 여부. bene_backend ScenarioRecommendationRequest.region_choice와 값이 일치해야 함.
+export const REGION_CHOICE_OPTIONS = [
+  { value: '지역 쓰기', label: '지역 쓰기', hasInput: true },
+  { value: '지역 이동 안함', label: '지역 이동 안함' },
+  { value: '미정', label: '미정' },
+];
+
+// 시나리오 Q2: 회사 관련 변화. bene_backend ScenarioRecommendationRequest.employment_choice와 값이 일치해야 함.
+export const EMPLOYMENT_CHOICE_OPTIONS = [
+  { value: '이직', label: '이직' },
+  { value: '퇴사', label: '퇴사' },
+  { value: '창업', label: '창업' },
+  { value: '재직', label: '재직' },
+  { value: '기타', label: '기타', hasInput: true },
+];

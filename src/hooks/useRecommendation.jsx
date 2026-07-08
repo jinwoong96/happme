@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { api } from '../utils/api';
 
 export default function useRecommendation() {
-  const [scenario, setScenario] = useState('');
+  const [regionChoice, setRegionChoice] = useState(null);
+  const [regionText, setRegionText] = useState('');
+  const [employmentChoice, setEmploymentChoice] = useState(null);
+  const [employmentOther, setEmploymentOther] = useState('');
+  const [situation, setSituation] = useState('');
+
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -10,16 +15,23 @@ export default function useRecommendation() {
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [policyLoading, setPolicyLoading] = useState(false);
 
+  const canAnalyze = !loading && regionChoice && employmentChoice && situation.trim();
+
   const handleAnalyze = async () => {
-    if (!scenario.trim()) return;
+    if (!canAnalyze) return;
     setLoading(true);
     setError('');
     try {
-      const data = await api.post('/recommendations/chat', { chat: scenario });
+      const data = await api.post('/recommendations/scenario', {
+        region_choice: regionChoice,
+        region_text: regionChoice === '지역 쓰기' ? regionText : null,
+        employment_choice: employmentChoice,
+        employment_other: employmentChoice === '기타' ? employmentOther : null,
+        situation,
+      });
       setResults({
         available: data?.available_policies || [],
-        closed: data?.closed_policies || [],
-        expired: data?.expired_policies || [],
+        closedOrExpired: data?.closed_or_expired_policies || [],
         unavailable: data?.unavailable_policies || [],
       });
     } catch (err) {
@@ -54,7 +66,10 @@ export default function useRecommendation() {
   const closePolicy = () => setSelectedPolicy(null);
 
   return {
-    scenario, setScenario, results, loading, error, handleAnalyze,
+    regionChoice, setRegionChoice, regionText, setRegionText,
+    employmentChoice, setEmploymentChoice, employmentOther, setEmploymentOther,
+    situation, setSituation,
+    canAnalyze, results, loading, error, handleAnalyze,
     selectedPolicy, policyLoading, openPolicy, closePolicy,
   };
 }
