@@ -12,7 +12,18 @@ const TABS = [
   { key: 'unavailable', label: '조건 불만족', empty: '조건이 맞지 않는 정책이 없어요.' },
 ];
 
-function PolicyCard({ policy, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, children }) {
+// 마감/종료는 이미 계산된 탭 분류를 그대로 쓰고, 상시는 카드 데이터의 apply_period_type을 봅니다.
+// (특정기간이면서 아직 열려있는 경우엔 배지 없이 날짜만 보여줍니다.)
+function getPeriodBadge(tabKey, policy) {
+  if (tabKey === 'closed') return { label: '마감', bg: '#fee2e2', color: '#ef4444' };
+  if (tabKey === 'expired') return { label: '종료', bg: '#fef3c7', color: '#d97706' };
+  if (policy.apply_period_type === '상시') return { label: '상시', bg: '#dcfce7', color: '#16a34a' };
+  return null;
+}
+
+function PolicyCard({ policy, tabKey, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, children }) {
+  const badge = getPeriodBadge(tabKey, policy);
+
   return (
     <div
       onClick={() => onOpen(policy.policy_id, policy.policy_name, isBookmarked)}
@@ -29,7 +40,35 @@ function PolicyCard({ policy, onOpen, isBookmarked, onToggleBookmark, bookmarkDi
           <Bookmark size={18} color={isBookmarked ? '#3b82f6' : '#ccc'} fill={isBookmarked ? '#3b82f6' : 'none'} />
         </button>
       </div>
-      <p className="mt-1.5 text-[12px] text-gray-500 leading-relaxed">{policy.policy_summary}</p>
+
+      {(badge || policy.apply_period) && (
+        <div className="mt-2 flex items-center gap-1.5">
+          {badge && (
+            <span style={{
+              padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+              backgroundColor: badge.bg, color: badge.color,
+            }}>
+              {badge.label}
+            </span>
+          )}
+          {policy.apply_period && <span className="text-[11px] text-gray-400">{policy.apply_period}</span>}
+        </div>
+      )}
+
+      {policy.target && (
+        <div className="mt-2">
+          <p className="text-[11px] font-semibold text-gray-400">지원대상</p>
+          <p className="mt-0.5 text-[12px] text-gray-600 leading-relaxed">{policy.target}</p>
+        </div>
+      )}
+
+      {policy.policy_summary && (
+        <div className="mt-2">
+          <p className="text-[11px] font-semibold text-gray-400">지원내용 요약</p>
+          <p className="mt-0.5 text-[12px] text-gray-600 leading-relaxed">{policy.policy_summary}</p>
+        </div>
+      )}
+
       {children}
     </div>
   );
@@ -143,6 +182,7 @@ export default function RecommendationPage() {
                   <PolicyCard
                     key={r.plcyNo}
                     policy={r}
+                    tabKey={activeTab}
                     onOpen={openPolicy}
                     isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
                     onToggleBookmark={toggleBookmark}
