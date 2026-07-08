@@ -3,10 +3,20 @@ from fastapi import HTTPException, status
 from app.db.crud.user_profile import UserProfileCrud
 from app.db.crud.bookmark import BookmarkCrud
 from app.db.crud.policy import PolicyCrud
+from app.db.crud.user_testprofile import UserTestProfileCrud
+from app.db.scheme.recommendation import ScenarioRecommendationRequest
 from app.db.scheme.user_profile import UserProfileRead
+from app.db.scheme.user_testprofile import UserTestProfileCreate
 from app.services.ai_client import AiClient
 
-POLICY_LIST_KEYS = ("available_policies", "closed_policies", "expired_policies", "unavailable_policies")
+# user_testprofile은 user_profile과 컬럼이 동일하다. UserProfileRead에는 있지만
+# user_testprofile에는 없는 계정성/계산 필드(user_id 제외, updated_at, age)는 제외하고 골라낸다.
+TEST_PROFILE_FIELDS = (
+    "birth_date", "gender", "region", "district", "education", "school_name", "major", "major_category",
+    "student_status", "graduation_year", "employment_status", "occupation", "job_seeking", "career_history",
+    "marital_status", "disability", "basic_livelihood", "single_parent", "startup_interest", "business_owner",
+    "startup_status", "company_type", "situation", "housing_status", "reason",
+)
 
 
 class RecommendationService:
@@ -28,6 +38,34 @@ class RecommendationService:
         return await RecommendationService._attach_bookmark_flags(db, user_id, result)
 
     @staticmethod
+    async def get_scenario_recommendations_svc(db: AsyncSession, user_id: int, data: ScenarioRecommendationRequest) -> dict:
+        """
+        Q1(지역이동)/Q2(취업 변화) 구조화 답변으로 what-if 프로필을 만들어 추천을 받는다.
+        실제 user_profile은 건드리지 않고, diff를 얹은 스냅샷을 user_testprofile에 먼저 저장한 뒤
+        그 값으로 AI 분석(recommend_chat)을 수행한다.
+        """
+        user_profile_payload = await RecommendationService._get_user_profile_payload(db, user_id)
+
+        resolved = await AiClient.resolve_scenario(
+            data.region_choice, data.region_text, data.employment_choice, data.employment_other
+        )
+        test_profile = {**user_profile_payload, **resolved["diff"], "situation": data.situation}
+
+        test_profile_fields = {k: test_profile.get(k) for k in TEST_PROFILE_FIELDS}
+        await UserTestProfileCrud.create_test_profile(
+            db, UserTestProfileCreate(user_id=user_id, **test_profile_fields)
+        )
+        await db.commit()
+
+        result = await AiClient.recommend_chat(test_profile, data.situation)
+        result = await RecommendationService._attach_db_policy_ids(db, result)
+        result = await RecommendationService._attach_bookmark_flags(db, user_id, result)
+
+        # simulation_result 기록은 일단 보류 (표시 개수 제한을 없애면서 분석 1회당 수천 건이 쌓여서 중단)
+
+        return result
+
+    @staticmethod
     async def _get_user_profile_payload(db: AsyncSession, user_id: int) -> dict:
         profile = await UserProfileCrud.get_profile(db, user_id)
         if not profile:
@@ -36,18 +74,15 @@ class RecommendationService:
 
     @staticmethod
     async def _attach_db_policy_ids(db: AsyncSession, result: dict) -> dict:
-        """AI 응답의 plcyNo로 backend DB에서 실제 policy_id를 조회해 각 정책 dict에 붙입니다."""
-        plcy_nos = set()
-        for key in POLICY_LIST_KEYS:
-            for policy in result.get(key, []):
-                plcy_no = policy.get("plcyNo")
-                if plcy_no is not None:
-                    plcy_nos.add(str(plcy_no))
+        """AI 응답의 plcyNo로 backend DB에서 실제 policy_id를 조회해 각 정책 dict에 붙입니다. 버킷 키 구성과 무관하게 동작합니다."""
+        plcy_nos = {
+            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+        }
 
         plcyno_to_policy_id = await PolicyCrud.get_policy_ids_by_plcyno(db, list(plcy_nos))
 
-        for key in POLICY_LIST_KEYS:
-            for policy in result.get(key, []):
+        for policies in result.values():
+            for policy in policies:
                 policy["policy_id"] = plcyno_to_policy_id.get(str(policy.get("plcyNo")))
 
         return result
@@ -58,8 +93,8 @@ class RecommendationService:
         bookmarks = await BookmarkCrud.get_by_user(db, user_id)
         bookmarked_ids = {str(b.policy_id) for b in bookmarks}
 
-        for key in POLICY_LIST_KEYS:
-            for policy in result.get(key, []):
+        for policies in result.values():
+            for policy in policies:
                 policy["is_bookmarked"] = str(policy.get("policy_id")) in bookmarked_ids
 
         return result

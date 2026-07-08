@@ -8,6 +8,7 @@ from .ad_partnership_inquiry import AdPartnershipInquiryCrud
 from .corporate_support_inquiry import CorporateSupportInquiryCrud
 from .notice import NoticeCrud
 from .simulation_result import SimulationResultCrud
+from .user_testprofile import UserTestProfileCrud
 from .ocr_result import OcrResultCrud
 from .pdf_summary import PdfSummaryCrud
 from .code_master import CodeMasterCrud

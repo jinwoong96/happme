@@ -12,6 +12,7 @@ from .ad_partnership_inquiry import AdPartnershipInquiry
 from .corporate_support_inquiry import CorporateSupportInquiry
 from .notice import Notice
 from .simulation_result import SimulationResult
+from .user_testprofile import UserTestProfile
 from .ocr_result import OcrResult, OcrResultMatch
 from .pdf_summary import PdfSummary, PdfSummaryMatch
 from .email_verification import EmailVerification

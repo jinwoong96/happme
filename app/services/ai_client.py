@@ -13,6 +13,21 @@ class AiClient:
         return await AiClient._post("/recommendations/chat", {"user_profile": user_profile, "chat": chat})
 
     @staticmethod
+    async def resolve_scenario(
+        region_choice: str, region_text: str | None, employment_choice: str, employment_other: str | None
+    ) -> dict:
+        """bene_ai의 구조화 질문(Q1 지역이동/Q2 취업 변화) diff 계산 호출. DB/Watson 미사용."""
+        return await AiClient._post(
+            "/recommendations/resolve-scenario",
+            {
+                "region_choice": region_choice,
+                "region_text": region_text,
+                "employment_choice": employment_choice,
+                "employment_other": employment_other,
+            },
+        )
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:

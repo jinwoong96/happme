@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .corporate_support_inquiry import CorporateSupportInquiry
     from .notice import Notice
     from .simulation_result import SimulationResult
+    from .user_testprofile import UserTestProfile
     from .ocr_result import OcrResult
     from .pdf_summary import PdfSummary
 
@@ -39,5 +40,6 @@ class User(Base):
     corporate_support_inquiries:   Mapped[List["CorporateSupportInquiry"]]   = relationship("CorporateSupportInquiry", back_populates="user", cascade="all, delete-orphan")
     notices:            Mapped[List["Notice"]]                = relationship("Notice", back_populates="admin", cascade="all, delete-orphan")
     simulation_results: Mapped[List["SimulationResult"]]      = relationship("SimulationResult", back_populates="user", cascade="all, delete-orphan")
+    test_profiles:      Mapped[List["UserTestProfile"]]       = relationship("UserTestProfile", back_populates="user", cascade="all, delete-orphan")
     ocr_results:        Mapped[List["OcrResult"]]             = relationship("OcrResult", back_populates="user", cascade="all, delete-orphan")
     pdf_summaries:      Mapped[List["PdfSummary"]]            = relationship("PdfSummary", back_populates="user", cascade="all, delete-orphan")
