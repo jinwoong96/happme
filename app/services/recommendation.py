@@ -61,6 +61,7 @@ class RecommendationService:
         await db.commit()
 
         result = await AiClient.recommend_chat(test_profile, data.situation)
+        result = await RecommendationService._attach_policy_cards(db, result)
         result = await RecommendationService._attach_db_policy_ids(db, result)
         result = await RecommendationService._attach_bookmark_flags(db, user_id, result)
 
@@ -77,18 +78,15 @@ class RecommendationService:
 
     @staticmethod
     async def _attach_policy_cards(db: AsyncSession, result: dict) -> dict:
-        """plcyNo 기준으로 PolicyService.get_policy_cards_svc의 카드 표시용 필드를 덧붙입니다."""
-        plcy_nos = set()
-        for key in POLICY_LIST_KEYS:
-            for policy in result.get(key, []):
-                plcy_no = policy.get("plcyNo")
-                if plcy_no is not None:
-                    plcy_nos.add(str(plcy_no))
+        """plcyNo 기준으로 PolicyService.get_policy_cards_svc의 카드 표시용 필드를 덧붙입니다. 버킷 키 구성과 무관하게 동작합니다."""
+        plcy_nos = {
+            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+        }
 
         cards = await PolicyService.get_policy_cards_svc(db, list(plcy_nos))
 
-        for key in POLICY_LIST_KEYS:
-            for policy in result.get(key, []):
+        for policies in result.values():
+            for policy in policies:
                 card = cards.get(str(policy.get("plcyNo")))
                 if not card:
                     continue
