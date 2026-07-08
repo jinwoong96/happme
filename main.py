@@ -15,6 +15,7 @@ from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.services.recommendation.recommendation_service import RecommendationService
+from app.services.recommendation.scenario_resolver import ScenarioResolver
 from app.services.schedule_extract import ScheduleService
 
 from app.services.policy_summary.pdf_summary import PdfSummaryService
@@ -57,6 +58,7 @@ async def lifespan(app: FastAPI):
         eligibility_engine=PolicyEligibilityEngine(region_matcher=RegionMatcher()),
         similarity_service=PolicySimilarityService(),
     )
+    app.state.scenario_resolver = ScenarioResolver()
     app.state.schedule_service = ScheduleService()
 
     print("[bene_ai] 모든 모델 로드 완료, 서비스 준비됨")
