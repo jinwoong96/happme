@@ -1,27 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { api } from '../utils/api';
 
-const INITIAL = [
-  { id: 1, title: '청년 내일저축계좌', org: '보건복지부', deadline: '2024-12-31', on: true },
-  { id: 2, title: '청년 주거급여 분리지급', org: '국토교통부', deadline: '2024-11-30', on: false },
-  { id: 3, title: 'K-디지털 트레이닝', org: '고용노동부', deadline: '2025-03-31', on: false },
-  { id: 4, title: '삼성 청년 SW 아카데미', org: '삼성전자', deadline: '2025-01-15', on: false },
-  { id: 5, title: '현대차 청년 취업 지원금', org: '현대자동차', deadline: '2025-02-28', on: false },
-  { id: 6, title: '서울시청년수당', org: '서울특별시', deadline: '2024-12-15', on: false },
-  { id: 7, title: '청년 창업 인턴십', org: '중소벤처기업부', deadline: '2025-04-30', on: false },
-  { id: 8, title: '부산시청년 해양일자리', org: '부산광역시', deadline: '2025-02-14', on: false },
-];
+// "20260701 ~ 20260731" -> "2026-07-31" (마감일만 표시)
+function formatDeadline(aplyYmd) {
+  if (!aplyYmd) return '';
+  const end = aplyYmd.split('~').pop().trim();
+  if (end.length !== 8) return aplyYmd;
+  return `${end.slice(0, 4)}-${end.slice(4, 6)}-${end.slice(6, 8)}`;
+}
 
 export default function useNotification() {
-  const [items, setItems] = useState(INITIAL);
+  const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const toggle = (id) => {
+  useEffect(() => {
+    let ignore = false;
+
+    api.get('/bookmarks/me/calendar')
+      .then((data) => {
+        if (ignore) return;
+        setItems((data || []).map((b) => ({
+          id: b.bookmark_id,
+          title: b.plcyNm,
+          org: b.sprvsnInstCdNm || '',
+          deadline: formatDeadline(b.aplyYmd),
+          on: b.alarm_yn,
+        })));
+      })
+      .catch(() => { if (!ignore) setItems([]); })
+      .finally(() => { if (!ignore) setLoading(false); });
+
+    return () => { ignore = true; };
+  }, []);
+
+  const toggle = useCallback((id) => {
     setItems((prev) => prev.map((item) => item.id === id ? { ...item, on: !item.on } : item));
-  };
 
-  const filtered = items.filter((item) =>
+    const target = items.find((item) => item.id === id);
+    const nextOn = target ? !target.on : true;
+    api.patch(`/bookmarks/${id}`, { alarm_yn: nextOn }).catch(() => {
+      // 실패 시 되돌리기
+      setItems((prev) => prev.map((item) => item.id === id ? { ...item, on: !item.on } : item));
+    });
+  }, [items]);
+
+  const filtered = useMemo(() => items.filter((item) =>
     item.title.includes(search) || item.org.includes(search)
-  );
+  ), [items, search]);
 
-  return { filtered, search, setSearch, toggle };
+  return { filtered, search, setSearch, toggle, loading, isEmpty: items.length === 0 };
 }

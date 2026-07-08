@@ -21,7 +21,7 @@ export default function useLogin() {
       setError('이메일을 입력해주세요.');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    if (!/^[^\s@]+@[^\s@]+$/.test(form.email)) {
       setError('올바른 이메일 형식이 아니에요.');
       return;
     }
@@ -40,7 +40,10 @@ export default function useLogin() {
       if (data?.user?.name) {
         localStorage.setItem('userName', data.user.name);
       }
-      navigate('/');
+      if (data?.user?.role) {
+        localStorage.setItem('userRole', data.user.role);
+      }
+      navigate(data?.user?.role === 'ADMIN' ? '/admin' : '/');
     } catch (err) {
       setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {

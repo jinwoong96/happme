@@ -9,16 +9,33 @@ import OCRPage from './Pages/OCR';
 import SummaryPage from './Pages/Summary';
 import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
+import InquiryFormPage from './Pages/Support/InquiryForm';
 import MypagePage from './Pages/Mypage';
 import SignupPage from './Pages/Signup';
 import useAuth from './hooks/useAuth';
 import ChangePasswordPage from './Pages/ChangePassword';
+import BookmarkPage from './Pages/Bookmark';
+import RegionPage from './Pages/Region';
+import AlertsPage from './Pages/Alerts';
+import AdminPage from './Pages/Admin';
+import AdminMembersPage from './Pages/Admin/Members';
+import AdminNotifyPage from './Pages/Admin/Notify';
+import AdminInquiriesPage from './Pages/Admin/Inquiries';
 
 function PrivateRoute({ children }) {
   const { status } = useAuth();
 
   if (status === 'loading') return null;
   if (status === 'unauthed') return <Navigate to="/login" replace />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { status, role } = useAuth();
+
+  if (status === 'loading') return null;
+  if (status === 'unauthed') return <Navigate to="/login" replace />;
+  if (role !== 'ADMIN') return <Navigate to="/" replace />;
   return children;
 }
 
@@ -96,10 +113,34 @@ export default function App() {
           }
         />
         <Route
+          path="/bookmark"
+          element={
+            <PrivateRoute>
+              <Layout><BookmarkPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/region"
+          element={
+            <PrivateRoute>
+              <Layout><RegionPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/support"
           element={
             <PrivateRoute>
               <Layout><SupportPage /></Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/support/:type"
+          element={
+            <PrivateRoute>
+              <Layout><InquiryFormPage /></Layout>
             </PrivateRoute>
           }
         />
@@ -117,6 +158,46 @@ export default function App() {
             <PrivateRoute>
               <ChangePasswordPage />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <PrivateRoute>
+              <AlertsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/members"
+          element={
+            <AdminRoute>
+              <AdminMembersPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/notify"
+          element={
+            <AdminRoute>
+              <AdminNotifyPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/inquiries"
+          element={
+            <AdminRoute>
+              <AdminInquiriesPage />
+            </AdminRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

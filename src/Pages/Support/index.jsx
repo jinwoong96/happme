@@ -1,12 +1,6 @@
-import { User, HelpCircle, Megaphone, Building2, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import useSupport from '../../hooks/useSupport';
-
-const CATS = [
-  { Icon: User,       bg: '#eff6ff', color: '#3b82f6', title: '사용자 문의',         desc: '서비스 이용 관련 문의' },
-  { Icon: HelpCircle, bg: '#fffbeb', color: '#f59e0b', title: '기타 문의',           desc: '일반 문의 및 건의사항' },
-  { Icon: Megaphone,  bg: '#fdf2f8', color: '#ec4899', title: '광고제휴 문의',       desc: '광고 및 마케팅 제휴 신청' },
-  { Icon: Building2,  bg: '#f0fdf4', color: '#22c55e', title: '기업지원금 제휴 문의', desc: '기업 지원금 등록 및 제휴' },
-];
+import { INQUIRY_TYPES } from './inquiryConfig';
 
 export default function SupportPage() {
   const { handleContact } = useSupport();
@@ -19,8 +13,8 @@ export default function SupportPage() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px 12px' }}>
-        {CATS.map(({ Icon, bg, color, title, desc }) => (
-          <button key={title} onClick={() => handleContact(title)}
+        {Object.entries(INQUIRY_TYPES).map(([type, { Icon, bg, color, title, desc }]) => (
+          <button key={type} onClick={() => handleContact(type)}
             style={{
               display: 'flex', alignItems: 'center', gap: 16,
               padding: '18px 18px',
