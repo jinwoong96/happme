@@ -95,6 +95,7 @@ export const REGION_CHOICE_OPTIONS = [
 
 // 시나리오 Q2: 회사 관련 변화. bene_backend ScenarioRecommendationRequest.employment_choice와 값이 일치해야 함.
 export const EMPLOYMENT_CHOICE_OPTIONS = [
+  { value: '없음', label: '없음' },
   { value: '이직', label: '이직' },
   { value: '퇴사', label: '퇴사' },
   { value: '창업', label: '창업' },

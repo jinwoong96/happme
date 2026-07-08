@@ -49,6 +49,7 @@ export default function useRecommendationProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -56,6 +57,7 @@ export default function useRecommendationProfile() {
     api.get('/profiles/me').catch(() => null).then((profile) => {
       if (ignore) return;
       if (profile) {
+        setHasProfile(true);
         setForm((prev) => {
           const next = { ...prev };
           for (const key of Object.keys(EMPTY_FORM)) {
@@ -103,5 +105,9 @@ export default function useRecommendationProfile() {
     }
   };
 
-  return { form, handleChange, handleSubmit, loading, saving, error, from };
+  const handleSkip = () => {
+    navigate('/recommendation');
+  };
+
+  return { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile };
 }

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Sparkles, Bot, Bookmark, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Sparkles, Bot, Bookmark, ExternalLink } from 'lucide-react';
 import useRecommendation from '../../hooks/useRecommendation';
 import useBookmarks from '../../hooks/useBookmarks';
 import Modal from '../../Components/Modal';
@@ -13,9 +13,9 @@ const TABS = [
   { key: 'unavailable', label: '조건 불만족', empty: '조건이 맞지 않는 정책이 없어요.' },
 ];
 
-// bene_ai가 정규화해서 내려주는 category 값과 순서를 맞춘다.
-const CATEGORY_ORDER = ['일자리', '주거', '교육', '복지문화', '참여권리', '기타'];
-
+// policies는 이미 유사도 내림차순으로 정렬되어 들어온다. Map은 삽입 순서를 보존하므로
+// 카테고리를 처음 등장한 순서 그대로 묶으면 "유사도 가장 높은 정책이 속한 카테고리부터"
+// 자연스럽게 정렬되고, 각 카테고리 내부도 원래의 유사도 순서가 그대로 유지된다.
 function groupByCategory(policies) {
   const groups = new Map();
   for (const policy of policies) {
@@ -23,9 +23,7 @@ function groupByCategory(policies) {
     if (!groups.has(category)) groups.set(category, []);
     groups.get(category).push(policy);
   }
-  return CATEGORY_ORDER
-    .filter((category) => groups.has(category))
-    .map((category) => ({ category, policies: groups.get(category) }));
+  return Array.from(groups, ([category, policies]) => ({ category, policies }));
 }
 
 // 마감/종료는 이미 계산된 탭 분류를 그대로 쓰고, 상시는 카드 데이터의 apply_period_type을 봅니다.
@@ -101,6 +99,28 @@ export default function RecommendationPage() {
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
+  const [collapsedCategories, setCollapsedCategories] = useState(new Set());
+
+  // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화한다.
+  useEffect(() => {
+    if (!results) return;
+    const allCategories = new Set();
+    for (const tab of TABS) {
+      for (const policy of results[tab.key] || []) {
+        allCategories.add(policy.category || '기타');
+      }
+    }
+    setCollapsedCategories(allCategories);
+  }, [results]);
+
+  const toggleCategory = (category) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  };
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -216,32 +236,48 @@ export default function RecommendationPage() {
               <p className="text-[13px] text-gray-400">{TABS.find((t) => t.key === activeTab).empty}</p>
             ) : (
               <div className="flex flex-col gap-4">
-                {groupByCategory(results[activeTab]).map(({ category, policies }) => (
-                  <div key={category}>
-                    <p className="mb-2 text-[13px] font-bold text-gray-500">{category} ({policies.length})</p>
-                    <div className="flex flex-col gap-2.5">
-                      {policies.map((r) => (
-                        <PolicyCard
-                          key={r.plcyNo}
-                          policy={r}
-                          tabKey={activeTab}
-                          onOpen={openPolicy}
-                          isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
-                          onToggleBookmark={toggleBookmark}
-                          bookmarkDisabled={bookmarksLoading}
-                        >
-                          {r.fail_reasons?.length > 0 && (
-                            <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
-                              {r.fail_reasons.map((fr, i) => (
-                                <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </PolicyCard>
-                      ))}
+                {groupByCategory(results[activeTab]).map(({ category, policies }) => {
+                  const collapsed = collapsedCategories.has(category);
+                  return (
+                    <div key={category}>
+                      <button
+                        onClick={() => toggleCategory(category)}
+                        className="flex items-center gap-1 bg-transparent border-none p-0 w-full"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <p className="mb-2 text-[13px] font-bold text-gray-500">{category} ({policies.length})</p>
+                        <ChevronDown
+                          size={14}
+                          color="#9ca3af"
+                          style={{ marginBottom: 8, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}
+                        />
+                      </button>
+                      {!collapsed && (
+                        <div className="flex flex-col gap-2.5">
+                          {policies.map((r) => (
+                            <PolicyCard
+                              key={r.plcyNo}
+                              policy={r}
+                              tabKey={activeTab}
+                              onOpen={openPolicy}
+                              isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
+                              onToggleBookmark={toggleBookmark}
+                              bookmarkDisabled={bookmarksLoading}
+                            >
+                              {r.fail_reasons?.length > 0 && (
+                                <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
+                                  {r.fail_reasons.map((fr, i) => (
+                                    <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </PolicyCard>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

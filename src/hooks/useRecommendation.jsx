@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../utils/api';
 
 export default function useRecommendation() {
-  const [regionChoice, setRegionChoice] = useState(null);
+  const [regionChoice, setRegionChoice] = useState('지역 이동 안함');
   const [regionText, setRegionText] = useState('');
-  const [employmentChoice, setEmploymentChoice] = useState(null);
+  const [employmentChoice, setEmploymentChoice] = useState('없음');
   const [employmentOther, setEmploymentOther] = useState('');
   const [situation, setSituation] = useState('');
 
@@ -15,10 +15,12 @@ export default function useRecommendation() {
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [policyLoading, setPolicyLoading] = useState(false);
 
+  // "AI 분석 시작" 버튼은 Q3(상황 설명)까지 채워야 활성화된다.
   const canAnalyze = !loading && regionChoice && employmentChoice && situation.trim();
 
-  const handleAnalyze = async () => {
-    if (!canAnalyze) return;
+  // 실제 API 호출 로직. situationText를 인자로 받아서, 버튼 클릭(situation 필수)과
+  // 페이지 진입 시 자동 호출(situation 없이도 실행) 양쪽에서 재사용한다.
+  const runAnalysis = async (situationText) => {
     setLoading(true);
     setError('');
     try {
@@ -27,7 +29,7 @@ export default function useRecommendation() {
         region_text: regionChoice === '지역 쓰기' ? regionText : null,
         employment_choice: employmentChoice,
         employment_other: employmentChoice === '기타' ? employmentOther : null,
-        situation,
+        situation: situationText,
       });
       setResults({
         available: data?.available_policies || [],
@@ -41,6 +43,21 @@ export default function useRecommendation() {
       setLoading(false);
     }
   };
+
+  const handleAnalyze = () => {
+    if (!canAnalyze) return;
+    runAnalysis(situation);
+  };
+
+  // 페이지 진입 시 한 번, Q1/Q2 기본값("지역 이동 안함"/"없음") + 빈 situation으로
+  // 현재 프로필 기준 기본 추천을 자동으로 띄운다. 버튼의 situation 필수 조건(canAnalyze)은 거치지 않는다.
+  const hasAutoAnalyzedRef = useRef(false);
+  useEffect(() => {
+    if (hasAutoAnalyzedRef.current) return;
+    hasAutoAnalyzedRef.current = true;
+    runAnalysis('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openPolicy = async (policyId, fallbackName, fallbackBookmarked) => {
     if (policyId == null) {

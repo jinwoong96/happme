@@ -77,7 +77,7 @@ function Textarea({ value, onChange, placeholder }) {
 
 export default function RecommendationProfilePage() {
   const navigate = useNavigate();
-  const { form, handleChange, handleSubmit, loading, saving, error, from } = useRecommendationProfile();
+  const { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile } = useRecommendationProfile();
 
   if (loading) {
     return (
@@ -95,7 +95,18 @@ export default function RecommendationProfilePage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="text-[18px] font-bold text-gray-900">맞춤형 지원금 추천</p>
+        <p className="flex-1 text-[18px] font-bold text-gray-900">맞춤형 지원금 추천</p>
+        {from === 'recommendation' && hasProfile && (
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={saving}
+            className="bg-transparent border-none p-0"
+            style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', cursor: saving ? 'default' : 'pointer' }}
+          >
+            건너뛰기
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -220,7 +231,7 @@ export default function RecommendationProfilePage() {
               boxShadow: saving ? 'none' : '0 6px 18px rgba(59,130,246,0.38)',
             }}
           >
-            {saving ? '저장 중...' : from === 'mypage' ? '완료' : '다음'}
+            {saving ? '저장 중...' : from === 'mypage' ? '수정 완료' : '다음'}
           </button>
         </form>
       </div>
