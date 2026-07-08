@@ -61,6 +61,7 @@ class RecommendationService:
         top_k 제한 없이(top_k=None) 조건을 통과한 정책을 전부 유사도 순으로 반환하고,
         각 정책에 정규화된 category를 붙인다. "신청 마감"/"신청기간 종료"는 비슷한 내용이라
         화면에서는 하나의 closed_or_expired_policies로 합쳐서 내려준다.
+        chat이 빈 문자열이면 유사도 계산 없이 rule engine이 판정한 순서를 그대로 반환한다.
         """
         policies = self.policy_loader.get_policies()
         result = self._recommend_policies(user_profile, policies)
@@ -73,7 +74,19 @@ class RecommendationService:
         }
 
         def build_bucket(policies_in_bucket: list[dict], with_fail_reasons: bool) -> list[dict]:
-            matches = self.similarity_service.search(chat, policies_in_bucket, top_k=None)
+            if chat and chat.strip():
+                matches = self.similarity_service.search(chat, policies_in_bucket, top_k=None)
+            else:
+                # 채팅 텍스트가 없으면 유사도 계산을 생략하고 rule engine이 판정한 순서를 그대로 사용한다.
+                # TODO: 추후 이 경우엔 유사도 대신 사용자 프로필 기반 우선순위로 대체 예정
+                matches = [
+                    {
+                        "plcyNo": p.get("plcyNo"),
+                        "policy_name": p.get("policy_name"),
+                        "policy_summary": p.get("policy_summary"),
+                    }
+                    for p in policies_in_bucket
+                ]
             for match in matches:
                 match["category"] = category_by_plcyno.get(str(match.get("plcyNo")), "기타")
                 if with_fail_reasons:

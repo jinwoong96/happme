@@ -200,6 +200,10 @@ class ScenarioResolver:
         ambiguous: dict = {}
         diff: dict = {}
 
+        if employment_choice == "없음":
+            notes.append("사용자가 회사 관련 변화가 없다고 답해 employment_status 변경 없이 진행함")
+            return diff, ambiguous, notes
+
         if employment_choice in EMPLOYMENT_CHOICE_MAP:
             value = EMPLOYMENT_CHOICE_MAP[employment_choice]
             diff["employment_status"] = value

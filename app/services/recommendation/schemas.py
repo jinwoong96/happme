@@ -42,7 +42,7 @@ class ScenarioResolveRequest(BaseModel):
 
     region_choice: Literal["지역 쓰기", "지역 이동 안함", "미정"]
     region_text: Optional[str] = None
-    employment_choice: Literal["이직", "퇴사", "창업", "재직", "기타"]
+    employment_choice: Literal["없음", "이직", "퇴사", "창업", "재직", "기타"]
     employment_other: Optional[str] = None
 
 
