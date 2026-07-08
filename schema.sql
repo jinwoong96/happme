@@ -201,6 +201,34 @@ CREATE TABLE inquiry (
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
+CREATE TABLE ad_partnership_inquiry (
+    ad_partnership_inquiry_id BIGINT       PRIMARY KEY AUTO_INCREMENT,
+    user_id                   BIGINT,
+    ad_name                   VARCHAR(255) NOT NULL,
+    company_name              VARCHAR(255) NOT NULL,
+    target_product            VARCHAR(255) NOT NULL,
+    content                   TEXT         NOT NULL,
+    answer                    TEXT,
+    status                    VARCHAR(20)  DEFAULT 'PENDING',
+    created_at                DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    answered_at               DATETIME,
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
+CREATE TABLE corporate_support_inquiry (
+    corporate_support_inquiry_id BIGINT       PRIMARY KEY AUTO_INCREMENT,
+    user_id                      BIGINT,
+    company_name                 VARCHAR(255) NOT NULL,
+    support_content              TEXT         NOT NULL,
+    support_period                VARCHAR(100) NOT NULL,
+
+    answer                       TEXT,
+    status                       VARCHAR(20)  DEFAULT 'PENDING',
+    created_at                   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    answered_at                  DATETIME,
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
 CREATE TABLE notice (
     notice_id  BIGINT       PRIMARY KEY AUTO_INCREMENT,
     admin_id   BIGINT       NOT NULL,

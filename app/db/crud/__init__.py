@@ -4,6 +4,8 @@ from .policy import PolicyCrud
 from .bookmark import BookmarkCrud
 from .notification import NotificationCrud
 from .inquiry import InquiryCrud
+from .ad_partnership_inquiry import AdPartnershipInquiryCrud
+from .corporate_support_inquiry import CorporateSupportInquiryCrud
 from .notice import NoticeCrud
 from .simulation_result import SimulationResultCrud
 from .ocr_result import OcrResultCrud

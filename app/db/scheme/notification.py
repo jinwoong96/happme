@@ -11,6 +11,12 @@ class NotificationCreate(BaseModel):
     content: Optional[str] = None
 
 
+class NotificationBroadcastCreate(BaseModel):
+    title: str
+    content: str
+    is_pinned: bool = False
+
+
 class NotificationRead(BaseModel):
     notification_id: int
     user_id: int

@@ -2,8 +2,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.db.crud.notification import NotificationCrud
 from app.db.crud.user import UserCrud
-from app.db.scheme.notification import NotificationCreate
+from app.db.crud.notice import NoticeCrud
+from app.db.scheme.notification import NotificationCreate, NotificationBroadcastCreate
+from app.db.scheme.notice import NoticeCreate
 from app.db.models.notification import Notification
+from app.db.models.notice import Notice
 
 
 class NotificationService:
@@ -20,6 +23,24 @@ class NotificationService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="알림 생성에 실패했습니다.")
+
+    @staticmethod
+    async def broadcast_svc(db: AsyncSession, admin_id: int, data: NotificationBroadcastCreate) -> Notice:
+        try:
+            notice = await NoticeCrud.create_notice(db, NoticeCreate(
+                admin_id=admin_id, title=data.title, content=data.content, is_pinned=data.is_pinned,
+            ))
+            users = await UserCrud.get_all(db)
+            for user in users:
+                await NotificationCrud.create_notification(db, NotificationCreate(
+                    user_id=user.user_id, notify_type="NOTICE", title=data.title, content=data.content,
+                ))
+            await db.commit()
+            await db.refresh(notice)
+            return notice
+        except Exception:
+            await db.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="공지 발송에 실패했습니다.")
 
     @staticmethod
     async def get_notifications_svc(db: AsyncSession, user_id: int, unread_only: bool = False) -> list[Notification]:

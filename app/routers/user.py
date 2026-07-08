@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
@@ -6,6 +6,7 @@ from app.db.scheme.user import UserCreate, UserUpdate, UserRead, UserLogin, User
 from app.db.models.user import User
 from app.services.user import UserService as user_svc
 from app.core.jwt_handle import get_current_user
+from app.core.admin import get_current_admin
 
 router = APIRouter(prefix="/users", tags=["User"])
 
@@ -43,7 +44,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 # R 전체 조회 (관리자용)
 @router.get("/", response_model=list[UserRead])
-async def get_all_users(db: AsyncSession = Depends(get_db)):
+async def get_all_users(db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await user_svc.get_all_users_svc(db)
 
 
@@ -73,5 +74,7 @@ async def delete_me(db: AsyncSession = Depends(get_db), current_user: User = Dep
 
 # D 삭제 (관리자용)
 @router.delete("/{user_id}")
-async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_user(user_id: int, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
+    if user_id == current_admin.user_id:
+        raise HTTPException(status_code=400, detail="본인 계정은 삭제할 수 없습니다.")
     return await user_svc.delete_user_svc(db, user_id)

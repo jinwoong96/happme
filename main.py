@@ -18,12 +18,15 @@ from app.routers.policy import router as policy_router
 from app.routers.bookmark import router as bookmark_router
 from app.routers.notification import router as notification_router
 from app.routers.inquiry import router as inquiry_router
+from app.routers.ad_partnership_inquiry import router as ad_partnership_inquiry_router
+from app.routers.corporate_support_inquiry import router as corporate_support_inquiry_router
 from app.routers.notice import router as notice_router
 from app.routers.simulation_result import router as simulation_router
 from app.routers.ocr_result import router as ocr_router
 from app.routers.pdf_summary import router as pdf_router
 from app.routers.code_master import router as code_router
 from app.routers.recommendation import router as recommendation_router
+from app.routers.local_program import router as local_program_router
 
 load_dotenv(dotenv_path=".env")
 
@@ -69,12 +72,15 @@ app.include_router(policy_router)
 app.include_router(bookmark_router)
 app.include_router(notification_router)
 app.include_router(inquiry_router)
+app.include_router(ad_partnership_inquiry_router)
+app.include_router(corporate_support_inquiry_router)
 app.include_router(notice_router)
 app.include_router(simulation_router)
 app.include_router(ocr_router)
 app.include_router(pdf_router)
 app.include_router(code_router)
 app.include_router(recommendation_router)
+app.include_router(local_program_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8082, reload=True,

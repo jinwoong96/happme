@@ -1,6 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.models.code_master import CodeMaster
+from app.db.models.user import User
+from app.db.crud.user import UserCrud
+from app.core.jwt_handle import get_password_hash
 
 CODE_DATA = [
     # 성별
@@ -47,7 +50,11 @@ CODE_DATA = [
     ("NOTIFY_TYPE", "NEW_POLICY", "새 정책 등록", 2),
     ("NOTIFY_TYPE", "NOTICE", "공지사항", 3),
     ("NOTIFY_TYPE", "SYSTEM", "시스템 알림", 4),
+    ("NOTIFY_TYPE", "INQUIRY_ANSWER", "문의 답변 알림", 5),
 ]
+
+ADMIN_EMAIL = "admin@admin"
+ADMIN_PASSWORD = "admin1234!"
 
 
 async def seed_code_master(session: AsyncSession):
@@ -67,5 +74,18 @@ async def seed_code_master(session: AsyncSession):
             ))
 
 
+async def seed_admin_user(session: AsyncSession):
+    if await UserCrud.get_by_email_and_provider(session, ADMIN_EMAIL, "local") is None:
+        session.add(User(
+            name="관리자",
+            email=ADMIN_EMAIL,
+            provider="local",
+            password=get_password_hash(ADMIN_PASSWORD),
+            role="ADMIN",
+            profile_completed=True,
+        ))
+
+
 async def run_all_seeds(session: AsyncSession):
     await seed_code_master(session)
+    await seed_admin_user(session)

@@ -2,3 +2,7 @@
 __pycache__
 .vscode
 fastapi/
+
+report.html
+report.txt
+scenario_to_testprofile.py

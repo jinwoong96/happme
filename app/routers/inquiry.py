@@ -5,6 +5,7 @@ from app.db.scheme.inquiry import InquiryCreate, InquiryAnswer, InquiryRead
 from app.db.models.user import User
 from app.services.inquiry import InquiryService as inquiry_svc
 from app.core.jwt_handle import get_current_user
+from app.core.admin import get_current_admin
 
 router = APIRouter(prefix="/inquiries", tags=["Inquiry"])
 
@@ -17,7 +18,7 @@ async def create_inquiry(data: InquiryCreate, db: AsyncSession = Depends(get_db)
 
 # R 전체 조회 (관리자용)
 @router.get("/", response_model=list[InquiryRead])
-async def get_all_inquiries(db: AsyncSession = Depends(get_db)):
+async def get_all_inquiries(db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await inquiry_svc.get_all_inquiries_svc(db)
 
 
@@ -35,7 +36,7 @@ async def get_inquiry(inquiry_id: int, db: AsyncSession = Depends(get_db)):
 
 # U 답변 등록 (관리자용)
 @router.patch("/{inquiry_id}/answer", response_model=InquiryRead)
-async def answer_inquiry(inquiry_id: int, data: InquiryAnswer, db: AsyncSession = Depends(get_db)):
+async def answer_inquiry(inquiry_id: int, data: InquiryAnswer, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await inquiry_svc.answer_inquiry_svc(db, inquiry_id, data.answer)
 
 
