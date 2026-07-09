@@ -21,11 +21,12 @@ async def get_all_policies(
     region: Optional[str] = Query(None, description="지역 코드 (우편번호 prefix)"),
     lclsf: Optional[str] = Query(None, description="대분류명"),
     keyword: Optional[str] = Query(None, description="검색 키워드"),
+    sort: Optional[str] = Query(None, description="정렬 기준: latest(최신 등록순), popular(인기순), alpha(가나다순), deadline(마감임박순). 생략 시 정렬 없음"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
-    return await policy_svc.get_all_policies_svc(db, age=age, region=region, lclsf=lclsf, keyword=keyword, limit=limit, offset=offset)
+    return await policy_svc.get_all_policies_svc(db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, limit=limit, offset=offset)
 
 
 # R 단일 조회

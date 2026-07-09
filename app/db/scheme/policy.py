@@ -130,6 +130,7 @@ class PolicyRead(BaseModel):
 
 class PolicyListRead(BaseModel):
     policy_id: int
+    plcyNo: Optional[str] = None
     plcyNm: str
     plcyKywdNm: str
     lclsfNm: str
@@ -139,6 +140,12 @@ class PolicyListRead(BaseModel):
     aplyYmd: str
     inqCnt: int
     createdAt: Optional[datetime] = None
+
+    # 카드 표시용(policy_cards.json 기반). 매칭되는 카드가 없으면 None.
+    policy_summary: Optional[str] = None
+    apply_period_type: Optional[str] = None
+    apply_period: Optional[str] = None
+    target: Optional[str] = None
 
     class Config:
         from_attributes = True
