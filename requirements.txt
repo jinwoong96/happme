@@ -41,3 +41,7 @@ pymysql
 sqlalchemy
 python-dotenv
 matplotlib
+
+python-multipart
+
+# 테스트
