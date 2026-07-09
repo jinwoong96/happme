@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     # AI Server
     ai_server_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")
 
+    # 맞춤형 정책 추천 카드 (임시 파일, 추후 policy 테이블 컬럼 + 추출 파이프라인으로 대체 예정)
+    policy_cards_path: str = Field("./policy_cards.json", alias="POLICY_CARDS_PATH")
+
     # Google OAuth
     google_client_id: str = Field("", alias="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field("", alias="GOOGLE_CLIENT_SECRET")

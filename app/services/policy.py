@@ -1,9 +1,18 @@
+import json
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from app.core.settings import settings
 from app.db.crud.policy import PolicyCrud
 from app.db.scheme.policy import PolicyCreate, PolicyUpdate
 from app.db.models.policy import Policy
+
+# 정책 카드 표시용 텍스트 길이 제한 (policy_cards.json 원본에 지나치게 긴 값이 섞여있음)
+CARD_TITLE_MAX_LENGTH = 60
+CARD_SUMMARY_MAX_LENGTH = 150
+CARD_TARGET_MAX_LENGTH = 70
+
+_policy_cards_cache: dict[str, dict] | None = None
 
 
 class PolicyService:
@@ -79,3 +88,55 @@ class PolicyService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="지역 추가에 실패했습니다.")
+
+    @staticmethod
+    async def get_policy_cards_svc(db: AsyncSession, plcy_nos: list[str]) -> dict[str, dict]:
+        """
+        plcyNo -> 정책 카드 표시용 필드(policy_name/policy_summary/apply_period_type/apply_period/target/link).
+        지금은 policy_cards.json(임시 파일)에서 읽지만, 추후 policy 테이블에 컬럼이 추가되면
+        이 함수 내부만 DB 조회로 바꾸면 됩니다(호출부는 변경 없음).
+        """
+        cards = PolicyService._load_policy_cards()
+        return {
+            plcy_no: PolicyService._to_display_card(cards[plcy_no])
+            for plcy_no in plcy_nos
+            if plcy_no in cards
+        }
+
+    @staticmethod
+    def _load_policy_cards() -> dict[str, dict]:
+        global _policy_cards_cache
+        if _policy_cards_cache is None:
+            with open(settings.policy_cards_path, encoding="utf-8") as f:
+                cards = json.load(f)
+            _policy_cards_cache = {str(c.get("plcyNo")): c for c in cards}
+        return _policy_cards_cache
+
+    @staticmethod
+    def _truncate(text: Optional[str], max_length: int) -> Optional[str]:
+        if not text or len(text) <= max_length:
+            return text
+        return text[:max_length].rstrip() + "..."
+
+    @staticmethod
+    def _clean_target(text: Optional[str]) -> Optional[str]:
+        """
+        target은 '나이 | 소득조건 | 세부요건' 을 |로 이어붙인 값인데, 뒤쪽 항목이 비어있으면
+        '만 34~99세 | -' 처럼 의미 없는 조각이 그대로 남아있습니다. 그런 조각은 걸러냅니다.
+        """
+        if not text:
+            return None
+        parts = [p.strip() for p in text.split("|")]
+        meaningful = [p for p in parts if p and p != "-"]
+        return " | ".join(meaningful) if meaningful else None
+
+    @staticmethod
+    def _to_display_card(card: dict) -> dict:
+        return {
+            "policy_name": PolicyService._truncate(card.get("title"), CARD_TITLE_MAX_LENGTH),
+            "policy_summary": PolicyService._truncate(card.get("support_summary"), CARD_SUMMARY_MAX_LENGTH),
+            "apply_period_type": card.get("apply_period_type"),
+            "apply_period": card.get("apply_period"),
+            "target": PolicyService._truncate(PolicyService._clean_target(card.get("target")), CARD_TARGET_MAX_LENGTH),
+            "link": card.get("link"),
+        }
