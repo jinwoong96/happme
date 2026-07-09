@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
-import useChangePassword from '../../hooks/useTest';
+import useChangePassword from '../../hooks/useChangePassword';
 
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
