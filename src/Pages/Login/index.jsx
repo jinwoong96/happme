@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import useLogin from '../../hooks/useLogin';
 import { useNavigate } from 'react-router-dom';
+import { Gift, HeartHandshake, Sparkles } from 'lucide-react';
+
+const LOGO_ICONS = [Gift, HeartHandshake, Sparkles];
 
 function KakaoIcon() {
   return (
@@ -39,6 +43,15 @@ export default function LoginPage() {
   const { form, loading, error, handleChange, handleLogin, handleGoogleLogin, handleKakaoLogin, handleNaverLogin } = useLogin();
   const navigate = useNavigate();
 
+  const [iconIndex, setIconIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIconIndex((prev) => (prev + 1) % LOGO_ICONS.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+  const CurrentLogoIcon = LOGO_ICONS[iconIndex];
+
   return (
     <div className="h-full flex flex-col items-center justify-center" style={{ backgroundColor: '#f5f6fa', padding: '0 32px' }}>
       {/* 로고 */}
@@ -49,9 +62,10 @@ export default function LoginPage() {
             background: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
             borderRadius: 22,
             boxShadow: '0 8px 24px rgba(59,130,246,0.35)',
+            overflow: 'hidden',
           }}
         >
-          <span className="text-white text-[34px] font-extrabold">₩</span>
+          <CurrentLogoIcon key={iconIndex} className="logo-slide-icon" color="#fff" size={32} strokeWidth={2.2} />
         </div>
         <h1 className="text-[24px] font-extrabold text-gray-900">청년혜택</h1>
         <p className="mt-1.5 text-[13px] text-gray-600">청년을 위한 모든 지원금을 한눈에</p>
