@@ -42,7 +42,7 @@ export default function InquiryFormPage() {
   return (
     <div style={{ backgroundColor: '#f5f6fa', minHeight: '100%' }}>
       <div className="bg-white" style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button onClick={() => navigate('/support')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 4 }}>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 4 }}>
           <ChevronLeft size={22} color="#374151" />
         </button>
         <div>

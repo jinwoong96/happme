@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronDown, Sparkles, Bot, Bookmark, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Sparkles, Bot, Home } from 'lucide-react';
 import useRecommendation from '../../hooks/useRecommendation';
 import useBookmarks from '../../hooks/useBookmarks';
-import Modal from '../../Components/Modal';
+import PolicyCard from '../../Components/PolicyCard';
+import PolicyDetailModal from '../../Components/PolicyDetailModal';
 import { ChoiceButtonsWithInput } from '../../Components/ChoiceButtons';
 import { REGION_CHOICE_OPTIONS, EMPLOYMENT_CHOICE_OPTIONS } from '../../data/codeOptions';
 
@@ -33,59 +34,6 @@ function getPeriodBadge(tabKey, policy) {
   if (tabKey === 'expired') return { label: '종료', bg: '#fef3c7', color: '#d97706' };
   if (policy.apply_period_type === '상시') return { label: '상시', bg: '#dcfce7', color: '#16a34a' };
   return null;
-}
-
-function PolicyCard({ policy, tabKey, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, children }) {
-  const badge = getPeriodBadge(tabKey, policy);
-
-  return (
-    <div
-      onClick={() => onOpen(policy.policy_id, policy.policy_name, isBookmarked)}
-      style={{ cursor: 'pointer', backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}
-    >
-      <div className="flex justify-between items-start gap-2">
-        <p className="text-[15px] font-bold text-gray-900">{policy.policy_name}</p>
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleBookmark(policy.policy_id); }}
-          disabled={bookmarkDisabled || policy.policy_id == null}
-          className="bg-transparent border-none p-0.5 shrink-0"
-          style={{ cursor: bookmarkDisabled || policy.policy_id == null ? 'default' : 'pointer' }}
-        >
-          <Bookmark size={18} color={isBookmarked ? '#3b82f6' : '#ccc'} fill={isBookmarked ? '#3b82f6' : 'none'} />
-        </button>
-      </div>
-
-      {(badge || policy.apply_period) && (
-        <div className="mt-2 flex items-center gap-1.5">
-          {badge && (
-            <span style={{
-              padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-              backgroundColor: badge.bg, color: badge.color,
-            }}>
-              {badge.label}
-            </span>
-          )}
-          {policy.apply_period && <span className="text-[11px] text-gray-400">{policy.apply_period}</span>}
-        </div>
-      )}
-
-      {policy.target && (
-        <div className="mt-2">
-          <p className="text-[11px] font-semibold text-gray-400">지원대상</p>
-          <p className="mt-0.5 text-[12px] text-gray-600 leading-relaxed">{policy.target}</p>
-        </div>
-      )}
-
-      {policy.policy_summary && (
-        <div className="mt-2">
-          <p className="text-[11px] font-semibold text-gray-400">지원내용 요약</p>
-          <p className="mt-0.5 text-[12px] text-gray-600 leading-relaxed">{policy.policy_summary}</p>
-        </div>
-      )}
-
-      {children}
-    </div>
-  );
 }
 
 export default function RecommendationPage() {
@@ -128,7 +76,10 @@ export default function RecommendationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="text-[18px] font-bold text-gray-900">맞춤형 지원금 추천</p>
+        <p className="flex-1 text-[18px] font-bold text-gray-900">맞춤형 지원금 추천</p>
+        <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+          <Home size={22} color="#333" />
+        </button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -258,7 +209,7 @@ export default function RecommendationPage() {
                             <PolicyCard
                               key={r.plcyNo}
                               policy={r}
-                              tabKey={activeTab}
+                              badge={getPeriodBadge(activeTab, r)}
                               onOpen={openPolicy}
                               isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
                               onToggleBookmark={toggleBookmark}
@@ -284,83 +235,14 @@ export default function RecommendationPage() {
         )}
       </div>
 
-      <Modal isOpen={!!selectedPolicy} onClose={closePolicy} title={selectedPolicy?.plcyNm}>
-        {selectedPolicy && (
-          <div className="flex flex-col gap-4">
-            <button
-              onClick={() => toggleBookmark(selectedPolicy.policy_id)}
-              disabled={bookmarksLoading || selectedPolicy.policy_id == null}
-              className="flex items-center gap-1.5 bg-transparent border-none p-0 self-start"
-              style={{ cursor: bookmarksLoading || selectedPolicy.policy_id == null ? 'default' : 'pointer' }}
-            >
-              <Bookmark
-                size={18}
-                color={isBookmarked(selectedPolicy.policy_id, selectedPolicy.is_bookmarked) ? '#3b82f6' : '#9ca3af'}
-                fill={isBookmarked(selectedPolicy.policy_id, selectedPolicy.is_bookmarked) ? '#3b82f6' : 'none'}
-              />
-              <span className="text-[13px] font-semibold" style={{ color: isBookmarked(selectedPolicy.policy_id, selectedPolicy.is_bookmarked) ? '#3b82f6' : '#6b7280' }}>
-                {isBookmarked(selectedPolicy.policy_id, selectedPolicy.is_bookmarked) ? '즐겨찾기 됨' : '즐겨찾기 추가'}
-              </span>
-            </button>
-
-            {policyLoading ? (
-              <p className="text-[13px] text-gray-400">불러오는 중...</p>
-            ) : selectedPolicy.error ? (
-              <p className="text-[13px] text-red-400">{selectedPolicy.error}</p>
-            ) : (
-              <>
-                {selectedPolicy.plcyExplnCn && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">정책 설명</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">{selectedPolicy.plcyExplnCn}</p>
-                  </div>
-                )}
-                {selectedPolicy.plcySprtCn && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">지원 내용</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">{selectedPolicy.plcySprtCn}</p>
-                  </div>
-                )}
-                {(selectedPolicy.sprtTrgtMinAge != null || selectedPolicy.sprtTrgtMaxAge != null) && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">지원 대상 연령</p>
-                    <p className="text-[13px] text-gray-600">{selectedPolicy.sprtTrgtMinAge}세 ~ {selectedPolicy.sprtTrgtMaxAge}세</p>
-                  </div>
-                )}
-                {selectedPolicy.aplyYmd && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">신청 기간</p>
-                    <p className="text-[13px] text-gray-600">{selectedPolicy.aplyYmd}</p>
-                  </div>
-                )}
-                {selectedPolicy.plcyAplyMthdCn && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">신청 방법</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">{selectedPolicy.plcyAplyMthdCn}</p>
-                  </div>
-                )}
-                {selectedPolicy.sbmsnDcmntCn && (
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-700 mb-1">제출 서류</p>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">{selectedPolicy.sbmsnDcmntCn}</p>
-                  </div>
-                )}
-                {selectedPolicy.aplyUrlAddr && (
-                  <a
-                    href={selectedPolicy.aplyUrlAddr}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1.5"
-                    style={{ color: '#3b82f6', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}
-                  >
-                    신청 바로가기 <ExternalLink size={14} />
-                  </a>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </Modal>
+      <PolicyDetailModal
+        selectedPolicy={selectedPolicy}
+        policyLoading={policyLoading}
+        isBookmarked={isBookmarked(selectedPolicy?.policy_id, selectedPolicy?.is_bookmarked)}
+        onToggleBookmark={toggleBookmark}
+        bookmarkDisabled={bookmarksLoading}
+        onClose={closePolicy}
+      />
     </div>
   );
 }

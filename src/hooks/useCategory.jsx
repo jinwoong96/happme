@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
+import usePolicyDetail from './usePolicyDetail';
 
 const CATEGORIES = ['전체', '일자리', '주거', '교육', '복지문화', '참여권리', '지역'];
+
+const SORT_OPTIONS = [
+  { value: 'none', label: '정렬 안함' },
+  { value: 'deadline', label: '마감 임박순' },
+  { value: 'latest', label: '최신 등록순' },
+  { value: 'popular', label: '인기순' },
+  { value: 'alpha', label: '가나다순' },
+];
 
 export default function useCategory() {
   const [activeTab, setActiveTab] = useState('전체');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  const [sortOption, setSortOption] = useState('none');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState(new Set());
@@ -47,11 +57,23 @@ export default function useCategory() {
     if (debouncedKeyword) {
       params.set('keyword', debouncedKeyword);
     }
+    if (sortOption !== 'none') {
+      params.set('sort', sortOption);
+    }
 
     api.get(`/policies/?${params.toString()}`)
       .then((data) => {
         if (ignore) return;
-        setItems((data || []).map((p) => ({ id: p.policy_id, plcyNm: p.plcyNm, aplyYmd: p.aplyYmd })));
+        setItems((data || []).map((p) => ({
+          policy_id: p.policy_id,
+          plcyNo: p.plcyNo,
+          policy_name: p.plcyNm,
+          aplyYmd: p.aplyYmd,
+          policy_summary: p.policy_summary,
+          apply_period_type: p.apply_period_type,
+          apply_period: p.apply_period,
+          target: p.target,
+        })));
       })
       .catch(() => {
         if (!ignore) setItems([]);
@@ -61,7 +83,7 @@ export default function useCategory() {
       });
 
     return () => { ignore = true; };
-  }, [activeTab, selectedRegion, debouncedKeyword]);
+  }, [activeTab, selectedRegion, debouncedKeyword, sortOption]);
 
   const toggleBookmark = async (id) => {
     const isBookmarked = bookmarks.has(id);
@@ -94,17 +116,26 @@ export default function useCategory() {
     }
   };
 
+  const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();
+
   return {
     categories: CATEGORIES,
+    sortOptions: SORT_OPTIONS,
     activeTab,
     setActiveTab,
     selectedRegion,
     setSelectedRegion,
     keyword,
     setKeyword,
+    sortOption,
+    setSortOption,
     items,
     loading,
     bookmarks,
     toggleBookmark,
+    selectedPolicy,
+    policyLoading,
+    openPolicy,
+    closePolicy,
   };
 }

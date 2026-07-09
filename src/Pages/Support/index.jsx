@@ -1,14 +1,21 @@
-import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useSupport from '../../hooks/useSupport';
 import { INQUIRY_TYPES } from './inquiryConfig';
 
 export default function SupportPage() {
+  const navigate = useNavigate();
   const { handleContact } = useSupport();
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
       <div className="bg-white" style={{ padding: '20px 20px 16px' }}>
-        <p className="text-[22px] font-extrabold text-gray-900">고객센터</p>
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+            <ChevronLeft size={24} color="#333" />
+          </button>
+          <p className="text-[22px] font-extrabold text-gray-900">고객센터</p>
+        </div>
         <p className="mt-1.5 text-[13px] text-gray-400">문의 유형을 선택해 주세요</p>
       </div>
 

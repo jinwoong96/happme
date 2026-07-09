@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../utils/api';
+import usePolicyDetail from './usePolicyDetail';
 
 export default function useRecommendation() {
   const [regionChoice, setRegionChoice] = useState('지역 이동 안함');
@@ -12,8 +13,7 @@ export default function useRecommendation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [selectedPolicy, setSelectedPolicy] = useState(null);
-  const [policyLoading, setPolicyLoading] = useState(false);
+  const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();
 
   // "AI 분석 시작" 버튼은 Q3(상황 설명)까지 채워야 활성화된다.
   const canAnalyze = !loading && regionChoice && employmentChoice && situation.trim();
@@ -58,29 +58,6 @@ export default function useRecommendation() {
     runAnalysis('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const openPolicy = async (policyId, fallbackName, fallbackBookmarked) => {
-    if (policyId == null) {
-      setSelectedPolicy({
-        policy_id: null, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked,
-        error: '아직 정책 DB에 등록되지 않아 상세 정보를 볼 수 없어요.',
-      });
-      return;
-    }
-
-    setSelectedPolicy({ policy_id: policyId, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked });
-    setPolicyLoading(true);
-    try {
-      const data = await api.get(`/policies/${policyId}`);
-      setSelectedPolicy({ ...data, is_bookmarked: fallbackBookmarked });
-    } catch (err) {
-      setSelectedPolicy({ policy_id: policyId, plcyNm: fallbackName, is_bookmarked: fallbackBookmarked, error: err.message || '정책 정보를 불러오지 못했습니다.' });
-    } finally {
-      setPolicyLoading(false);
-    }
-  };
-
-  const closePolicy = () => setSelectedPolicy(null);
 
   return {
     regionChoice, setRegionChoice, regionText, setRegionText,

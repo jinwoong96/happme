@@ -1,6 +1,13 @@
-import { Bookmark, Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import useCategory from '../../hooks/useCategory';
 import { REGIONS } from '../../data/regions';
+import PolicyCard from '../../Components/PolicyCard';
+import PolicyDetailModal from '../../Components/PolicyDetailModal';
+
+// 전체보기는 신청 가능 여부를 판정하지 않고 정책을 그대로 나열하므로, 상시 여부만 배지로 보여준다.
+function getBadge(policy) {
+  return policy.apply_period_type === '상시' ? { label: '상시', bg: '#dcfce7', color: '#16a34a' } : null;
+}
 
 export default function CategoryPage() {
   const {
@@ -11,10 +18,17 @@ export default function CategoryPage() {
     setSelectedRegion,
     keyword,
     setKeyword,
+    sortOptions,
+    sortOption,
+    setSortOption,
     items,
     loading,
     bookmarks,
     toggleBookmark,
+    selectedPolicy,
+    policyLoading,
+    openPolicy,
+    closePolicy,
   } = useCategory();
 
   return (
@@ -98,7 +112,27 @@ export default function CategoryPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 20px 24px' }}>
+      <div className="flex justify-end" style={{ padding: '14px 20px 0' }}>
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          style={{
+            padding: '7px 12px',
+            borderRadius: 999,
+            border: '1px solid #e5e7eb',
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: '#374151',
+            backgroundColor: '#f9fafb',
+          }}
+        >
+          {sortOptions.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 20px 24px' }}>
         {activeTab === '지역' && !selectedRegion ? (
           <div className="text-center py-10 text-[13px] text-gray-400">지역을 선택하면 해당 지역의 정책이 표시됩니다.</div>
         ) : loading ? (
@@ -108,17 +142,24 @@ export default function CategoryPage() {
             {keyword ? `'${keyword}'에 대한 검색 결과가 없습니다.` : '항목이 없습니다.'}
           </div>
         ) : items.map((item) => (
-          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-            <div style={{ flex: 1 }}>
-              <p className="text-[15px] font-bold text-gray-900">{item.plcyNm}</p>
-              <p className="mt-1 text-[12px] text-gray-400">{item.aplyYmd}</p>
-            </div>
-            <button onClick={() => toggleBookmark(item.id)} className="bg-transparent border-none cursor-pointer p-0.5" style={{ marginLeft: 10 }}>
-              <Bookmark size={18} color={bookmarks.has(item.id) ? '#3b82f6' : '#ccc'} fill={bookmarks.has(item.id) ? '#3b82f6' : 'none'} />
-            </button>
-          </div>
+          <PolicyCard
+            key={item.policy_id}
+            policy={item}
+            badge={getBadge(item)}
+            onOpen={openPolicy}
+            isBookmarked={bookmarks.has(item.policy_id)}
+            onToggleBookmark={toggleBookmark}
+          />
         ))}
       </div>
+
+      <PolicyDetailModal
+        selectedPolicy={selectedPolicy}
+        policyLoading={policyLoading}
+        isBookmarked={selectedPolicy ? bookmarks.has(selectedPolicy.policy_id) : false}
+        onToggleBookmark={toggleBookmark}
+        onClose={closePolicy}
+      />
     </div>
   );
 }
