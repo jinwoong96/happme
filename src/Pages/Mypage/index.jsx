@@ -51,14 +51,11 @@ export default function MypagePage() {
 
       {/* 메뉴 */}
       <div style={{ margin: '12px 20px 0', backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-                {/* {MENU.map(({ Icon, label, path, state }, i) => (
-          <button key={label}
-            onClick={() => path && navigate(path, { state })} */}
         {MENU
           .filter(({ label }) => label !== '비밀번호 변경' || user.hasPassword)
-          .map(({ Icon, label, path }, i, arr) => (
+          .map(({ Icon, label, path, state }, i, arr) => (
           <button key={label}
-            onClick={path ? () => navigate(path) : undefined}  
+            onClick={path ? () => navigate(path, { state }) : undefined}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 18px',
