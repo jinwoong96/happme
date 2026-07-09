@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { UserPlus } from 'lucide-react';
 import useSignup from '../../hooks/useSignup';
 
 const inputStyle = {
@@ -32,10 +33,10 @@ export default function SignupPage() {
           borderRadius: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
           marginBottom: 16, boxShadow: '0 8px 24px rgba(59,130,246,0.35)',
         }}>
-          <span style={{ color: '#fff', fontSize: 34, fontWeight: 800 }}>₩</span>
+          <UserPlus color="#fff" size={32} strokeWidth={2.2} />
         </div>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#111' }}>회원가입</h1>
-        <p style={{ margin: '6px 0 0', fontSize: 13, color: '#aaa' }}>청년혜택과 함께 시작해보세요</p>
+        <p style={{ margin: '6px 0 0', fontSize: 15, color: '#636262' }}>HAPP:ME와 함께 시작해보세요</p>
       </div>
 
       <form onSubmit={handleSignup} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
