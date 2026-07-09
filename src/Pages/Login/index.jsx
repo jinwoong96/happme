@@ -67,8 +67,8 @@ export default function LoginPage() {
         >
           <CurrentLogoIcon key={iconIndex} className="logo-slide-icon" color="#fff" size={32} strokeWidth={2.2} />
         </div>
-        <h1 className="text-[24px] font-extrabold text-gray-900">청년혜택</h1>
-        <p className="mt-1.5 text-[13px] text-gray-600">청년을 위한 모든 지원금을 한눈에</p>
+        <h1 className="text-[32px] font-extrabold text-gray-900">HAPP:ME</h1>
+        <p className="mt-1.5 text-[15px] text-gray-600">청년을 위한 모든 혜택을 한눈에</p>
       </div>
 
       {/* 폼 */}
