@@ -53,6 +53,7 @@ class Policy(Base):
     ptcpPrpTrgtCn:   Mapped[str]           = mapped_column(Text, nullable=False)
     mrgSttsCd:       Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)
     inqCnt:          Mapped[int]            = mapped_column(Integer, nullable=False, default=0)
+    bookmarkCnt:     Mapped[int]            = mapped_column(Integer, nullable=False, default=0)
     frstRegDt:       Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     lastMdfcnDt:     Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     createdAt:       Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=func.now(), nullable=True)

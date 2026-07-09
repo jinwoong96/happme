@@ -130,6 +130,7 @@ CREATE TABLE policy (
     ptcpPrpTrgtCn   TEXT         NOT NULL,
     mrgSttsCd       VARCHAR(20),
     inqCnt          INT          DEFAULT 0,
+    bookmarkCnt     INT          DEFAULT 0,
     frstRegDt       DATETIME,
     lastMdfcnDt     DATETIME,
     createdAt       DATETIME     DEFAULT CURRENT_TIMESTAMP,

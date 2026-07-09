@@ -121,6 +121,7 @@ class PolicyRead(BaseModel):
     ptcpPrpTrgtCn: str
     mrgSttsCd: Optional[str] = None
     inqCnt: int
+    bookmarkCnt: int
     frstRegDt: Optional[datetime] = None
     lastMdfcnDt: Optional[datetime] = None
     createdAt: Optional[datetime] = None
@@ -143,6 +144,7 @@ class PolicyListRead(BaseModel):
     aplyYmd: str
     aplyEndDt: Optional[date] = None
     inqCnt: int
+    bookmarkCnt: int
     createdAt: Optional[datetime] = None
 
     # 카드 표시용(policy_cards.json 기반). 매칭되는 카드가 없으면 None.
