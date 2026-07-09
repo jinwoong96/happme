@@ -21,13 +21,15 @@
   --color-menu-bg: #f8f9ff;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar { display: none; }
 }
-*::-webkit-scrollbar { display: none; }
 
 html, body, #root { width: 100%; height: 100%; }
