@@ -1,6 +1,4 @@
 import json
-import re
-from datetime import date
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
@@ -8,8 +6,6 @@ from app.core.settings import settings
 from app.db.crud.policy import PolicyCrud
 from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyListRead
 from app.db.models.policy import Policy
-
-_APLY_YMD_DATE_RE = re.compile(r"(\d{4})[.\-/]?(\d{2})[.\-/]?(\d{2})")
 
 # 정책 카드 표시용 텍스트 길이 제한 (policy_cards.json 원본에 지나치게 긴 값이 섞여있음)
 CARD_TITLE_MAX_LENGTH = 60
@@ -60,9 +56,6 @@ class PolicyService:
     ) -> list[dict]:
         policies = await PolicyCrud.get_all_policies(db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, limit=limit, offset=offset)
 
-        if sort == "deadline":
-            policies = PolicyService._sort_by_deadline(policies)[offset:offset + limit]
-
         plcy_nos = [p.plcyNo for p in policies if p.plcyNo]
         cards = await PolicyService.get_policy_cards_svc(db, plcy_nos)
 
@@ -77,42 +70,6 @@ class PolicyService:
                 item["target"] = card.get("target")
             results.append(item)
         return results
-
-    @staticmethod
-    def _parse_aply_end_date(aply_ymd: Optional[str]) -> Optional[date]:
-        """
-        aplyYmd(예: "20250301 ~ 20251231", "2025.03.01 ~ 2025.12.31")에서 마감일을 뽑아낸다.
-        "상시"처럼 날짜 두 개를 못 찾으면 None(마감일 없음).
-        """
-        if not aply_ymd:
-            return None
-        dates = _APLY_YMD_DATE_RE.findall(aply_ymd)
-        if len(dates) < 2:
-            return None
-        year, month, day = dates[1]
-        try:
-            return date(int(year), int(month), int(day))
-        except ValueError:
-            return None
-
-    @staticmethod
-    def _sort_by_deadline(policies: list[Policy]) -> list[Policy]:
-        """
-        아직 마감되지 않은 정책 중 마감일이 가까운(=오늘에서 가까운 미래) 순으로 앞에 오게 정렬한다.
-        이미 마감이 지난 정책은 "임박"이 아니므로 그 뒤로(최근에 마감된 것부터), 마감일을
-        알 수 없는 정책(상시 등)은 맨 뒤로 보낸다.
-        """
-        today = date.today()
-
-        def sort_key(p: Policy):
-            end_date = PolicyService._parse_aply_end_date(p.aplyYmd)
-            if end_date is None:
-                return (2, 0)
-            if end_date < today:
-                return (1, -end_date.toordinal())
-            return (0, end_date.toordinal())
-
-        return sorted(policies, key=sort_key)
 
     @staticmethod
     async def update_policy_svc(db: AsyncSession, policy_id: int, data: PolicyUpdate) -> Policy:

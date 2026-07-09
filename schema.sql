@@ -115,6 +115,7 @@ CREATE TABLE policy (
     aplyUrlAddr     VARCHAR(500),
     sbmsnDcmntCn    TEXT         NOT NULL,
     aplyYmd         VARCHAR(100) NOT NULL,
+    aplyEndDt       DATE,        -- aplyYmd("YYYYMMDD ~ YYYYMMDD")에서 뽑아낸 마감일. 파싱 불가(상시 등)면 NULL
     refUrlAddr1     VARCHAR(500),
     refUrlAddr2     VARCHAR(500),
     etcMttrCn       TEXT,

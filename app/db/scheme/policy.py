@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional, List
 
 
@@ -23,6 +23,7 @@ class PolicyCreate(BaseModel):
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: str
     aplyYmd: str
+    aplyEndDt: Optional[date] = None
     refUrlAddr1: Optional[str] = None
     refUrlAddr2: Optional[str] = None
     etcMttrCn: Optional[str] = None
@@ -59,6 +60,7 @@ class PolicyUpdate(BaseModel):
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: Optional[str] = None
     aplyYmd: Optional[str] = None
+    aplyEndDt: Optional[date] = None
     refUrlAddr1: Optional[str] = None
     refUrlAddr2: Optional[str] = None
     etcMttrCn: Optional[str] = None
@@ -104,6 +106,7 @@ class PolicyRead(BaseModel):
     aplyUrlAddr: Optional[str] = None
     sbmsnDcmntCn: str
     aplyYmd: str
+    aplyEndDt: Optional[date] = None
     refUrlAddr1: Optional[str] = None
     refUrlAddr2: Optional[str] = None
     etcMttrCn: Optional[str] = None
@@ -138,6 +141,7 @@ class PolicyListRead(BaseModel):
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int
     aplyYmd: str
+    aplyEndDt: Optional[date] = None
     inqCnt: int
     createdAt: Optional[datetime] = None
 

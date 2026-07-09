@@ -1,5 +1,6 @@
+from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, case
 from sqlalchemy.orm import selectinload
 from app.db.models.policy import Policy
 from app.db.models.policy_region import PolicyRegion
@@ -54,13 +55,19 @@ class PolicyCrud:
             stmt = stmt.order_by(Policy.inqCnt.desc())
         elif sort == "alpha":
             stmt = stmt.order_by(Policy.plcyNm.asc())
+        elif sort == "deadline":
+            today = date.today()
+            # 아직 마감 전(아래로 갈수록 우선순위 낮음): 1) 마감일 없음(NULL, 상시 등)은 맨 뒤,
+            # 2) 이미 마감 지난 건 그 다음(최근에 마감된 것부터), 3) 아직 유효한 건 마감일이
+            # 가까운 순으로 맨 앞.
+            stmt = stmt.order_by(
+                case((Policy.aplyEndDt.is_(None), 1), else_=0).asc(),
+                case((Policy.aplyEndDt < today, 1), else_=0).asc(),
+                case((Policy.aplyEndDt >= today, Policy.aplyEndDt), else_=None).asc(),
+                case((Policy.aplyEndDt < today, Policy.aplyEndDt), else_=None).desc(),
+            )
 
-        # "deadline"(마감임박순)은 aplyYmd가 자유 텍스트("YYYYMMDD ~ YYYYMMDD", "상시" 등)라
-        # SQL로 안정적으로 정렬할 수 없어 서비스 레이어에서 파싱 후 정렬한다. 정렬 전에 limit을
-        # 적용하면 마감일 순으로 앞쪽에 와야 할 항목이 잘려나갈 수 있어 여기서는 limit/offset을
-        # 생략하고, 필터링된 전체 결과를 서비스 레이어로 넘긴다.
-        if sort != "deadline":
-            stmt = stmt.offset(offset).limit(limit)
+        stmt = stmt.offset(offset).limit(limit)
 
         result = await db.execute(stmt)
         return list(result.scalars().unique().all())

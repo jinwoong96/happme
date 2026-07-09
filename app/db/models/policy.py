@@ -1,7 +1,7 @@
 from app.db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, Integer, BigInteger, DateTime, func
-from datetime import datetime
+from sqlalchemy import String, Text, Integer, BigInteger, DateTime, Date, func
+from datetime import datetime, date
 from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -38,6 +38,7 @@ class Policy(Base):
     aplyUrlAddr:     Mapped[Optional[str]]  = mapped_column(String(500), nullable=True)
     sbmsnDcmntCn:    Mapped[str]            = mapped_column(Text, nullable=False)
     aplyYmd:         Mapped[str]            = mapped_column(String(100), nullable=False)
+    aplyEndDt:       Mapped[Optional[date]] = mapped_column(Date, nullable=True)  # aplyYmd("YYYYMMDD ~ YYYYMMDD")에서 뽑아낸 마감일. 파싱 불가(상시 등)면 NULL
     refUrlAddr1:     Mapped[Optional[str]]  = mapped_column(String(500), nullable=True)
     refUrlAddr2:     Mapped[Optional[str]]  = mapped_column(String(500), nullable=True)
     etcMttrCn:       Mapped[Optional[str]]  = mapped_column(Text, nullable=True)
