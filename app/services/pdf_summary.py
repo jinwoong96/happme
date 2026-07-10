@@ -8,6 +8,7 @@ from app.db.crud.pdf_summary import PdfSummaryCrud
 from app.db.crud.user import UserCrud
 from app.db.scheme.pdf_summary import PdfSummaryCreate, PdfMatchCreate
 from app.db.models.pdf_summary import PdfSummary, PdfSummaryMatch
+from app.db.crud.policy_summary_cache import PolicySummaryCacheCrud
 
 AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8090")
 
@@ -62,9 +63,7 @@ class PdfSummaryService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF 요약 삭제에 실패했습니다.")
-    # ---------- 여기부터 AI 연동 추가분 (ai_client.py 없이 직접 호출) ----------
 
-    @staticmethod
     @staticmethod
     async def _find_policy_id(db: AsyncSession, policy_name: str) -> int | None:
         result = await db.execute(
@@ -75,13 +74,19 @@ class PdfSummaryService:
     @staticmethod
     async def _save_ai_result_svc(db: AsyncSession, user_id: int, ai_result: dict) -> dict:
         results = ai_result.get("results", [])
+
+        # ✅ 매칭 안 된 후보 정책들에도 즐겨찾기용 policy_id를 붙여줌
+        for r in results:
+            if not r.get("matched"):
+                for cand in r.get("candidates", []) or []:
+                    cand["policy_id"] = await PdfSummaryService._find_policy_id(db, cand["policy_name"])
+
         matched = [r for r in results if r.get("matched") and r.get("summary")]
 
         if not matched:
             return {"ai_result": ai_result, "saved": None}
 
         summary_text = ai_result.get("comparison") or matched[0]["summary"]
-
         pdf = await PdfSummaryService.create_pdf_svc(
             db, PdfSummaryCreate(user_id=user_id, summary_text=summary_text)
         )
@@ -91,9 +96,18 @@ class PdfSummaryService:
             policy_id = await PdfSummaryService._find_policy_id(db, r["policy_name"])
             if policy_id is None:
                 continue
+
+            r["policy_id"] = policy_id  # ✅ policy_id 추가 (즐겨찾기용)
+
             await PdfSummaryService.add_match_svc(
                 db, PdfMatchCreate(pdf_id=pdf.pdf_id, policy_id=policy_id, match_type=r.get("method"))
             )
+
+            # ✅ 캐시 저장
+            existing = await PolicySummaryCacheCrud.get_cache(db, r["policy_name"])
+            if not existing:
+                await PolicySummaryCacheCrud.set_cache(db, r["policy_name"], r["summary"])
+
             saved_count += 1
 
         return {"ai_result": ai_result, "saved": {"pdf_id": pdf.pdf_id, "matches": saved_count}}
@@ -112,6 +126,14 @@ class PdfSummaryService:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+
+        for r in ai_result.get("results", []):
+            if r.get("matched") and r.get("policy_name"):
+                cached = await PolicySummaryCacheCrud.get_cache(db, r["policy_name"])
+                if cached:
+                    r["summary"] = cached.summary_text
+                    r["from_cache"] = True
+
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
 
     @staticmethod
@@ -127,6 +149,14 @@ class PdfSummaryService:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+
+        for r in ai_result.get("results", []):
+            if r.get("matched") and r.get("policy_name"):
+                cached = await PolicySummaryCacheCrud.get_cache(db, r["policy_name"])
+                if cached:
+                    r["summary"] = cached.summary_text
+                    r["from_cache"] = True
+
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
 
     @staticmethod
@@ -142,6 +172,14 @@ class PdfSummaryService:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
+
+        for r in ai_result.get("results", []):
+            if r.get("matched") and r.get("policy_name"):
+                cached = await PolicySummaryCacheCrud.get_cache(db, r["policy_name"])
+                if cached:
+                    r["summary"] = cached.summary_text
+                    r["from_cache"] = True
+
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
 
     @staticmethod
