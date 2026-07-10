@@ -173,7 +173,7 @@ class PdfSummaryService:
         if support:
             instructions.append("- 지원내용: 지원 금액/내용 핵심만 간결하게 (완전한 문장 X)")
         if apply_method or apply_url:
-            instructions.append("- 신청방법: 신청 방법과 URL만 간결하게 (완전한 문장 X)")
+            instructions.append("- 신청방법: 신청 방법만 간결하게 작성하고 URL은 출력하지 말 것 (완전한 문장 X)")
         if apply_period:
             instructions.append(f"- 신청기간: {apply_period} 그대로 표기")
         if institution:
@@ -198,6 +198,12 @@ class PdfSummaryService:
             raw = self.llm_model.generate(prompt=prompt)
             print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
             response = raw["results"][0]["generated_text"]
+            response = raw["results"][0]["generated_text"]
+            print("=" * 80)
+            print(response)
+            print("=" * 80)
+
+            return response.strip()
             return response.strip()
         except Exception as e:
             print(f"[PdfSummaryService] 요약 생성 오류: {e}")
@@ -273,16 +279,33 @@ class PdfSummaryService:
         top_indices = normalized.argsort()[::-1][:top_k]
         top_names = [self.policy_names[i] for i in top_indices]
         best_match = top_names[0]
+        print("raw_best_score =", raw_best_score)
+        print("top_names =", top_names)
 
         if raw_best_score < raw_threshold_low:
-            return {"matched_policy": "해당 없음", "method": "매칭불가"}
+            return {
+                "matched_policy": "해당 없음",
+                "method": "매칭불가",
+                "candidates": top_names[:3],      # ← 문자열 리스트
+                "raw_score": raw_best_score
+            }
         if raw_best_score >= raw_threshold_high:
-            return {"matched_policy": best_match, "method": "임베딩매칭"}
+            return {
+                "matched_policy": best_match,
+                "method": "임베딩매칭",
+                "candidates": top_names[:2],      # ← 문자열 리스트
+                "raw_score": raw_best_score
+            }
 
         llm_result = self.verify_with_llm_svc(full_text, top_names, filename)
         is_none = llm_result == "없음" or llm_result not in self.policy_names
         matched = "해당 없음" if is_none else llm_result
-        return {"matched_policy": matched, "method": "매칭불가" if is_none else "하이브리드매칭"}
+        return {
+            "matched_policy": matched,
+            "method": "매칭불가" if is_none else "하이브리드매칭",
+            "candidates": top_names[:2],          # ← 문자열 리스트
+            "raw_score": raw_best_score
+        }
 
     def compare_policies_svc(self, summaries: list[dict]) -> str | None:
         policy_list = "\n\n".join(
