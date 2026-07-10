@@ -1,6 +1,6 @@
 import { Bookmark } from 'lucide-react';
 
-export default function PolicyCard({ policy, badge, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, children }) {
+export default function PolicyCard({ policy, badge, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, onCheckIncome, children }) {
   return (
     <div
       onClick={() => onOpen(policy.policy_id, policy.policy_name, isBookmarked)}
@@ -44,6 +44,20 @@ export default function PolicyCard({ policy, badge, onOpen, isBookmarked, onTogg
           <p className="text-[11px] font-semibold text-gray-400">지원내용 요약</p>
           <p className="mt-0.5 text-[12px] text-gray-600 leading-relaxed">{policy.policy_summary}</p>
         </div>
+      )}
+
+      {policy.required_fields?.length > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onCheckIncome?.(policy); }}
+          className="mt-3 cursor-pointer"
+          style={{
+            width: '100%', padding: '9px 0', borderRadius: 10,
+            border: '1.5px solid #3b82f6', backgroundColor: '#fff',
+            color: '#3b82f6', fontSize: 12.5, fontWeight: 700,
+          }}
+        >
+          소득계산
+        </button>
       )}
 
       {children}

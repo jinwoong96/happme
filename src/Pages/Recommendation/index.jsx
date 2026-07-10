@@ -5,6 +5,7 @@ import useRecommendation from '../../hooks/useRecommendation';
 import useBookmarks from '../../hooks/useBookmarks';
 import PolicyCard from '../../Components/PolicyCard';
 import PolicyDetailModal from '../../Components/PolicyDetailModal';
+import IncomeEligibilityModal from '../../Components/IncomeEligibilityModal';
 import { ChoiceButtonsWithInput } from '../../Components/ChoiceButtons';
 import { REGION_CHOICE_OPTIONS, EMPLOYMENT_CHOICE_OPTIONS } from '../../data/codeOptions';
 
@@ -48,6 +49,7 @@ export default function RecommendationPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
+  const [incomeCheckPolicy, setIncomeCheckPolicy] = useState(null);
 
   // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화한다.
   useEffect(() => {
@@ -214,6 +216,7 @@ export default function RecommendationPage() {
                               isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
                               onToggleBookmark={toggleBookmark}
                               bookmarkDisabled={bookmarksLoading}
+                              onCheckIncome={setIncomeCheckPolicy}
                             >
                               {r.fail_reasons?.length > 0 && (
                                 <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
@@ -243,6 +246,14 @@ export default function RecommendationPage() {
         bookmarkDisabled={bookmarksLoading}
         onClose={closePolicy}
       />
+
+      {incomeCheckPolicy && (
+        <IncomeEligibilityModal
+          plcyNo={incomeCheckPolicy.plcyNo}
+          requiredFields={incomeCheckPolicy.required_fields}
+          onClose={() => setIncomeCheckPolicy(null)}
+        />
+      )}
     </div>
   );
 }
