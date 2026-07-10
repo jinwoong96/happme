@@ -1,24 +1,30 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, FileText, Bot, Link2, MessageCircle } from 'lucide-react';
+import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home } from 'lucide-react';
 import useSummary from '../../hooks/useSummary';
 
 export default function SummaryPage() {
   const {
-    files, text, url, loading, results, error,
-    question, answer, asking,
-    handleFileChange, handleTextChange, handleUrlChange,
-    handleSummarize, canSummarize,
-    setQuestion, handleAsk,
+      files, text, url, loading, results, error,
+      question, answer, asking,
+      handleFileChange, handleTextChange, handleUrlChange,
+      handleSummarize, canSummarize,
+      setQuestion, handleAsk,
+      handleReset, 
   } = useSummary();
   const navigate = useNavigate();
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
-        <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-          <ChevronLeft size={24} color="#333" />
-        </button>
-        <p className="text-[18px] font-bold text-gray-900">공고문 요약</p>
+      <div className="flex items-center justify-between bg-white" style={{ padding: '20px 20px 16px' }}>
+          <div className="flex items-center gap-2">
+              <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+                  <ChevronLeft size={24} color="#333" />
+              </button>
+              <p className="text-[18px] font-bold text-gray-900">공고문 요약</p>
+          </div>
+          <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+              <Home size={22} color="#333" />
+          </button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -101,14 +107,99 @@ export default function SummaryPage() {
         {results && (
           <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              { label: '📋 공고 제목', body: <p className="text-[15px] font-bold text-gray-900">{results.title}</p> },
+              { label: results.candidates ? '🔍 관련 정책' : '📋 공고 제목', body: (
+                  <>
+                      <p className="text-[15px] font-bold text-gray-900">{results.title}</p>
+                      {results.subtitle && (
+                          <p className="text-[13px] text-gray-500 mt-1">{results.subtitle}</p>
+                      )}
+                  </>
+              )},
               {
                 label: '✨ AI 요약',
-                body: (
+                body: results.candidates ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {results.candidates.map((candidate, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          border: '1px solid #e5e7eb',
+                          borderRadius: 12,
+                          padding: 14,
+                          background: '#fafafa',
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 15,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {index + 1}. {candidate.policy_name}
+                        </p>
+
+                        {Object.entries(candidate.fields || {}).map(([label, value]) => (
+                          <p
+                            key={label}
+                            style={{
+                              fontSize: 13,
+                              color: '#4b5563',
+                              marginBottom: 6,
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            <strong>{label}</strong>: {value}
+                          </p>
+                        ))}
+
+                        {candidate.apply_url && candidate.apply_url.trim() !== "" && (
+                          <button
+                            onClick={() => window.open(candidate.apply_url, "_blank")}
+                            style={{
+                              marginTop: 12,
+                              width: '100%',
+                              padding: '10px',
+                              border: 'none',
+                              borderRadius: 10,
+                              background: '#3b82f6',
+                              color: '#fff',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            정책 신청하기
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                   <div className="flex flex-col gap-1.5">
                     {results.summaryLines.map((line, i) => (
-                      <p key={i} className="text-[13px] text-gray-600 leading-relaxed">{line}</p>
+                      <p key={i} className="text-[13px] text-gray-600 leading-relaxed">
+                        {line}
+                      </p>
                     ))}
+
+                    {results.applyUrl && (
+                      <button
+                        onClick={() => window.open(results.applyUrl, "_blank")}
+                        style={{
+                          marginTop: 16,
+                          width: '100%',
+                          padding: '12px',
+                          border: 'none',
+                          borderRadius: 12,
+                          background: '#3b82f6',
+                          color: '#fff',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        정책 신청하기
+                      </button>
+                    )}
                   </div>
                 ),
               },
@@ -139,6 +230,23 @@ export default function SummaryPage() {
               </button>
               {answer && <p className="mt-3 text-[13px] text-gray-700 leading-relaxed">{answer}</p>}
             </div>
+            {/* 질문 섹션 닫는 div 바로 아래 */}
+            <button
+                onClick={handleReset}
+                style={{
+                    width: '100%',
+                    padding: '14px 0',
+                    borderRadius: 16,
+                    border: '2px solid #3b82f6',
+                    background: '#fff',
+                    color: '#3b82f6',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                }}
+            >
+                🔄 요약 다시하기
+            </button>
           </div>
         )}
       </div>

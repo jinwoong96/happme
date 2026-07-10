@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useState } from 'react';
 import { api } from '../utils/api';
 
 const KNOWN_LABELS = [
@@ -10,16 +10,27 @@ function parseSummaryFields(text) {
   if (!text) return {};
 
   const pattern = new RegExp(`\\*{0,2}(${KNOWN_LABELS.join('|')})\\*{0,2}\\s*[:：]\\s*`, 'g');
-  const parts = text.split(pattern); // [머리말, 라벨1, 값1, 라벨2, 값2, ...]
+  const parts = text.split(pattern); 
 
   const fields = {};
   for (let i = 1; i < parts.length; i += 2) {
     const label = parts[i];
-    const value = (parts[i + 1] || '').trim();
-    if (value) fields[label] = value;
+    let value = (parts[i + 1] || '').trim();
+    
+    if (value) {
+      // 주소가 시작되는 부분부터 공백, 줄바꿈, 특수문자가 이어지는 URL 영역만 정확하게 찾아 지웁니다.
+      value = value.replace(/,?\s*https?:\/\/[^\s]+(?:\s+[^\s:]+(?![ :]))*/g, '').trim();
+      
+      if (value.endsWith(',')) {
+        value = value.slice(0, -1).trim();
+      }
+      
+      fields[label] = value;
+    }
   }
   return fields;
 }
+
 
 export default function useSummary() {
   const [files, setFiles] = useState([]);
@@ -58,13 +69,20 @@ export default function useSummary() {
     const first = aiResult?.results?.[0];
 
     if (!first?.matched) {
-      setResults(null);
       setPolicyName(null);
+
+      setResults({
+          title: "비슷한 정책을 찾았어요 🔍",
+          subtitle: "입력하신 내용과 관련된 정책들이에요",
+          candidates: first.candidates || [],
+      });
+
       setError(
-        first?.method === '크롤링차단'
-          ? '이 사이트는 분석할 수 없어요. PDF를 다운로드하거나 텍스트를 복사해서 입력해주세요.'
-          : '해당하는 정책을 찾지 못했어요.'
+        first?.method === "크롤링차단"
+          ? "이 사이트는 분석할 수 없어요. PDF를 다운로드하거나 텍스트를 복사해서 입력해주세요."
+          : null
       );
+
       return;
     }
 
@@ -74,16 +92,16 @@ export default function useSummary() {
     setPolicyName(first.policy_name);
     setResults({
       title: first.policy_name,
-      // 라벨(**지원대상** 등)이 파싱되면 번호 목록으로, 안 되면 원문 그대로
       summaryLines: entries.length > 0
         ? entries.map(([label, value], i) => `${i + 1}. ${label}: ${value}`)
-        : [(first.summary || '').replace(/\*\*/g, '')],
+        : [((first.summary || '').replace(/\*\*/g, '')).replace(/,?\s*https?:\/\/[^\s]+(?:\s+[^\s:]+(?![ :]))*/g, '').replace(/,\s*$/, '').trim()],
+      applyUrl: first.apply_url || "",
     });
+
     setAnswer(null);
-  };
+    };
 
-
-  const handleSummarize = async () => {
+    const handleSummarize = async () => {
     console.log('클릭됨', { canSummarize, files, text, url });
     if (!canSummarize) return;
     setLoading(true);
@@ -101,8 +119,7 @@ export default function useSummary() {
       } else {
         res = await api.post('/pdf/analyze-url', { url });
       }
-      console.log('서버 응답', res);
-      applyAiResult(res.ai_result);
+      console.log('서버 응답', res); 
       applyAiResult(res.ai_result);
     } catch (e) {
       setError(e.message);
@@ -124,11 +141,33 @@ export default function useSummary() {
     }
   };
 
-  return {
-    files, text, url, results, loading, error,
-    question, answer, asking,
-    handleFileChange, handleTextChange, handleUrlChange,
-    handleSummarize, canSummarize,
-    setQuestion, handleAsk,
+  const handleReset = () => {
+    setFiles([]);
+    setText('');
+    setUrl('');
+    setResults(null);
+    setError(null);
+    setQuestion('');
+    setAnswer(null);
   };
-}
+
+  return {
+    files,
+    text,
+    url,
+    results,
+    loading,
+    error,
+    question,
+    answer,
+    asking,
+    handleFileChange,
+    handleTextChange,
+    handleUrlChange,
+    handleSummarize,
+    canSummarize,
+    setQuestion,
+    handleAsk,
+    handleReset,
+  };
+  }
