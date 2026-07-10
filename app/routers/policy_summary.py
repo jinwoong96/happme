@@ -70,7 +70,6 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
                         "신청방법",
                         "신청기간",
                         "사업기간",
-                        "담당기관",
                         "신청URL",
                         "지원규모",
                     ]
@@ -155,7 +154,7 @@ async def analyze_text(request: Request, payload: TextRequest):
             if summary:
                 import re
                 labels = ["한줄요약", "지원대상", "지원내용", "신청방법",
-                        "신청기간", "사업기간", "담당기관", "신청URL", "지원규모"]
+                        "신청기간", "사업기간", "신청URL", "지원규모"]
                 pattern = re.compile(
                     rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
                     re.S,
@@ -213,7 +212,7 @@ async def analyze_url(request: Request, payload: UrlRequest):
                 if summary:
                     import re
                     labels = ["한줄요약", "지원대상", "지원내용", "신청방법",
-                            "신청기간", "사업기간", "담당기관", "신청URL", "지원규모"]
+                            "신청기간", "사업기간", "신청URL", "지원규모"]
                     pattern = re.compile(
                         rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
                         re.S,

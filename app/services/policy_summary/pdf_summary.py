@@ -149,7 +149,6 @@ class PdfSummaryService:
         target = policy_detail.get("ptcpPrpTrgtCn", "").strip() or policy_detail.get("earnEtcCn", "").strip()
         age_min = policy_detail.get("sprtTrgtMinAge", "").strip()
         age_max = policy_detail.get("sprtTrgtMaxAge", "").strip()
-        institution = policy_detail.get("sprvsnInstCdNm", "").strip() or policy_detail.get("rgtrInstCdNm", "").strip()
         apply_url = policy_detail.get("aplyUrlAddr", "").strip()
         scale = policy_detail.get("sprtSclCnt", "").strip()
 
@@ -161,7 +160,7 @@ class PdfSummaryService:
             "정책명": name, "정책설명": explain, "지원내용": support,
             "지원대상": target, "연령조건": age_str, "신청방법": apply_method,
             "신청URL": apply_url, "신청기간": apply_period,
-            "사업기간": biz_period, "담당기관": institution, "지원규모": scale_str,
+            "사업기간": biz_period,  "지원규모": scale_str,
         }
         info_text = "\n".join(f"{k}: {v}" for k, v in fields.items() if v)
 
@@ -176,8 +175,6 @@ class PdfSummaryService:
             instructions.append("- 신청방법: 신청 방법만 간결하게 작성하고 URL은 출력하지 말 것 (완전한 문장 X)")
         if apply_period:
             instructions.append(f"- 신청기간: {apply_period} 그대로 표기")
-        if institution:
-            instructions.append(f"- 담당기관: {institution} 그대로 표기")
 
         instructions_text = "\n".join(instructions)
 
