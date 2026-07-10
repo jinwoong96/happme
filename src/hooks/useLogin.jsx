@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
+
 export default function useLogin() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -52,15 +54,15 @@ export default function useLogin() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8082/auth/google/login';
+    window.location.href = `${BASE_URL}/auth/google/login`;
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = 'http://localhost:8082/auth/kakao/login';
+    window.location.href = `${BASE_URL}/auth/kakao/login`;
   };
 
   const handleNaverLogin = () => {
-    window.location.href = 'http://localhost:8082/auth/naver/login';
+    window.location.href = `${BASE_URL}/auth/naver/login`;
   };
 
   return { form, loading, error, handleChange, handleLogin, handleGoogleLogin, handleKakaoLogin, handleNaverLogin };
