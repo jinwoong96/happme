@@ -65,8 +65,11 @@ class PdfSummaryService:
     # ---------- 여기부터 AI 연동 추가분 (ai_client.py 없이 직접 호출) ----------
 
     @staticmethod
+    @staticmethod
     async def _find_policy_id(db: AsyncSession, policy_name: str) -> int | None:
-        result = await db.execute(select(Policy.policy_id).where(Policy.plcyNm == policy_name))
+        result = await db.execute(
+            select(Policy.policy_id).where(Policy.plcyNm == policy_name).limit(1)
+        )
         return result.scalar_one_or_none()
 
     @staticmethod
@@ -103,6 +106,10 @@ class PdfSummaryService:
                 resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/pdf", files=multipart)
                 resp.raise_for_status()
                 ai_result = resp.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                raise HTTPException(status_code=400, detail=e.response.json().get("detail", "잘못된 요청입니다"))
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
@@ -114,6 +121,10 @@ class PdfSummaryService:
                 resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/text", json={"text": text})
                 resp.raise_for_status()
                 ai_result = resp.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                raise HTTPException(status_code=400, detail=e.response.json().get("detail", "잘못된 요청입니다"))
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
@@ -125,6 +136,10 @@ class PdfSummaryService:
                 resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/url", json={"url": url})
                 resp.raise_for_status()
                 ai_result = resp.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                raise HTTPException(status_code=400, detail=e.response.json().get("detail", "잘못된 요청입니다"))
+            raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         except Exception:
             raise HTTPException(status_code=502, detail="AI 서비스 호출에 실패했습니다")
         return await PdfSummaryService._save_ai_result_svc(db, user_id, ai_result)
