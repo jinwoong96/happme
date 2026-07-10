@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     # AI 분석 마이크로서비스 (bene_ai) — ECS 태스크 정의에 이미 등록된 이름과 통일
     ai_service_url: str = Field("http://localhost:8090", alias="AI_SERVER_URL")
 
+    frontend_url: str = Field("http://localhost:5173", alias="FRONTEND_URL")
+
     class Config:
         env_file = ".env"
         case_sensitive = True

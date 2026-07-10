@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.services.naver_auth import NaverAuthService as naver_svc
+from app.core.settings import settings
 
 router = APIRouter(prefix="/auth/naver", tags=["NaverAuth"])
 
@@ -19,7 +20,7 @@ async def naver_login():
 async def naver_callback(code: str, state: str, db: AsyncSession = Depends(get_db)):
     user, access_token, refresh_token = await naver_svc.naver_login_svc(db, code, state)
 
-    response = RedirectResponse(url="http://localhost:5173/")
+    response = RedirectResponse(url=settings.frontend_url)
     response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="none", secure=True)
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="none", secure=True)
     return response
