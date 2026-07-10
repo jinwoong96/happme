@@ -1,16 +1,21 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home } from 'lucide-react';
+import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home, Bookmark, ChevronDown, ChevronUp } from 'lucide-react';
 import useSummary from '../../hooks/useSummary';
+import useBookmarks from '../../hooks/useBookmarks';
+
 
 export default function SummaryPage() {
+  const [expandedIndex, setExpandedIndex] = useState(null);
   const {
       files, text, url, loading, results, error,
       question, answer, asking,
-      handleFileChange, handleTextChange, handleUrlChange,
+      handleFileChange, handleRemoveFile, handleTextChange, handleUrlChange,
       handleSummarize, canSummarize,
       setQuestion, handleAsk,
-      handleReset, 
+      handleReset, policyId,
   } = useSummary();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const navigate = useNavigate();
 
   return (
@@ -49,10 +54,26 @@ export default function SummaryPage() {
 
         <p className="text-[13px] font-semibold text-gray-700 mb-2">파일 업로드</p>
         <label style={{ display: 'block', cursor: 'pointer' }}>
-          <input type="file" accept=".pdf" multiple onChange={handleFileChange} className="hidden" />
-          <div style={{ border: '2px dashed #d1d5db', borderRadius: 24, padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, backgroundColor: '#fff' }}>
-            <div className="w-[52px] h-[52px] rounded-[16px] bg-red-50 flex items-center justify-center">
-              <FileText size={24} color="#f87171" strokeWidth={1.5} />
+          <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+          <div style={{ position: 'relative', border: '2px dashed #d1d5db', borderRadius: 24, padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, backgroundColor: '#fff' }}>
+            {files.length > 0 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRemoveFile();
+                }}
+                style={{
+                  position: 'absolute', top: 10, right: 10, width: 26, height: 26,
+                  borderRadius: '50%', border: 'none', backgroundColor: '#9ca3af', color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0,
+                }}
+              >
+                ✕
+              </button>
+            )}
+            <div className="w-[52px] h-[52px] rounded-[16px] bg-blue-50 flex items-center justify-center">
+                <FileText size={24} color="#3b82f6" strokeWidth={1.5} />
             </div>
             {files.length === 0 ? (
               <>
@@ -60,13 +81,9 @@ export default function SummaryPage() {
                 <p className="text-[11px] text-gray-300">공고문, 안내자료 등 PDF 형식 지원</p>
               </>
             ) : (
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {files.map(f => (
-                  <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
-                    <FileText size={13} color="#f87171" />
-                    <p className="text-[12px] font-semibold text-gray-800">{f.name}</p>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                <FileText size={13} color="#3b82f6" />
+                <p className="text-[12px] font-semibold text-gray-800">{files[0].name}</p>
               </div>
             )}
           </div>
@@ -83,7 +100,8 @@ export default function SummaryPage() {
           />
         </div>
 
-        <button onClick={handleSummarize} disabled={!canSummarize}
+        {!results && (
+          <button onClick={handleSummarize} disabled={!canSummarize}
           style={{
             marginTop: 18,
             width: '100%',
@@ -99,6 +117,7 @@ export default function SummaryPage() {
           }}>
           {loading ? '요약 중...' : 'AI 요약 시작'}
         </button>
+        )}
 
         {error && (
           <p style={{ marginTop: 12, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>{error}</p>
@@ -107,84 +126,122 @@ export default function SummaryPage() {
         {results && (
           <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              { label: results.candidates ? '🔍 관련 정책' : '📋 공고 제목', body: (
-                  <>
-                      <p className="text-[15px] font-bold text-gray-900">{results.title}</p>
-                      {results.subtitle && (
-                          <p className="text-[13px] text-gray-500 mt-1">{results.subtitle}</p>
+              { label: results.candidates ? '관련 정책' : '공고 제목', body: (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div>
+                          <p className="text-[15px] font-bold text-gray-900">{results.title}</p>
+                          {results.subtitle && (
+                              <p className="text-[13px] text-gray-500 mt-1">{results.subtitle}</p>
+                          )}
+                      </div>
+                      {!results.candidates && policyId && (
+                          <button
+                              onClick={() => toggleBookmark(policyId)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}
+                          >
+                              <Bookmark
+                                  size={20}
+                                  color={isBookmarked(policyId) ? '#3b82f6' : '#9ca3af'}
+                                  fill={isBookmarked(policyId) ? '#3b82f6' : 'none'}
+                              />
+                          </button>
                       )}
-                  </>
+                  </div>
               )},
               {
-                label: '✨ AI 요약',
+                label: 'AI 요약',
                 body: results.candidates ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {results.candidates.map((candidate, index) => (
-                      <div
-                        key={index}
-                        style={{
-                          border: '1px solid #e5e7eb',
-                          borderRadius: 12,
-                          padding: 14,
-                          background: '#fafafa',
-                        }}
-                      >
-                        <p
-                          style={{
-                            fontWeight: 700,
-                            fontSize: 15,
-                            marginBottom: 10,
-                          }}
+                    {results.candidates.map((candidate, index) => {
+                      const isOpen = expandedIndex === index;
+                      return (
+                        <div
+                          key={index}
+                          style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#fafafa' }}
                         >
-                          {index + 1}. {candidate.policy_name}
-                        </p>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <p
+                              onClick={() => setExpandedIndex(isOpen ? null : index)}
+                              style={{ fontWeight: 700, fontSize: 15, cursor: 'pointer', flex: 1, margin: 0 }}
+                            >
+                              {index + 1}. {candidate.policy_name}
+                            </p>
 
-                        {Object.entries(candidate.fields || {}).map(([label, value]) => (
-                          <p
-                            key={label}
-                            style={{
-                              fontSize: 13,
-                              color: '#4b5563',
-                              marginBottom: 6,
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            <strong>{label}</strong>: {value}
-                          </p>
-                        ))}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              {candidate.policy_id && (
+                                <button
+                                  onClick={() => toggleBookmark(candidate.policy_id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                                >
+                                  <Bookmark
+                                    size={18}
+                                    color={isBookmarked(candidate.policy_id) ? '#3b82f6' : '#9ca3af'}
+                                    fill={isBookmarked(candidate.policy_id) ? '#3b82f6' : 'none'}
+                                  />
+                                </button>
+                              )}
 
-                        {candidate.apply_url && candidate.apply_url.trim() !== "" && (
-                          <button
-                            onClick={() => window.open(candidate.apply_url, "_blank")}
-                            style={{
-                              marginTop: 12,
-                              width: '100%',
-                              padding: '10px',
-                              border: 'none',
-                              borderRadius: 10,
-                              background: '#3b82f6',
-                              color: '#fff',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            정책 신청하기
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                              <button
+                                onClick={() => setExpandedIndex(isOpen ? null : index)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                              >
+                                {isOpen ? <ChevronUp size={18} color="#9ca3af" /> : <ChevronDown size={18} color="#9ca3af" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {isOpen && (
+                            <div style={{ marginTop: 10 }}>
+                              {Object.entries(candidate.fields || {}).map(([label, value]) => (
+                                <p
+                                  key={label}
+                                  style={{ fontSize: 13, color: '#4b5563', marginBottom: 6, lineHeight: 1.6 }}
+                                >
+                                  <strong>{label}</strong>: {value}
+                                </p>
+                              ))}
+
+                              {candidate.apply_url && candidate.apply_url.trim() !== "" && (
+                                <button
+                                  onClick={() => window.open(candidate.apply_url, "_blank")}
+                                  style={{
+                                    marginTop: 8,
+                                    width: '100%',
+                                    padding: '10px',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    background: '#3b82f6',
+                                    color: '#fff',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  정책 신청하기
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
-                    {results.summaryLines.map((line, i) => (
+                    {results.summaryLines.map((item, i) => (
                       <p key={i} className="text-[13px] text-gray-600 leading-relaxed">
-                        {line}
+                        {item.label ? (
+                          <>
+                            <strong>{i + 1}. {item.label}</strong>: {item.value}
+                          </>
+                        ) : (
+                          item.value
+                        )}
                       </p>
                     ))}
 
                     {results.applyUrl && (
-                      <button
-                        onClick={() => window.open(results.applyUrl, "_blank")}
+                        <button
+                            onClick={() => window.open(results.applyUrl, "_blank")}
                         style={{
                           marginTop: 16,
                           width: '100%',
@@ -245,7 +302,7 @@ export default function SummaryPage() {
                     cursor: 'pointer',
                 }}
             >
-                🔄 요약 다시하기
+                요약 다시하기
             </button>
           </div>
         )}

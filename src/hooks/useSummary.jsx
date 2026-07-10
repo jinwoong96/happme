@@ -1,5 +1,6 @@
 import {useState } from 'react';
 import { api } from '../utils/api';
+import useBookmarks from './useBookmarks';
 
 const KNOWN_LABELS = [
   '한줄요약', '요약', '지원대상', '지원내용', '신청방법',
@@ -38,6 +39,7 @@ export default function useSummary() {
   const [url, setUrl] = useState('');
   const [results, setResults] = useState(null);
   const [policyName, setPolicyName] = useState(null);
+  const [policyId, setPolicyId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -45,8 +47,16 @@ export default function useSummary() {
   const [answer, setAnswer] = useState(null);
   const [asking, setAsking] = useState(false);
 
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
+    setResults(null);
+    setError(null);
+  };
+
+  const handleRemoveFile = () => {
+    setFiles([]);
     setResults(null);
     setError(null);
   };
@@ -70,9 +80,9 @@ export default function useSummary() {
 
     if (!first?.matched) {
       setPolicyName(null);
-
+      setPolicyId(null);
       setResults({
-          title: "비슷한 정책을 찾았어요 🔍",
+          title: "비슷한 정책을 찾았어요",
           subtitle: "입력하신 내용과 관련된 정책들이에요",
           candidates: first.candidates || [],
       });
@@ -89,14 +99,18 @@ export default function useSummary() {
     const fields = parseSummaryFields(first.summary);
     const entries = Object.entries(fields);
 
-    setPolicyName(first.policy_name);
-    setResults({
-      title: first.policy_name,
-      summaryLines: entries.length > 0
-        ? entries.map(([label, value], i) => `${i + 1}. ${label}: ${value}`)
-        : [((first.summary || '').replace(/\*\*/g, '')).replace(/,?\s*https?:\/\/[^\s]+(?:\s+[^\s:]+(?![ :]))*/g, '').replace(/,\s*$/, '').trim()],
-      applyUrl: first.apply_url || "",
-    });
+        setPolicyName(first.policy_name);
+        setPolicyId(first.policy_id || null);
+        setResults({
+          title: first.policy_name,
+          summaryLines: entries.length > 0
+            ? entries.map(([label, value]) => ({ label, value }))
+            : [{
+                label: null,
+                value: ((first.summary || '').replace(/\*\*/g, '')).replace(/,?\s*https?:\/\/[^\s]+(?:\s+[^\s:]+(?![ :]))*/g, '').replace(/,\s*$/, '').trim(),
+              }],
+          applyUrl: first.apply_url || "",
+        });
 
     setAnswer(null);
     };
@@ -162,6 +176,7 @@ export default function useSummary() {
     answer,
     asking,
     handleFileChange,
+    handleRemoveFile,
     handleTextChange,
     handleUrlChange,
     handleSummarize,
@@ -169,5 +184,8 @@ export default function useSummary() {
     setQuestion,
     handleAsk,
     handleReset,
+    policyId,
+    isBookmarked,
+    toggleBookmark,
   };
-  }
+}
