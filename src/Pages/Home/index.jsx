@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Bell, RefreshCw, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
 import useHome from '../../hooks/useHome';
+import useBookmarks from '../../hooks/useBookmarks';
+import PolicyCard from '../../Components/PolicyCard';
+import PolicyDetailModal from '../../Components/PolicyDetailModal';
 
 const MENU = [
   { label: '전체보기', path: '/category', Icon: List },
@@ -11,8 +14,14 @@ const MENU = [
   { label: '지역혜택', path: '/region', Icon: Bookmark },
 ];
 
+// 홈에서는 신청 가능 여부를 판정하지 않고 정책을 그대로 보여주므로, 상시 여부만 배지로 표시한다.
+function getBadge(policy) {
+  return policy.apply_period_type === '상시' ? { label: '상시', bg: '#dcfce7', color: '#16a34a' } : null;
+}
+
 export default function HomePage() {
-  const { benefits, featured, loading, userName } = useHome();
+  const { benefits, featured, loading, userName, selectedPolicy, policyLoading, openPolicy, closePolicy } = useHome();
+  const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
 
   return (
@@ -44,7 +53,7 @@ export default function HomePage() {
               boxShadow: '0 8px 24px rgba(59,130,246,0.30)',
             }}
           >
-            <p className="text-[12px] text-white/75 font-medium">이번 달 추천 지원금</p>
+            <p className="text-[12px] text-white/75 font-medium">이번 달 추천 정책</p>
             <p className="mt-1.5 mb-1 text-[20px] font-extrabold text-white">{featured.title}</p>
             <p className="text-[13px] text-white/85">{featured.description} · {featured.deadline}</p>
             <button
@@ -87,8 +96,8 @@ export default function HomePage() {
 
         {/* 인기 지원금 */}
         <div className="flex justify-between items-center mb-3">
-          <p className="text-[16px] font-bold text-gray-900">인기 지원금</p>
-          <button onClick={() => navigate('/category')} className="text-[13px] text-gray-400 bg-transparent border-none cursor-pointer">
+          <p className="text-[16px] font-bold text-gray-900">많이 찾는 정책</p>
+          <button onClick={() => navigate('/category', { state: { sort: 'popular' } })} className="text-[13px] text-gray-400 bg-transparent border-none cursor-pointer">
             전체보기
           </button>
         </div>
@@ -96,13 +105,27 @@ export default function HomePage() {
           {loading ? (
             <div style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, textAlign: 'center', fontSize: 13, color: '#9ca3af', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>불러오는 중...</div>
           ) : benefits.map((item) => (
-            <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-              <p className="text-[15px] font-bold text-gray-900">{item.plcyNm}</p>
-              <p className="mt-1 text-[12px] text-gray-400">{item.aplyYmd}</p>
-            </div>
+            <PolicyCard
+              key={item.policy_id}
+              policy={item}
+              badge={getBadge(item)}
+              onOpen={openPolicy}
+              isBookmarked={isBookmarked(item.policy_id)}
+              onToggleBookmark={toggleBookmark}
+              bookmarkDisabled={bookmarksLoading}
+            />
           ))}
         </div>
       </div>
+
+      <PolicyDetailModal
+        selectedPolicy={selectedPolicy}
+        policyLoading={policyLoading}
+        isBookmarked={isBookmarked(selectedPolicy?.policy_id, selectedPolicy?.is_bookmarked)}
+        onToggleBookmark={toggleBookmark}
+        bookmarkDisabled={bookmarksLoading}
+        onClose={closePolicy}
+      />
     </div>
   );
 }

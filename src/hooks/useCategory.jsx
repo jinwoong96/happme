@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
@@ -12,12 +13,29 @@ const SORT_OPTIONS = [
   { value: 'alpha', label: '가나다순' },
 ];
 
+const CONSONANT_GROUPS = ['전체', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ', '기타'];
+
+// IME로 한글을 조합하는 중에는 "ㄱ", "ㅓ"처럼 완성되지 않은 낱자(호환용 자모, U+3131~U+318E)가
+// 마지막 글자로 잠깐 나타난다. 이 상태로 검색을 보내면 실제 정책명과 매칭될 일이 거의 없어서
+// 결과가 없거나 엉뚱하게 필터링된 것처럼 보이므로, 이 경우엔 API 호출을 건너뛴다.
+function endsWithIncompleteJamo(text) {
+  if (!text) return false;
+  const code = text.charCodeAt(text.length - 1);
+  return code >= 0x3131 && code <= 0x318e;
+}
+
 export default function useCategory() {
+  const location = useLocation();
+  // 홈 화면 "많이 찾는 정책 > 전체보기"처럼 특정 정렬로 들어오길 원하는 진입 경로를 위한 기본값.
+  const initialSort = SORT_OPTIONS.some((o) => o.value === location.state?.sort) ? location.state.sort : 'none';
+
   const [activeTab, setActiveTab] = useState('전체');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
-  const [sortOption, setSortOption] = useState('none');
+  const [sortOption, setSortOption] = useState(initialSort);
+  const [includeClosed, setIncludeClosed] = useState(false);
+  const [consonant, setConsonant] = useState('전체');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState(new Set());
@@ -34,9 +52,24 @@ export default function useCategory() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    const timer = setTimeout(() => {
+      const trimmed = keyword.trim();
+      if (!endsWithIncompleteJamo(trimmed)) {
+        setDebouncedKeyword(trimmed);
+      }
+    }, 300);
     return () => clearTimeout(timer);
   }, [keyword]);
+
+  // 마감임박순에서는 "마감된 정책 보기" 체크박스를 숨기므로, 안 보이는 상태로 값만 남지 않게 초기화한다.
+  useEffect(() => {
+    if (sortOption === 'deadline') setIncludeClosed(false);
+  }, [sortOption]);
+
+  // 초성 선택은 가나다순일 때만 보이므로, 다른 정렬로 바뀌면 숨겨진 채로 값만 남지 않게 초기화한다.
+  useEffect(() => {
+    if (sortOption !== 'alpha') setConsonant('전체');
+  }, [sortOption]);
 
   useEffect(() => {
     if (activeTab === '지역' && !selectedRegion) {
@@ -59,6 +92,12 @@ export default function useCategory() {
     }
     if (sortOption !== 'none') {
       params.set('sort', sortOption);
+    }
+    if (includeClosed) {
+      params.set('include_closed', 'true');
+    }
+    if (sortOption === 'alpha' && consonant !== '전체') {
+      params.set('consonant', consonant);
     }
 
     api.get(`/policies/?${params.toString()}`)
@@ -83,7 +122,7 @@ export default function useCategory() {
       });
 
     return () => { ignore = true; };
-  }, [activeTab, selectedRegion, debouncedKeyword, sortOption]);
+  }, [activeTab, selectedRegion, debouncedKeyword, sortOption, includeClosed, consonant]);
 
   const toggleBookmark = async (id) => {
     const isBookmarked = bookmarks.has(id);
@@ -129,6 +168,11 @@ export default function useCategory() {
     setKeyword,
     sortOption,
     setSortOption,
+    includeClosed,
+    setIncludeClosed,
+    consonantGroups: CONSONANT_GROUPS,
+    consonant,
+    setConsonant,
     items,
     loading,
     bookmarks,

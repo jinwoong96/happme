@@ -11,6 +11,7 @@ import NotificationPage from './Pages/Notification';
 import SupportPage from './Pages/Support';
 import InquiryFormPage from './Pages/Support/InquiryForm';
 import MypagePage from './Pages/Mypage';
+import GuidePage from './Pages/Guide';
 import SignupPage from './Pages/Signup';
 import useAuth from './hooks/useAuth';
 import ChangePasswordPage from './Pages/ChangePassword';
@@ -157,6 +158,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <ChangePasswordPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/guides"
+          element={
+            <PrivateRoute>
+              <Layout><GuidePage /></Layout>
             </PrivateRoute>
           }
         />
