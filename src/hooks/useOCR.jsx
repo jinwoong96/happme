@@ -14,6 +14,12 @@ export default function useOCR() {
     setError('');
   };
 
+  const handleRemoveFile = () => {
+    setFiles([]);
+    setResults(null);
+    setError('');
+  };
+
   const handleAnalyze = async () => {
     if (files.length === 0) return;
     setLoading(true);
@@ -49,5 +55,5 @@ export default function useOCR() {
     }
   };
 
-  return { files, loading, results, error, handleFileChange, handleAnalyze };
+  return { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze };
 }
