@@ -209,8 +209,20 @@ class WebSummaryService:
         best_match = top_names[0]
 
         if raw_best_score < raw_threshold_low:
-            return {"matched_policy": "해당 없음", "method": "매칭불가", "policy_detail": None, "blocked": False}
-        return {"matched_policy": best_match, "method": "임베딩매칭", "policy_detail": None, "blocked": False}
+            return {
+                "matched_policy": "해당 없음",
+                "method": "매칭불가",
+                "candidates": top_names[:3],  # ← 추가
+                "policy_detail": None,
+                "blocked": False
+            }
+        return {
+            "matched_policy": best_match,
+            "method": "임베딩매칭",
+            "candidates": top_names[:2],  # ← 추가
+            "policy_detail": None,
+            "blocked": False
+        }
 
     # ---------- 질문답변 ----------
 
