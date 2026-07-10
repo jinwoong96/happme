@@ -14,12 +14,14 @@ class BookmarkService:
     async def create_bookmark_svc(db: AsyncSession, data: BookmarkCreate) -> Bookmark:
         if not await UserCrud.get_user(db, data.user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유저를 찾을 수 없습니다.")
-        if not await PolicyCrud.get_policy(db, data.policy_id):
+        policy = await PolicyCrud.get_policy(db, data.policy_id)
+        if not policy:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="정책을 찾을 수 없습니다.")
         if await BookmarkCrud.get_by_user_policy(db, data.user_id, data.policy_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 즐겨찾기한 정책입니다.")
         try:
             bookmark = await BookmarkCrud.create_bookmark(db, data)
+            await PolicyCrud.increment_bookmark_cnt(db, policy)
             await db.commit()
             await db.refresh(bookmark)
             return bookmark
@@ -53,7 +55,10 @@ class BookmarkService:
         if not bookmark:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="즐겨찾기를 찾을 수 없습니다.")
         try:
+            policy = await PolicyCrud.get_policy(db, bookmark.policy_id)
             await BookmarkCrud.delete_bookmark(db, bookmark)
+            if policy:
+                await PolicyCrud.decrement_bookmark_cnt(db, policy)
             await db.commit()
             return {"message": f"bookmark_id '{bookmark_id}' 삭제 완료"}
         except Exception:

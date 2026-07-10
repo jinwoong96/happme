@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, case
+from sqlalchemy import select, case, or_
 from sqlalchemy.orm import selectinload
 from app.db.models.policy import Policy
 from app.db.models.policy_region import PolicyRegion
@@ -32,6 +32,8 @@ class PolicyCrud:
         lclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
+        include_closed: bool = False,
+        consonant: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[Policy]:
@@ -48,6 +50,9 @@ class PolicyCrud:
             stmt = stmt.join(PolicyRegion, Policy.policy_id == PolicyRegion.policy_id).where(
                 PolicyRegion.zip_code.startswith(region)
             )
+        if not include_closed:
+            # 마감일을 모르는 정책(NULL, 상시 등)은 마감됐다고 판단할 근거가 없으므로 계속 보여준다.
+            stmt = stmt.where(or_(Policy.aplyEndDt.is_(None), Policy.aplyEndDt >= date.today()))
 
         if sort == "latest":
             stmt = stmt.order_by(Policy.createdAt.desc())
@@ -67,7 +72,11 @@ class PolicyCrud:
                 case((Policy.aplyEndDt < today, Policy.aplyEndDt), else_=None).desc(),
             )
 
-        stmt = stmt.offset(offset).limit(limit)
+        # 초성 필터는 첫 글자 초성을 계산해야 해서 SQL로는 안정적으로 걸러낼 수 없어 서비스
+        # 레이어에서 파이썬으로 필터링한다. limit을 여기서 적용하면 필터링 전에 잘려나가
+        # 결과가 부족해질 수 있어, 초성 필터가 있을 때는 limit/offset을 생략한다.
+        if not consonant:
+            stmt = stmt.offset(offset).limit(limit)
 
         result = await db.execute(stmt)
         return list(result.scalars().unique().all())
@@ -91,6 +100,18 @@ class PolicyCrud:
     @staticmethod
     async def increment_inq_cnt(db: AsyncSession, policy: Policy) -> Policy:
         policy.inqCnt += 1
+        await db.flush()
+        return policy
+
+    @staticmethod
+    async def increment_bookmark_cnt(db: AsyncSession, policy: Policy) -> Policy:
+        policy.bookmarkCnt += 1
+        await db.flush()
+        return policy
+
+    @staticmethod
+    async def decrement_bookmark_cnt(db: AsyncSession, policy: Policy) -> Policy:
+        policy.bookmarkCnt = max(policy.bookmarkCnt - 1, 0)
         await db.flush()
         return policy
 
