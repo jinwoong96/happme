@@ -16,6 +16,7 @@ from app.services.recommendation.eligibility_rules import PolicyEligibilityEngin
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.services.recommendation.recommendation_service import RecommendationService
 from app.services.recommendation.scenario_resolver import ScenarioResolver
+from app.services.recommendation.income_eligibility import IncomeEligibilityService
 from app.services.schedule_extract import ScheduleService
 
 from app.services.policy_summary.pdf_summary import PdfSummaryService
@@ -53,10 +54,16 @@ async def lifespan(app: FastAPI):
 
     # app.state.schedule_service = ScheduleService()
 
+    policy_loader = PolicyLoaderService()
     app.state.recommendation_service = RecommendationService(
-        policy_loader=PolicyLoaderService(),
+        policy_loader=policy_loader,
         eligibility_engine=PolicyEligibilityEngine(region_matcher=RegionMatcher()),
         similarity_service=PolicySimilarityService(),
+    )
+    # watsonx 연결은 새로 만들지 않고 pdf_summary_service의 llm_model을 재사용한다.
+    app.state.income_eligibility_service = IncomeEligibilityService(
+        policy_loader=policy_loader,
+        llm_service=app.state.pdf_summary_service,
     )
     app.state.scenario_resolver = ScenarioResolver()
     app.state.schedule_service = ScheduleService()

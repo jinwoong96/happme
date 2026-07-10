@@ -50,3 +50,16 @@ class ScenarioResolveResponse(BaseModel):
     diff: dict
     ambiguous: dict
     notes: list[str]
+
+
+class IncomeEligibilityRequest(BaseModel):
+    """소득 확인 모달에서 사용자가 입력한 답변으로 특정 정책의 지원 가능 여부를 물어보는 요청."""
+
+    plcyNo: str
+    answers: dict = {}
+
+
+class IncomeEligibilityResponse(BaseModel):
+    eligible: Optional[bool]
+    method: Literal["rule", "llm", "not_found"]
+    reason: str
