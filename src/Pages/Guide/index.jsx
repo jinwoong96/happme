@@ -24,33 +24,39 @@ export default function GuidePage() {
   const current = STEPS[step];
 
   return (
-    <div style={{ backgroundColor: '#f5f6fa', minHeight: '100%' }}>
-      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
+    <div style={{ backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+      <div className="flex items-center gap-2 bg-white" style={{ padding: '14px 20px', flexShrink: 0 }}>
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-          <ChevronLeft size={24} color="#333" />
+          <ChevronLeft size={22} color="#333" />
         </button>
-        <p className="flex-1 text-[18px] font-bold text-gray-900">이용 가이드</p>
+        <p className="flex-1 text-[16px] font-bold text-gray-900">이용 가이드</p>
       </div>
 
-      <div style={{ padding: '20px 20px 24px' }}>
-        <div style={{ backgroundColor: '#fff', borderRadius: 20, padding: 20, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <p className="text-[15px] font-bold text-gray-900">{current.title}</p>
-          <p className="mt-1 text-[13px] text-gray-500">{current.desc}</p>
+      <div style={{ flex: 1, minHeight: 0, padding: '12px 16px 14px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{
+          flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+          backgroundColor: '#fff', borderRadius: 18, padding: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+        }}>
+          <p className="text-[13px] font-bold text-gray-900" style={{ flexShrink: 0 }}>{current.title}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500" style={{ flexShrink: 0 }}>{current.desc}</p>
 
-          <div style={{ marginTop: 16, borderRadius: 14, overflow: 'hidden', backgroundColor: '#f5f6fa' }}>
+          <div style={{
+            flex: 1, minHeight: 0, marginTop: 10, borderRadius: 12, overflow: 'hidden', backgroundColor: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
             {current.type === 'image' ? (
-              <img src={current.src} alt={current.title} style={{ width: '100%', display: 'block' }} />
+              <img src={current.src} alt={current.title} style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
             ) : (
-              <video key={current.src} src={current.src} controls autoPlay style={{ width: '100%', display: 'block' }} />
+              <video key={current.src} src={current.src} controls autoPlay style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
             )}
           </div>
 
-          <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 18 }}>
+          <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 10, flexShrink: 0 }}>
             {STEPS.map((_, i) => (
               <span
                 key={i}
                 style={{
-                  width: i === step ? 18 : 6, height: 6, borderRadius: 999,
+                  width: i === step ? 16 : 6, height: 6, borderRadius: 999,
                   backgroundColor: i === step ? '#3b82f6' : '#e5e7eb',
                   transition: 'all 0.2s',
                 }}
@@ -61,8 +67,8 @@ export default function GuidePage() {
           <button
             onClick={() => (isLast ? navigate('/mypage') : setStep((s) => s + 1))}
             style={{
-              width: '100%', marginTop: 18, padding: '14px 0', borderRadius: 14,
-              backgroundColor: '#3b82f6', color: '#fff', fontSize: 15, fontWeight: 700,
+              width: '100%', marginTop: 10, padding: '11px 0', borderRadius: 12, flexShrink: 0,
+              backgroundColor: '#3b82f6', color: '#fff', fontSize: 14, fontWeight: 700,
               border: 'none', cursor: 'pointer',
             }}
           >
