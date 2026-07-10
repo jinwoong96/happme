@@ -4,7 +4,7 @@ models/*.pth
 models/*.pt
 tmp_uploads/
 .vscode
-data
+
 models
 policy_embeddings.npy
 policy_summary_embeddings_cache.npz
