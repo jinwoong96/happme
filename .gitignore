@@ -6,7 +6,7 @@ fastapi/
 report.html
 report.txt
 scenario_to_testprofile.py
-policy_cards.json
+
 temp/
 
 logging/
