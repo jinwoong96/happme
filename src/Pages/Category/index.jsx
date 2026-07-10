@@ -21,6 +21,11 @@ export default function CategoryPage() {
     sortOptions,
     sortOption,
     setSortOption,
+    includeClosed,
+    setIncludeClosed,
+    consonantGroups,
+    consonant,
+    setConsonant,
     items,
     loading,
     bookmarks,
@@ -112,7 +117,35 @@ export default function CategoryPage() {
         </div>
       )}
 
-      <div className="flex justify-end" style={{ padding: '14px 20px 0' }}>
+      <div className="flex justify-between items-center" style={{ padding: '14px 20px 0' }}>
+        {sortOption === 'alpha' ? (
+          <select
+            value={consonant}
+            onChange={(e) => setConsonant(e.target.value)}
+            style={{
+              padding: '7px 12px',
+              borderRadius: 999,
+              border: '1px solid #e5e7eb',
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: '#374151',
+              backgroundColor: '#f9fafb',
+            }}
+          >
+            {consonantGroups.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        ) : sortOption === 'deadline' ? <div /> : (
+          <label className="flex items-center gap-1.5" style={{ fontSize: 12.5, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={includeClosed}
+              onChange={(e) => setIncludeClosed(e.target.checked)}
+            />
+            마감된 정책 보기
+          </label>
+        )}
         <select
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value)}
