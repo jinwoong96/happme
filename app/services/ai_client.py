@@ -28,6 +28,11 @@ class AiClient:
         )
 
     @staticmethod
+    async def judge_income_eligibility(plcy_no: str, answers: dict) -> dict:
+        """bene_ai의 소득 조건 판정(rule engine + watsonx LLM) 호출. Returns: {eligible, method, reason}"""
+        return await AiClient._post("/recommendations/income-eligibility", {"plcyNo": plcy_no, "answers": answers})
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:

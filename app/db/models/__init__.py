@@ -5,6 +5,7 @@ from .policy import Policy
 from .policy_region import PolicyRegion
 from .policy_schedule_event import PolicyScheduleEvent
 from .policy_ai_tip import PolicyAiTip
+from .policy_income_required import PolicyIncomeRequired
 from .bookmark import Bookmark
 from .notification import Notification
 from .inquiry import Inquiry

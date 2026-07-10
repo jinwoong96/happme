@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from app.db.crud.user_profile import UserProfileCrud
 from app.db.crud.bookmark import BookmarkCrud
 from app.db.crud.policy import PolicyCrud
+from app.db.crud.policy_income_required import PolicyIncomeRequiredCrud
 from app.db.crud.user_testprofile import UserTestProfileCrud
 from app.db.scheme.recommendation import ScenarioRecommendationRequest
 from app.db.scheme.user_profile import UserProfileRead
@@ -30,6 +31,7 @@ class RecommendationService:
         result = await AiClient.recommend(user_profile_payload)
         result = await RecommendationService._attach_policy_cards(db, result)
         result = await RecommendationService._attach_db_policy_ids(db, result)
+        result = await RecommendationService._attach_income_required_fields(db, result)
         return await RecommendationService._attach_bookmark_flags(db, user_id, result)
 
     @staticmethod
@@ -38,6 +40,7 @@ class RecommendationService:
         result = await AiClient.recommend_chat(user_profile_payload, chat)
         result = await RecommendationService._attach_policy_cards(db, result)
         result = await RecommendationService._attach_db_policy_ids(db, result)
+        result = await RecommendationService._attach_income_required_fields(db, result)
         return await RecommendationService._attach_bookmark_flags(db, user_id, result)
 
     @staticmethod
@@ -63,11 +66,17 @@ class RecommendationService:
         result = await AiClient.recommend_chat(test_profile, data.situation)
         result = await RecommendationService._attach_policy_cards(db, result)
         result = await RecommendationService._attach_db_policy_ids(db, result)
+        result = await RecommendationService._attach_income_required_fields(db, result)
         result = await RecommendationService._attach_bookmark_flags(db, user_id, result)
 
         # simulation_result 기록은 일단 보류 (표시 개수 제한을 없애면서 분석 1회당 수천 건이 쌓여서 중단)
 
         return result
+
+    @staticmethod
+    async def judge_income_eligibility_svc(plcy_no: str, answers: dict) -> dict:
+        """카드의 '소득계산' 버튼에서 호출. 답변은 판정에만 쓰이고 DB에 저장하지 않는다."""
+        return await AiClient.judge_income_eligibility(plcy_no, answers)
 
     @staticmethod
     async def _get_user_profile_payload(db: AsyncSession, user_id: int) -> dict:
@@ -114,6 +123,25 @@ class RecommendationService:
         for policies in result.values():
             for policy in policies:
                 policy["policy_id"] = plcyno_to_policy_id.get(str(policy.get("plcyNo")))
+
+        return result
+
+    @staticmethod
+    async def _attach_income_required_fields(db: AsyncSession, result: dict) -> dict:
+        """
+        policy_incomeRequired 기준으로 각 정책에 required_fields(list[str])를 붙입니다.
+        행이 없으면(=애초에 소득 확인이 필요없는 정책) 빈 리스트를 붙입니다.
+        프론트는 이 리스트가 비어있지 않을 때만 "소득계산" 버튼을 보여주면 됩니다.
+        """
+        plcy_nos = {
+            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+        }
+
+        required_fields_by_plcyno = await PolicyIncomeRequiredCrud.get_required_fields_by_plcyno(db, list(plcy_nos))
+
+        for policies in result.values():
+            for policy in policies:
+                policy["required_fields"] = required_fields_by_plcyno.get(str(policy.get("plcyNo")), [])
 
         return result
 

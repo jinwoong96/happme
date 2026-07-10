@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .pdf_summary import PdfSummaryMatch
     from .policy_schedule_event import PolicyScheduleEvent
     from .policy_ai_tip import PolicyAiTip
+    from .policy_income_required import PolicyIncomeRequired
 
 
 class Policy(Base):
@@ -67,3 +68,4 @@ class Policy(Base):
     pdf_matches:        Mapped[List["PdfSummaryMatch"]]  = relationship("PdfSummaryMatch", back_populates="policy")
     schedule_events:    Mapped[List["PolicyScheduleEvent"]] = relationship("PolicyScheduleEvent", back_populates="policy", cascade="all, delete-orphan")
     ai_tip:             Mapped[Optional["PolicyAiTip"]]   = relationship("PolicyAiTip", back_populates="policy", uselist=False, cascade="all, delete-orphan")
+    income_required:    Mapped[Optional["PolicyIncomeRequired"]] = relationship("PolicyIncomeRequired", back_populates="policy", uselist=False, cascade="all, delete-orphan")
