@@ -31,10 +31,13 @@ const inputStyle = {
   color: '#1f2937',
 };
 
-function Field({ label, children }) {
+function Field({ label, required, children }) {
   return (
     <div>
-      <p style={labelStyle}>{label}</p>
+      <p style={labelStyle}>
+        {label}
+        {required && <span style={{ color: '#ef4444' }}> *</span>}
+      </p>
       {children}
     </div>
   );
@@ -60,6 +63,44 @@ function TextInput({ value, onChange, placeholder, type = 'text' }) {
       placeholder={placeholder}
       style={inputStyle}
     />
+  );
+}
+
+// 숫자만 입력받아 "YYYY-MM-DD"로 자동 정렬해주는 생년월일 입력. 달력 UI 대신 키보드로만 입력하고 싶다는 요청 반영.
+function formatBirthDateInput(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  const parts = [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)].filter(Boolean);
+  return parts.join('-');
+}
+
+// 아직 다 입력하지 않은 중간 상태("1999-01")는 에러로 취급하지 않고, 8자리를 다 채웠을 때만 판단한다.
+function getBirthDateError(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  const isRealDate = date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  if (!isRealDate) return '실제 존재하지 않는 날짜입니다.';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (date > today) return '미래 날짜는 입력할 수 없습니다.';
+  return null;
+}
+
+function BirthDateInput({ value, onChange }) {
+  const error = getBirthDateError(value);
+  return (
+    <div>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value ?? ''}
+        onChange={(e) => onChange(formatBirthDateInput(e.target.value))}
+        placeholder="YYYY-MM-DD (예: 19990101)"
+        maxLength={10}
+        style={{ ...inputStyle, border: error ? '1.5px solid #ef4444' : inputStyle.border }}
+      />
+      {error && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#ef4444' }}>{error}</p>}
+    </div>
   );
 }
 
@@ -118,15 +159,15 @@ export default function RecommendationProfilePage() {
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Field label="생년월일">
-            <TextInput type="date" value={form.birth_date} onChange={set('birth_date')} />
+          <Field label="생년월일" required>
+            <BirthDateInput value={form.birth_date} onChange={set('birth_date')} />
           </Field>
 
-          <Field label="성별">
+          <Field label="성별" required>
             <ToggleGroup options={GENDER_OPTIONS} value={form.gender} onChange={set('gender')} />
           </Field>
 
-          <Field label="거주 지역 (시/도)">
+          <Field label="거주 지역 (시/도)" required>
             <Select value={form.region} onChange={set('region')} options={REGIONS.map((r) => ({ value: r.name, label: r.name }))} />
           </Field>
 
@@ -136,7 +177,7 @@ export default function RecommendationProfilePage() {
 
           <p style={sectionTitleStyle}>학력 정보</p>
 
-          <Field label="최종 학력">
+          <Field label="최종 학력" required>
             <Select value={form.education} onChange={set('education')} options={EDUCATION_OPTIONS} />
           </Field>
           <Field label="학교명">
@@ -157,7 +198,7 @@ export default function RecommendationProfilePage() {
 
           <p style={sectionTitleStyle}>취업/직업 정보</p>
 
-          <Field label="취업상태">
+          <Field label="취업상태" required>
             <Select value={form.employment_status} onChange={set('employment_status')} options={EMPLOYMENT_OPTIONS} />
           </Field>
           <Field label="직업/업종">
@@ -172,7 +213,7 @@ export default function RecommendationProfilePage() {
 
           <p style={sectionTitleStyle}>혼인/특수 상태</p>
 
-          <Field label="혼인상태">
+          <Field label="혼인상태" required>
             <Select value={form.marital_status} onChange={set('marital_status')} options={MARITAL_OPTIONS} />
           </Field>
           <Field label="기초생활수급자 여부">

@@ -40,6 +40,7 @@ const BOOLEAN_FIELDS = [
   'job_seeking', 'disability', 'basic_livelihood', 'single_parent',
   'startup_interest', 'business_owner',
 ];
+const REQUIRED_FIELDS = ['birth_date', 'gender', 'region', 'education', 'employment_status', 'marital_status'];
 
 export default function useRecommendationProfile() {
   const navigate = useNavigate();
@@ -80,6 +81,13 @@ export default function useRecommendationProfile() {
 
   const handleSubmit = async () => {
     setError('');
+
+    const hasMissingRequired = REQUIRED_FIELDS.some((key) => !form[key]);
+    if (hasMissingRequired) {
+      setError('필수 항목을 모두 입력해주세요.');
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {};
@@ -109,5 +117,5 @@ export default function useRecommendationProfile() {
     navigate('/recommendation');
   };
 
-  return { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile };
+  return { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile, requiredFields: REQUIRED_FIELDS };
 }
