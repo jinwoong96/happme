@@ -14,6 +14,12 @@ CARD_TARGET_MAX_LENGTH = 70
 
 _policy_cards_cache: dict[str, dict] | None = None
 
+# 가나다순 초성 필터용. 한글 음절의 유니코드 구조(0xAC00 + 초성*588 + 중성*28 + 종성)를 이용해
+# 초성 인덱스(0~18: ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ)를 구한 뒤, 된소리(ㄲㄸㅃㅆㅉ)는
+# 기본 자음 그룹으로 합쳐서 14개 그룹으로 보여준다.
+CONSONANT_GROUPS = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+_INITIAL_INDEX_TO_GROUP = [0, 0, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8, 8, 9, 10, 11, 12, 13]
+
 
 class PolicyService:
 
@@ -51,10 +57,18 @@ class PolicyService:
         lclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
+        include_closed: bool = False,
+        consonant: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[dict]:
-        policies = await PolicyCrud.get_all_policies(db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, limit=limit, offset=offset)
+        policies = await PolicyCrud.get_all_policies(
+            db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, include_closed=include_closed,
+            consonant=consonant, limit=limit, offset=offset,
+        )
+
+        if consonant:
+            policies = PolicyService._filter_by_consonant(policies, consonant)[offset:offset + limit]
 
         plcy_nos = [p.plcyNo for p in policies if p.plcyNo]
         cards = await PolicyService.get_policy_cards_svc(db, plcy_nos)
@@ -70,6 +84,21 @@ class PolicyService:
                 item["target"] = card.get("target")
             results.append(item)
         return results
+
+    @staticmethod
+    def _initial_consonant_group(plcy_nm: Optional[str]) -> str:
+        """plcyNm 첫 글자의 초성 그룹(ㄱ~ㅎ 14종)을 구한다. 한글 음절이 아니면 '기타'."""
+        if not plcy_nm:
+            return "기타"
+        code = ord(plcy_nm[0])
+        if 0xAC00 <= code <= 0xD7A3:
+            initial_index = (code - 0xAC00) // 588
+            return CONSONANT_GROUPS[_INITIAL_INDEX_TO_GROUP[initial_index]]
+        return "기타"
+
+    @staticmethod
+    def _filter_by_consonant(policies: list[Policy], consonant: str) -> list[Policy]:
+        return [p for p in policies if PolicyService._initial_consonant_group(p.plcyNm) == consonant]
 
     @staticmethod
     async def update_policy_svc(db: AsyncSession, policy_id: int, data: PolicyUpdate) -> Policy:
