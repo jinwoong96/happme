@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -35,3 +35,18 @@ class UserProfileIn(BaseModel):
     housing_status: Optional[str] = None
     reason: Optional[str] = None
     updated_at: Optional[datetime] = None
+
+
+class ScenarioResolveRequest(BaseModel):
+    """구조화 질문(Q1 지역이동, Q2 취업 변화) 답변을 diff로 바꿔달라는 요청."""
+
+    region_choice: Literal["지역 쓰기", "지역 이동 안함", "미정"]
+    region_text: Optional[str] = None
+    employment_choice: Literal["없음", "이직", "퇴사", "창업", "재직", "기타"]
+    employment_other: Optional[str] = None
+
+
+class ScenarioResolveResponse(BaseModel):
+    diff: dict
+    ambiguous: dict
+    notes: list[str]

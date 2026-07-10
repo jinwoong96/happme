@@ -24,3 +24,5 @@ ibm-watsonx-ai
 
 paddlepaddle==3.2.2
 paddleocr==3.7.0
+pymupdf
+playwright

@@ -32,10 +32,11 @@ class PolicySimilarityService:
     def _encode_query(self, query_text: str) -> np.ndarray:
         return self.model.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)[0]
 
-    def search(self, query_text: str, candidate_policies: list[dict], top_k: int = 5) -> list[dict]:
+    def search(self, query_text: str, candidate_policies: list[dict], top_k: int | None = 5) -> list[dict]:
         """
         query_text: 사용자 채팅
         candidate_policies: rule engine을 통과한 정책 dict 목록 (plcyNo 키 사용)
+        top_k=None이면 개수 제한 없이 전부 유사도 순으로 반환한다.
         반환: 유사도 상위 top_k개의 {plcyNo, policy_name, policy_summary}
               (policy_name/policy_summary는 policy_search_docs.json 기준)
         """
@@ -53,6 +54,8 @@ class PolicySimilarityService:
         scores = query_embedding @ self.embeddings[candidate_indices].T
 
         ranked_indices = [idx for idx, _ in sorted(zip(candidate_indices, scores), key=lambda x: x[1], reverse=True)]
+        if top_k is not None:
+            ranked_indices = ranked_indices[:top_k]
 
         return [
             {
@@ -60,5 +63,5 @@ class PolicySimilarityService:
                 "policy_name": self.policy_docs[idx].get("policy_name"),
                 "policy_summary": self.policy_docs[idx].get("summary"),
             }
-            for idx in ranked_indices[:top_k]
+            for idx in ranked_indices
         ]

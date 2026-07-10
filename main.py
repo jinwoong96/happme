@@ -15,12 +15,18 @@ from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.services.recommendation.recommendation_service import RecommendationService
+from app.services.recommendation.scenario_resolver import ScenarioResolver
 from app.services.schedule_extract import ScheduleService
 
+from app.services.policy_summary.pdf_summary import PdfSummaryService
+from app.services.policy_summary.web_summary import WebSummaryService
+
+from app.routers.policy_summary import router as policy_summary_router
 from app.routers.image_analyze import router as image_analyze_router
 from app.routers.recommendation import router as recommendation_router
 
 from app.routers.schedule import router as schedule_router
+
 
 
 @asynccontextmanager
@@ -42,11 +48,17 @@ async def lifespan(app: FastAPI):
         llm_service=llm_service,
     )
 
+    app.state.pdf_summary_service = PdfSummaryService()
+    app.state.web_summary_service = WebSummaryService(app.state.pdf_summary_service)
+
+    # app.state.schedule_service = ScheduleService()
+
     app.state.recommendation_service = RecommendationService(
         policy_loader=PolicyLoaderService(),
         eligibility_engine=PolicyEligibilityEngine(region_matcher=RegionMatcher()),
         similarity_service=PolicySimilarityService(),
     )
+    app.state.scenario_resolver = ScenarioResolver()
     app.state.schedule_service = ScheduleService()
 
     print("[bene_ai] 모든 모델 로드 완료, 서비스 준비됨")
@@ -63,11 +75,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 app.include_router(image_analyze_router)
 app.include_router(recommendation_router)
-
-
 app.include_router(schedule_router)
+app.include_router(policy_summary_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)

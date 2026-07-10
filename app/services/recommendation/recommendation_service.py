@@ -4,11 +4,30 @@ from app.services.recommendation.eligibility_rules import PolicyEligibilityEngin
 from app.services.recommendation.policy_loader import PolicyLoaderService
 from app.services.recommendation.similarity_search import PolicySimilarityService
 
-# 신청기간 실패 사유에 따라 "신청 마감"과 "신청기간 종료" 탭을 구분합니다.
+# 신청기간 실패 사유에 따라 내부적으로는 "신청 마감"/"신청기간 종료"를 구분해 판정하지만,
+# 화면에는 굳이 나눌 필요가 없는 비슷한 내용이라 recommend_chat_svc의 최종 응답에서는 하나로 합친다.
 CLOSED_STATUSES = {"CLOSED_CODE"}
 EXPIRED_STATUSES = {"NOT_STARTED", "ENDED"}
 
 POLICY_BUCKET_KEYS = ("available_policies", "closed_policies", "expired_policies", "unavailable_policies")
+
+# 정책 데이터의 lclsfNm(대분류)이 두 세대 taxonomy가 섞여 있고("교육" vs "교육･직업훈련" 등),
+# 콤마로 여러 값이 붙은 행도 있어("일자리,교육") 화면에 보여줄 카테고리 5종으로 정규화한다.
+CATEGORY_ALIASES = {
+    "일자리": "일자리",
+    "주거": "주거",
+    "교육": "교육",
+    "교육･직업훈련": "교육",
+    "복지문화": "복지문화",
+    "금융･복지･문화": "복지문화",
+    "참여권리": "참여권리",
+    "참여･기반": "참여권리",
+}
+
+
+def _normalize_category(raw_category) -> str:
+    first_value = str(raw_category or "").split(",")[0].strip()
+    return CATEGORY_ALIASES.get(first_value, "기타")
 
 
 class RecommendationService:
@@ -37,26 +56,55 @@ class RecommendationService:
         policies = self.policy_loader.get_policies()
         return self._recommend_policies(user_profile, policies)
 
-    def recommend_chat_svc(self, user_profile: dict, chat: str, top_k: int = 5) -> dict[str, Any]:
+    def recommend_chat_svc(self, user_profile: dict, chat: str) -> dict[str, Any]:
+        """
+        top_k 제한 없이(top_k=None) 조건을 통과한 정책을 전부 유사도 순으로 반환하고,
+        각 정책에 정규화된 category를 붙인다. "신청 마감"/"신청기간 종료"는 비슷한 내용이라
+        화면에서는 하나의 closed_or_expired_policies로 합쳐서 내려준다.
+        chat이 빈 문자열이면 유사도 계산 없이 rule engine이 판정한 순서를 그대로 반환한다.
+        """
         policies = self.policy_loader.get_policies()
         result = self._recommend_policies(user_profile, policies)
 
         fail_reasons_by_plcyno = result["fail_reasons_by_plcyNo"]
-        top_results: dict[str, Any] = {}
+        category_by_plcyno = {
+            str(p.get("plcyNo")): _normalize_category(p.get("large_category"))
+            for bucket in POLICY_BUCKET_KEYS
+            for p in result[bucket]
+        }
 
-        for bucket in POLICY_BUCKET_KEYS:
-            top_matches = self.similarity_service.search(chat, result[bucket], top_k=top_k)
-            if bucket != "available_policies":
-                for match in top_matches:
+        def build_bucket(policies_in_bucket: list[dict], with_fail_reasons: bool) -> list[dict]:
+            if chat and chat.strip():
+                matches = self.similarity_service.search(chat, policies_in_bucket, top_k=None)
+            else:
+                # 채팅 텍스트가 없으면 유사도 계산을 생략하고 rule engine이 판정한 순서를 그대로 사용한다.
+                # TODO: 추후 이 경우엔 유사도 대신 사용자 프로필 기반 우선순위로 대체 예정
+                matches = [
+                    {
+                        "plcyNo": p.get("plcyNo"),
+                        "policy_name": p.get("policy_name"),
+                        "policy_summary": p.get("policy_summary"),
+                    }
+                    for p in policies_in_bucket
+                ]
+            for match in matches:
+                match["category"] = category_by_plcyno.get(str(match.get("plcyNo")), "기타")
+                if with_fail_reasons:
                     details = fail_reasons_by_plcyno.get(str(match.get("plcyNo")), {})
                     match["fail_reasons"] = [
                         {"check": check, "reason": detail["reason"]}
                         for check, detail in details.items()
                         if not detail.get("match")
                     ]
-            top_results[bucket] = top_matches
+            return matches
 
-        return top_results
+        return {
+            "available_policies": build_bucket(result["available_policies"], False),
+            "closed_or_expired_policies": build_bucket(
+                result["closed_policies"] + result["expired_policies"], True
+            ),
+            "unavailable_policies": build_bucket(result["unavailable_policies"], True),
+        }
 
     def _recommend_policies(self, user: dict, policies: list[dict]) -> dict[str, Any]:
         buckets: dict[str, list] = {key: [] for key in POLICY_BUCKET_KEYS}

@@ -66,8 +66,29 @@ class RegionMatcher:
         if not policy_zip_list:
             return make_result(True, "지역 제한 없음", None, policy_region_summary)
 
-        user_region = str(user.get("region", "")).strip()
-        user_district = str(user.get("district", "")).strip()
+        # user.get(...)이 None을 반환할 수 있는데(키는 있지만 값이 None), str(None)은 빈 문자열이
+        # 아니라 "None"이라는 문자열이 되어버려 아래 empty-check를 무력화한다. or ""로 먼저 걸러낸다.
+        user_region = str(user.get("region") or "").strip()
+        user_district = str(user.get("district") or "").strip()
+
+        # 시/군/구를 특정하지 않은 경우(시/도만 입력) _get_zip_code는 그 시/도의 첫 번째 구를
+        # 임의로 골라버려서 실제로는 다른 구 대상 정책까지 전부 "지역 불충족"으로 오판하게 된다.
+        # 시/도만 아는 상태이므로, 정책의 zipCd 목록에 그 시/도 소속 구가 하나라도 있으면 충족으로 본다.
+        if not user_district:
+            region_prefix = self._region_to_prefix(user_region)
+            if region_prefix is None:
+                return make_result(
+                    False, "사용자 지역코드 변환 실패", {"region_name": user_region}, policy_region_summary
+                )
+
+            if any(zip_code.startswith(region_prefix) for zip_code in policy_zip_list):
+                return make_result(
+                    True, "지역(시/도) 조건 충족", {"region_name": user_region}, policy_region_summary
+                )
+
+            return make_result(
+                False, "지역 조건 불충족", {"region_name": user_region}, policy_region_summary
+            )
 
         user_zip = self._get_zip_code(user_region, user_district)
 
