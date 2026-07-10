@@ -4,7 +4,7 @@ export default function PhoneFrame({ children }) {
       style={{
         width: '100%',
         height: '100%',
-        background: '#d1d5db',
+        background: '#ffffff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -18,7 +18,7 @@ export default function PhoneFrame({ children }) {
           background: '#1a1a1a',
           borderRadius: 52,
           padding: 10,
-          boxShadow: '0 0 0 2px #3a3a3a, 0 30px 80px rgba(0,0,0,0.5), inset 0 0 0 1px #555',
+          boxShadow: '0 0 0 2px #3a3a3a, inset 0 0 0 1px #555',
           position: 'relative',
           flexShrink: 0,
         }}
