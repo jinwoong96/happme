@@ -11,6 +11,7 @@ class PolicyCreate(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -48,6 +49,7 @@ class PolicyUpdate(BaseModel):
     lclsfNm: Optional[str] = None
     mclsfNm: Optional[str] = None
     plcySprtCn: Optional[str] = None
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -94,6 +96,7 @@ class PolicyRead(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -145,6 +148,7 @@ class PolicyListRead(BaseModel):
     aplyEndDt: Optional[date] = None
     inqCnt: int
     bookmarkCnt: int
+    maxSprtAmt: Optional[int] = None
     createdAt: Optional[datetime] = None
 
     # 카드 표시용(policy_cards.json 기반). 매칭되는 카드가 없으면 None.
