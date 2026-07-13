@@ -157,6 +157,13 @@ CREATE TABLE policy_ai_tip (
     FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
 
+CREATE TABLE policy_incomeRequired (
+    policy_incom_id INT PRIMARY KEY,
+    plcyNo          VARCHAR(50) NOT NULL,
+    required_fields JSON NOT NULL,
+    FOREIGN KEY (policy_incom_id) REFERENCES policy(policy_id)
+);
+
 CREATE TABLE policy_region (
     policy_id BIGINT      NOT NULL,
     zip_code  VARCHAR(20) NOT NULL,

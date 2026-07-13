@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.models.user import User
-from app.db.scheme.recommendation import ChatRecommendationRequest, ScenarioRecommendationRequest
+from app.db.scheme.recommendation import ChatRecommendationRequest, IncomeEligibilityRequest, ScenarioRecommendationRequest
 from app.services.recommendation import RecommendationService as recommendation_svc
 from app.core.jwt_handle import get_current_user
 
@@ -33,3 +33,9 @@ async def get_scenario_recommendations(
     current_user: User = Depends(get_current_user),
 ):
     return await recommendation_svc.get_scenario_recommendations_svc(db, current_user.user_id, data)
+
+
+# C 정책 카드의 "소득계산" 버튼: 모달 답변으로 소득 조건 충족 여부 판정 (답변은 저장하지 않음)
+@router.post("/income-eligibility")
+async def get_income_eligibility(data: IncomeEligibilityRequest, current_user: User = Depends(get_current_user)):
+    return await recommendation_svc.judge_income_eligibility_svc(data.plcyNo, data.answers)
