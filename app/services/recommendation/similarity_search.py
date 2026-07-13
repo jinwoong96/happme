@@ -65,3 +65,28 @@ class PolicySimilarityService:
             }
             for idx in ranked_indices
         ]
+
+    def search_all(self, query_text: str, top_k: int = 5) -> list[dict]:
+        """
+        관리자 공고문 중복 탐지용. candidate_policies 제한 없이 전체 임베딩 코퍼스를 대상으로
+        query_text(신규 입력 정책명+설명 등)와 가장 유사한 기존 정책 top_k개를 점수와 함께 반환한다.
+        반환: [{plcyNo, policy_name, policy_summary, score}], score는 0~1 코사인 유사도.
+        """
+        if not self.policy_docs:
+            return []
+
+        query_embedding = self._encode_query(query_text)
+        scores = self.embeddings @ query_embedding
+
+        top_k = min(top_k, len(scores))
+        ranked_indices = np.argsort(-scores)[:top_k]
+
+        return [
+            {
+                "plcyNo": self.policy_docs[idx].get("policy_id"),
+                "policy_name": self.policy_docs[idx].get("policy_name"),
+                "policy_summary": self.policy_docs[idx].get("summary"),
+                "score": float(scores[idx]),
+            }
+            for idx in ranked_indices
+        ]
