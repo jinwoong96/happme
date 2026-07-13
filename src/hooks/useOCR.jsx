@@ -1,12 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
+const SESSION_KEY = 'bene_ocr_state';
+
+function loadPersisted() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePersisted(state) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+  } catch {
+    // 저장 실패는 무시 (용량 초과 등)
+  }
+}
+
+function clearPersisted() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // 무시
+  }
+}
 
 export default function useOCR() {
+  const persisted = loadPersisted();
+
   const [files, setFiles] = useState([]);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(persisted?.results ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (results) {
+      savePersisted({ results });
+    }
+  }, [results]);
 
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
@@ -24,6 +58,8 @@ export default function useOCR() {
     if (files.length === 0) return;
     setLoading(true);
     setError('');
+    setResults(null);
+    clearPersisted();
 
     try {
       const formData = new FormData();
@@ -55,5 +91,7 @@ export default function useOCR() {
     }
   };
 
-  return { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze };
+  const clearOcrSession = clearPersisted;
+
+  return { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession };
 }

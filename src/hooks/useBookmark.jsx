@@ -108,5 +108,14 @@ export default function useBookmark() {
     setCursor((prev) => (prev.month === 11 ? { year: prev.year + 1, month: 0 } : { year: prev.year, month: prev.month + 1 }));
   };
 
-  return { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey, formatMD };
+  const removeBookmark = async (bookmarkId) => {
+    try {
+      await api.delete(`/bookmarks/${bookmarkId}`);
+      setRawItems((prev) => prev.filter((item) => item.bookmark_id !== bookmarkId));
+    } catch {
+      // 실패 시 조용히 무시
+    }
+  };
+
+  return { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey, formatMD, removeBookmark };
 }

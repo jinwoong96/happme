@@ -178,7 +178,7 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
 }
 
 export default function OCRPage() {
-  const { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze } = useOCR();
+  const { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const navigate = useNavigate();
   const can = !loading && files.length > 0;
@@ -199,7 +199,7 @@ export default function OCRPage() {
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
-        <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+        <button onClick={() => { clearOcrSession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
         <p className="text-[18px] font-bold text-gray-900">공고문 사진 분석</p>
