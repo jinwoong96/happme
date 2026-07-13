@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, case, or_
+from sqlalchemy import select, case, or_, func
 from sqlalchemy.orm import selectinload
 from app.db.models.policy import Policy
 from app.db.models.policy_region import PolicyRegion
@@ -43,8 +43,12 @@ class PolicyCrud:
         if lclsf:
             stmt = stmt.where(Policy.lclsfNm == lclsf)
         if keyword:
+            # 정책명 띄어쓰기가 기관마다 제각각이라(예: "전세보증금 반환보증" vs "전세보증금반환보증"),
+            # 검색어/컬럼 양쪽 다 공백을 제거하고 부분일치시킨다.
+            normalized_keyword = keyword.replace(" ", "").replace("　", "")
             stmt = stmt.where(
-                Policy.plcyNm.ilike(f"%{keyword}%") | Policy.plcyKywdNm.ilike(f"%{keyword}%")
+                func.replace(Policy.plcyNm, ' ', '').ilike(f"%{normalized_keyword}%")
+                | func.replace(Policy.plcyKywdNm, ' ', '').ilike(f"%{normalized_keyword}%")
             )
         if region:
             stmt = stmt.join(PolicyRegion, Policy.policy_id == PolicyRegion.policy_id).where(
@@ -79,6 +83,15 @@ class PolicyCrud:
             stmt = stmt.offset(offset).limit(limit)
 
         result = await db.execute(stmt)
+        return list(result.scalars().unique().all())
+
+    @staticmethod
+    async def get_policies_by_ids(db: AsyncSession, policy_ids: list[int]) -> list[Policy]:
+        if not policy_ids:
+            return []
+        result = await db.execute(
+            select(Policy).options(selectinload(Policy.regions)).where(Policy.policy_id.in_(policy_ids))
+        )
         return list(result.scalars().unique().all())
 
     @staticmethod

@@ -27,6 +27,7 @@ class Policy(Base):
     lclsfNm:         Mapped[str]            = mapped_column(String(100), nullable=False)
     mclsfNm:         Mapped[str]            = mapped_column(String(100), nullable=False)
     plcySprtCn:      Mapped[str]            = mapped_column(Text, nullable=False)
+    rgtrInstCdNm:    Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 최상위(등록) 기관
     maxSprtAmt:      Mapped[Optional[int]]  = mapped_column(BigInteger, nullable=True)  # plcySprtCn에서 뽑아낸 "최대 지원 금액"(원). 명시적 마커(최대/한도) 없으면 NULL
     sprvsnInstCdNm:  Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)
     sprvsnInstPicNm: Mapped[Optional[str]]  = mapped_column(String(50), nullable=True)
