@@ -2,16 +2,31 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
-from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead
+from app.db.scheme.policy import (
+    PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead,
+    PolicySimilaritySearchRequest, PolicySimilarityMatch,
+)
 from app.services.policy import PolicyService as policy_svc
+from app.db.models.user import User
+from app.core.admin import get_current_admin
 
 router = APIRouter(prefix="/policies", tags=["Policy"])
 
 
 # C 생성 (관리자용)
 @router.post("/", response_model=PolicyRead, status_code=201)
-async def create_policy(data: PolicyCreate, db: AsyncSession = Depends(get_db)):
+async def create_policy(data: PolicyCreate, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await policy_svc.create_policy_svc(db, data)
+
+
+# 유사(중복 의심) 공고문 검색 (관리자용, BAAI/bge-m3 임베딩)
+@router.post("/similarity-search", response_model=list[PolicySimilarityMatch])
+async def search_similar_policies(
+    data: PolicySimilaritySearchRequest,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    return await policy_svc.similarity_search_svc(db, data.query_text, top_k=data.top_k)
 
 
 # R 전체 조회 (필터링)
@@ -42,17 +57,17 @@ async def get_policy(policy_id: int, db: AsyncSession = Depends(get_db)):
 
 # U 수정 (관리자용)
 @router.patch("/{policy_id}", response_model=PolicyRead)
-async def update_policy(policy_id: int, data: PolicyUpdate, db: AsyncSession = Depends(get_db)):
+async def update_policy(policy_id: int, data: PolicyUpdate, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await policy_svc.update_policy_svc(db, policy_id, data)
 
 
 # D 삭제 (관리자용)
 @router.delete("/{policy_id}")
-async def delete_policy(policy_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_policy(policy_id: int, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await policy_svc.delete_policy_svc(db, policy_id)
 
 
-# 지역 추가
+# 지역 추가 (관리자용)
 @router.post("/{policy_id}/regions")
-async def add_region(policy_id: int, zip_code: str = Query(...), db: AsyncSession = Depends(get_db)):
+async def add_region(policy_id: int, zip_code: str = Query(...), db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await policy_svc.add_region_svc(db, policy_id, zip_code)

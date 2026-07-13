@@ -27,6 +27,7 @@ class Policy(Base):
     lclsfNm:         Mapped[str]            = mapped_column(String(100), nullable=False)
     mclsfNm:         Mapped[str]            = mapped_column(String(100), nullable=False)
     plcySprtCn:      Mapped[str]            = mapped_column(Text, nullable=False)
+    rgtrInstCdNm:    Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 최상위(등록) 기관
     sprvsnInstCdNm:  Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)
     sprvsnInstPicNm: Mapped[Optional[str]]  = mapped_column(String(50), nullable=True)
     operInstCdNm:    Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)

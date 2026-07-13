@@ -6,6 +6,7 @@ from app.core.settings import settings
 from app.db.crud.policy import PolicyCrud
 from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyListRead
 from app.db.models.policy import Policy
+from app.services.ai_client import AiClient
 
 # 정책 카드 표시용 텍스트 길이 제한 (policy_cards.json 원본에 지나치게 긴 값이 섞여있음)
 CARD_TITLE_MAX_LENGTH = 60
@@ -122,6 +123,25 @@ class PolicyService:
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="정책 삭제에 실패했습니다.")
+
+    @staticmethod
+    async def similarity_search_svc(db: AsyncSession, query_text: str, top_k: int = 5) -> list[dict]:
+        """bene_ai(BAAI/bge-m3 임베딩)로 유사 정책을 검색한 뒤, plcyNo -> 실제 DB row(Policy)로 매핑한다."""
+        matches = await AiClient.search_similar_policies(query_text, top_k=top_k)
+
+        plcy_nos = [m["plcyNo"] for m in matches if m.get("plcyNo")]
+        id_map = await PolicyCrud.get_policy_ids_by_plcyno(db, plcy_nos)
+        policies = await PolicyCrud.get_policies_by_ids(db, list(id_map.values()))
+        policies_by_id = {p.policy_id: p for p in policies}
+
+        results = []
+        for m in matches:
+            plcy_no = m.get("plcyNo")
+            policy_id = id_map.get(plcy_no) if plcy_no else None
+            policy = policies_by_id.get(policy_id) if policy_id else None
+            if policy:
+                results.append({"policy": policy, "score": m["score"]})
+        return results
 
     @staticmethod
     async def add_region_svc(db: AsyncSession, policy_id: int, zip_code: str) -> dict:

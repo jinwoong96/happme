@@ -33,6 +33,12 @@ class AiClient:
         return await AiClient._post("/recommendations/income-eligibility", {"plcyNo": plcy_no, "answers": answers})
 
     @staticmethod
+    async def search_similar_policies(query_text: str, top_k: int = 5) -> list[dict]:
+        """bene_ai의 POST /policy-dedup/search 호출 (BAAI/bge-m3 임베딩 유사도 검색).
+        Returns: [{plcyNo, policy_name, policy_summary, score}]"""
+        return await AiClient._post("/policy-dedup/search", {"query_text": query_text, "top_k": top_k})
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
