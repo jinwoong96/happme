@@ -209,8 +209,20 @@ class WebSummaryService:
         best_match = top_names[0]
 
         if raw_best_score < raw_threshold_low:
-            return {"matched_policy": "해당 없음", "method": "매칭불가", "policy_detail": None, "blocked": False}
-        return {"matched_policy": best_match, "method": "임베딩매칭", "policy_detail": None, "blocked": False}
+            return {
+                "matched_policy": "해당 없음",
+                "method": "매칭불가",
+                "candidates": top_names[:3],  # ← 추가
+                "policy_detail": None,
+                "blocked": False
+            }
+        return {
+            "matched_policy": best_match,
+            "method": "임베딩매칭",
+            "candidates": top_names[:2],  # ← 추가
+            "policy_detail": None,
+            "blocked": False
+        }
 
     # ---------- 질문답변 ----------
 
@@ -230,7 +242,6 @@ class WebSummaryService:
         if not policy_detail:
             return None
 
-        institution = policy_detail.get("sprvsnInstCdNm", "").strip() or policy_detail.get("rgtrInstCdNm", "").strip()
         fields = {
             "정책명": policy_detail.get("plcyNm", "").strip(),
             "정책설명": policy_detail.get("plcyExplnCn", "").strip(),
@@ -240,7 +251,6 @@ class WebSummaryService:
             "제출서류": policy_detail.get("sbmsnDcmntCn", "").strip(),
             "신청URL": policy_detail.get("aplyUrlAddr", "").strip(),
             "신청기간": policy_detail.get("aplyYmd", "").strip(),
-            "담당기관": institution,
             "기타사항": policy_detail.get("etcMttrCn", "").strip(),
         }
         info_text = "\n".join(f"{k}: {v}" for k, v in fields.items() if v)
@@ -256,7 +266,7 @@ class WebSummaryService:
 
 위 정책 정보를 읽고 질문에 답변해주세요.
 정책 정보에 있는 내용으로만 답변하고, 없는 내용은 만들지 마세요.
-정말 관련 정보가 없을 때만 "담당기관({institution})에 문의해주세요"라고 하세요.
+정말 관련 정보가 없을 때만 "관련 정보를 찾을 수 없습니다"라고 하세요.
 1~3문장으로 간결하게 답변하고, 지시문이나 예시 문구는 출력하지 마세요.
 
 답변:"""

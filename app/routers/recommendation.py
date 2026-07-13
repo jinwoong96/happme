@@ -1,9 +1,16 @@
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
+from app.services.recommendation.income_eligibility import IncomeEligibilityService
 from app.services.recommendation.recommendation_service import RecommendationService
 from app.services.recommendation.scenario_resolver import ScenarioResolver
-from app.services.recommendation.schemas import ScenarioResolveRequest, ScenarioResolveResponse, UserProfileIn
+from app.services.recommendation.schemas import (
+    IncomeEligibilityRequest,
+    IncomeEligibilityResponse,
+    ScenarioResolveRequest,
+    ScenarioResolveResponse,
+    UserProfileIn,
+)
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 
@@ -14,6 +21,10 @@ def get_recommendation_service(request: Request) -> RecommendationService:
 
 def get_scenario_resolver(request: Request) -> ScenarioResolver:
     return request.app.state.scenario_resolver
+
+
+def get_income_eligibility_service(request: Request) -> IncomeEligibilityService:
+    return request.app.state.income_eligibility_service
 
 
 class RecommendationRequest(BaseModel):
@@ -47,3 +58,11 @@ async def resolve_scenario(data: ScenarioResolveRequest, request: Request):
         data.region_choice, data.region_text, data.employment_choice, data.employment_other
     )
     return ScenarioResolveResponse(diff=diff, ambiguous=ambiguous, notes=notes)
+
+
+# C 정책별 소득 조건 지원 가능 여부 판정 (rule engine 우선, 애매하면 watsonx LLM)
+@router.post("/income-eligibility", response_model=IncomeEligibilityResponse)
+async def judge_income_eligibility(data: IncomeEligibilityRequest, request: Request):
+    income_eligibility_service = get_income_eligibility_service(request)
+    result = income_eligibility_service.judge_svc(data.plcyNo, data.answers)
+    return IncomeEligibilityResponse(**result)

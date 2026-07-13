@@ -51,7 +51,57 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
         method = match_result["method"]
 
         if matched_name in (None, "해당 없음"):
-            return {"filename": filename, "matched": False, "policy_name": None, "method": method, "summary": None}
+
+            candidate_infos = []
+
+            for name in match_result.get("candidates", []):
+                detail = pdf_service.get_policy_detail_svc(name)
+                summary = pdf_service.summarize_policy_svc(detail) if detail else None
+
+                fields = {}
+
+                if summary:
+                    import re
+
+                    labels = [
+                        "한줄요약",
+                        "지원대상",
+                        "지원내용",
+                        "신청방법",
+                        "신청기간",
+                        "사업기간",
+                        "신청URL",
+                        "지원규모",
+                    ]
+
+                    pattern = re.compile(
+                        rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
+                        re.S,
+                    )
+
+                    for label, value in pattern.findall(summary):
+                        fields[label] = value.strip()
+                    print(f"[DEBUG] name: {name}")
+                    print(f"[DEBUG] summary: {summary}")
+                    print(f"[DEBUG] fields: {fields}")
+                    print(f"[DEBUG] apply_url: {detail.get('aplyUrlAddr', '') if detail else ''}")
+
+
+                candidate_infos.append({
+                    "policy_name": name,
+                    "summary": summary,
+                    "fields": fields,
+                    "apply_url": detail.get("aplyUrlAddr", "") if detail else "",
+                })
+
+            return {
+                "filename": filename,
+                "matched": False,
+                "policy_name": None,
+                "method": method,
+                "summary": None,
+                "candidates": candidate_infos
+            }
 
         policy_detail = pdf_service.get_policy_detail_svc(matched_name)
         summary = pdf_service.summarize_policy_svc(policy_detail) if policy_detail else None
@@ -73,7 +123,7 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
 # 공고문 텍스트 직접 입력 → 매칭 + 요약
 @router.post("/text")
 async def analyze_text(request: Request, payload: TextRequest):
-    if not payload.text or len(payload.text.strip()) < 5:
+    if not payload.text or len(payload.text.strip()) < 2:
         raise HTTPException(status_code=400, detail="텍스트를 더 입력해주세요")
 
     pdf_service = get_pdf_service(request)
@@ -84,12 +134,49 @@ async def analyze_text(request: Request, payload: TextRequest):
         matched_name = match_result["matched_policy"]
         method = match_result["method"]
 
-        if matched_name in (None, "해당 없음"):
-            return {"filename": None, "matched": False, "policy_name": None, "method": method, "summary": None}
+        # ✅ 텍스트는 항상 후보군 3개 보여주기
+        candidate_names = match_result.get("candidates", [])
 
-        policy_detail = pdf_service.get_policy_detail_svc(matched_name)
-        summary = pdf_service.summarize_policy_svc(policy_detail) if policy_detail else None
-        return {"filename": None, "matched": True, "policy_name": matched_name, "method": method, "summary": summary}
+        # 직접매칭/임베딩매칭도 matched_name을 첫 번째 후보로 포함
+        if matched_name and matched_name not in ("해당 없음",):
+            all_candidates = [matched_name] + [c for c in candidate_names if c != matched_name]
+        else:
+            all_candidates = candidate_names
+
+        all_candidates = all_candidates[:3]
+
+        candidate_infos = []
+        for name in all_candidates:
+            detail = pdf_service.get_policy_detail_svc(name)
+            summary = pdf_service.summarize_policy_svc(detail) if detail else None
+
+            fields = {}
+            if summary:
+                import re
+                labels = ["한줄요약", "지원대상", "지원내용", "신청방법",
+                        "신청기간", "사업기간", "신청URL", "지원규모"]
+                pattern = re.compile(
+                    rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
+                    re.S,
+                )
+                for label, value in pattern.findall(summary):
+                    fields[label] = value.strip()
+
+            candidate_infos.append({
+                "policy_name": name,
+                "summary": summary,
+                "fields": fields,
+                "apply_url": detail.get("aplyUrlAddr", "") if detail else "",
+            })
+
+        return {
+            "filename": None,
+            "matched": False,
+            "policy_name": None,
+            "method": method,
+            "summary": None,
+            "candidates": candidate_infos
+        }
 
     result = await asyncio.to_thread(process)
     return {"mode": "summary", "results": [result]}
@@ -114,7 +201,40 @@ async def analyze_url(request: Request, payload: UrlRequest):
         method = match_result["method"]
 
         if matched_name in (None, "해당 없음"):
-            return {"filename": None, "matched": False, "policy_name": None, "method": method, "summary": None}
+
+            candidate_infos = []
+
+            for name in match_result.get("candidates", []):
+                detail = pdf_service.get_policy_detail_svc(name)
+                summary = pdf_service.summarize_policy_svc(detail) if detail else None
+
+                fields = {}
+                if summary:
+                    import re
+                    labels = ["한줄요약", "지원대상", "지원내용", "신청방법",
+                            "신청기간", "사업기간", "신청URL", "지원규모"]
+                    pattern = re.compile(
+                        rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
+                        re.S,
+                    )
+                    for label, value in pattern.findall(summary):
+                        fields[label] = value.strip()
+
+                candidate_infos.append({
+                    "policy_name": name,
+                    "summary": summary,
+                    "fields": fields,
+                    "apply_url": detail.get("aplyUrlAddr", "") if detail else "",
+                })
+
+            return {
+                "filename": None,
+                "matched": False,
+                "policy_name": None,
+                "method": method,
+                "summary": None,
+                "candidates": candidate_infos
+            }
 
         policy_detail = match_result.get("policy_detail") or pdf_service.get_policy_detail_svc(matched_name)
         summary = pdf_service.summarize_policy_svc(policy_detail) if policy_detail else None

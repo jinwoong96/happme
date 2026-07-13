@@ -16,6 +16,7 @@ from app.services.recommendation.eligibility_rules import PolicyEligibilityEngin
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.services.recommendation.recommendation_service import RecommendationService
 from app.services.recommendation.scenario_resolver import ScenarioResolver
+from app.services.recommendation.income_eligibility import IncomeEligibilityService
 from app.services.schedule_extract import ScheduleService
 
 from app.services.policy_summary.pdf_summary import PdfSummaryService
@@ -24,6 +25,7 @@ from app.services.policy_summary.web_summary import WebSummaryService
 from app.routers.policy_summary import router as policy_summary_router
 from app.routers.image_analyze import router as image_analyze_router
 from app.routers.recommendation import router as recommendation_router
+from app.routers.policy_dedup import router as policy_dedup_router
 
 from app.routers.schedule import router as schedule_router
 
@@ -53,10 +55,18 @@ async def lifespan(app: FastAPI):
 
     # app.state.schedule_service = ScheduleService()
 
+    policy_loader = PolicyLoaderService()
+    policy_similarity_service = PolicySimilarityService()
+    app.state.policy_similarity_service = policy_similarity_service
     app.state.recommendation_service = RecommendationService(
-        policy_loader=PolicyLoaderService(),
+        policy_loader=policy_loader,
         eligibility_engine=PolicyEligibilityEngine(region_matcher=RegionMatcher()),
-        similarity_service=PolicySimilarityService(),
+        similarity_service=policy_similarity_service,
+    )
+    # watsonx 연결은 새로 만들지 않고 pdf_summary_service의 llm_model을 재사용한다.
+    app.state.income_eligibility_service = IncomeEligibilityService(
+        policy_loader=policy_loader,
+        llm_service=app.state.pdf_summary_service,
     )
     app.state.scenario_resolver = ScenarioResolver()
     app.state.schedule_service = ScheduleService()
@@ -80,6 +90,7 @@ app.include_router(image_analyze_router)
 app.include_router(recommendation_router)
 app.include_router(schedule_router)
 app.include_router(policy_summary_router)
+app.include_router(policy_dedup_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)

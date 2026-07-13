@@ -13,6 +13,12 @@ class PolicyLoaderService:
     def __init__(self):
         with open(settings.policy_json_path, encoding="utf-8") as f:
             self.policies: list[dict] = json.load(f)
+        self._by_plcyno: dict[str, dict] = {
+            str(p.get("plcyNo")): p for p in self.policies if p.get("plcyNo") is not None
+        }
 
     def get_policies(self) -> list[dict]:
         return self.policies
+
+    def get_policy_by_plcyno(self, plcy_no: str) -> dict | None:
+        return self._by_plcyno.get(str(plcy_no))
