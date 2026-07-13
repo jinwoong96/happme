@@ -61,5 +61,5 @@ class IncomeEligibilityRequest(BaseModel):
 
 class IncomeEligibilityResponse(BaseModel):
     eligible: Optional[bool]
-    method: Literal["rule", "llm", "not_found"]
+    method: Literal["rule", "llm", "not_found", "unknown_income"]
     reason: str

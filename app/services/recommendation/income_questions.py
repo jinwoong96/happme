@@ -11,3 +11,7 @@ INCOME_QUESTIONS: dict[str, str] = {
     "household_size": "가구원 수는 몇 명인가요?",
     "household_income": "가구 전체 월소득은 얼마인가요?",
 }
+
+# household_income 질문에서 "모르겠어요"를 선택했을 때 프론트가 보내는 값.
+# 프론트(src/data/incomeQuestions.js)의 UNKNOWN_ANSWER와 반드시 같은 문자열이어야 한다.
+UNKNOWN_ANSWER = "모르겠어요"

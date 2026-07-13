@@ -1,7 +1,7 @@
 import re
 
 from app.services.recommendation.code_mapping import EARN_TYPE_MAP
-from app.services.recommendation.income_questions import INCOME_QUESTIONS
+from app.services.recommendation.income_questions import INCOME_QUESTIONS, UNKNOWN_ANSWER
 from app.services.recommendation.policy_loader import PolicyLoaderService
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited
 
@@ -33,10 +33,19 @@ def _to_number(value) -> float | None:
     return number
 
 
-def _fmt_amount(value) -> str:
+def _manwon_to_won(value) -> float | None:
+    """정책 데이터의 earnMinAmt/earnMaxAmt는 만원 단위로 내려온다(예: 5000 -> 5,000만원).
+    실제 원 단위 비교/표시를 위해 10,000을 곱해서 변환한다."""
     if is_empty_or_unlimited(value):
+        return None
+    return float(value) * 10_000
+
+
+def _fmt_amount(value) -> str:
+    won = _manwon_to_won(value)
+    if won is None:
         return "제한없음"
-    return f"{int(value):,}원"
+    return f"{int(won):,}원"
 
 
 def _fmt_range(min_amt, max_amt) -> str:
@@ -70,10 +79,44 @@ class IncomeEligibilityService:
             eligible, reason = rule_result
             return {"eligible": eligible, "method": "rule", "reason": reason}
 
+        # 규칙 엔진으로 판단이 안 됐고(= annual_income/annual_sales 등 다른 쓸만한 답변이 없고),
+        # 가구 전체 월소득을 "모르겠어요"로 답한 경우에만 상한선 안내로 폴백한다.
+        # (annual_income처럼 이미 답변된 값이 있으면 그걸로 먼저 판정하는 게 맞고, household_income의
+        # "모르겠어요"가 그 답변을 가려버리면 안 되기 때문에 rule_result 판단 이후로 순서를 미뤘다.)
+        if answers.get("household_income") == UNKNOWN_ANSWER:
+            return self._household_income_unknown_result(policy)
+
         eligible, reason = self._llm_judge(policy, answers)
         return {"eligible": eligible, "method": "llm", "reason": reason}
 
     # ---------- 1) 규칙 엔진 ----------
+
+    @staticmethod
+    def _household_income_unknown_result(policy: dict) -> dict:
+        """공고문(earnCndSeCd/earnMaxAmt/earnEtcCn) 기준으로 가구 월소득 상한선만 안내한다."""
+        earn_cnd = policy.get("earnCndSeCd")
+        earn_type = EARN_TYPE_MAP.get(earn_cnd)
+
+        if earn_type == "무관" or is_empty_or_unlimited(earn_cnd):
+            return {"eligible": True, "method": "rule", "reason": "이 정책은 소득 조건과 무관하게 지원 가능합니다."}
+
+        max_amt_won = _manwon_to_won(policy.get("earnMaxAmt"))
+        if earn_type == "연소득" and max_amt_won is not None:
+            monthly_cap = max_amt_won / 12
+            return {
+                "eligible": None,
+                "method": "unknown_income",
+                "reason": f"가구 월소득이 {int(monthly_cap):,}원 이상이면 이 정책을 지원받을 수 없어요.",
+            }
+
+        # 숫자 상한이 없는(자유텍스트/중위소득 비율 등) 경우 공고문 원문을 그대로 안내한다.
+        etc = policy.get("earnEtcCn")
+        reason = (
+            f"이 정책의 소득 조건은 다음과 같아요: {etc}"
+            if etc
+            else "이 정책은 소득 상한이 명시되어 있지 않아 정확한 판정이 어려워요. 공고문의 소득 조건을 직접 확인해주세요."
+        )
+        return {"eligible": None, "method": "unknown_income", "reason": reason}
 
     @staticmethod
     def _rule_based_check(policy: dict, answers: dict) -> tuple[bool, str] | None:
@@ -96,8 +139,10 @@ class IncomeEligibilityService:
             # 판정에 필요한 숫자 답변이 없음 -> LLM에 위임 (질문 문구 재해석 등에 맡김)
             return None
 
-        min_ok = is_empty_or_unlimited(min_amt) or income >= float(min_amt)
-        max_ok = is_empty_or_unlimited(max_amt) or income <= float(max_amt)
+        min_amt_won = _manwon_to_won(min_amt)
+        max_amt_won = _manwon_to_won(max_amt)
+        min_ok = min_amt_won is None or income >= min_amt_won
+        max_ok = max_amt_won is None or income <= max_amt_won
         range_text = _fmt_range(min_amt, max_amt)
 
         if min_ok and max_ok:
