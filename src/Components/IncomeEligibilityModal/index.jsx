@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../../utils/api';
-import { INCOME_QUESTIONS } from '../../data/incomeQuestions';
+import { INCOME_QUESTIONS, UNKNOWN_ANSWER } from '../../data/incomeQuestions';
 
 // 정책 카드의 "소득계산" 버튼에서 뜨는 모달. requiredFields에 해당하는 질문만 물어보고,
 // 답변을 그 자리에서 판정에만 쓰고 저장하지는 않는다.
@@ -12,8 +12,21 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
 
   if (!plcyNo || !requiredFields?.length) return null;
 
+  // requiredFields가 어떤 순서로 오든, INCOME_QUESTIONS에 정의된 고정 순서대로만 질문한다.
+  // (해당 없는 질문은 자동으로 빠짐)
+  const orderedFields = Object.keys(INCOME_QUESTIONS).filter((key) => requiredFields.includes(key));
+
   const setAnswer = (key, value) => setAnswers((prev) => ({ ...prev, [key]: value }));
-  const isFilled = requiredFields.every((key) => answers[key] !== undefined && answers[key] !== '');
+  const isFilled = orderedFields.every((key) => answers[key] !== undefined && answers[key] !== '');
+
+  // 입력값은 콤마 없는 순수 숫자 문자열로 저장(백엔드로 그대로 전송)하고, 화면 표시만 콤마를 붙인다.
+  const formatWithCommas = (value) => {
+    if (value === undefined || value === null || value === '') return '';
+    const digits = String(value).replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return Number(digits).toLocaleString('ko-KR');
+  };
+  const handleNumberChange = (key, raw) => setAnswer(key, raw.replace(/[^\d]/g, ''));
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -42,12 +55,30 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
 
           {!result ? (
             <div className="flex flex-col gap-3">
-              {requiredFields.map((key) => {
+              {orderedFields.map((key) => {
                 const q = INCOME_QUESTIONS[key];
                 if (!q) return null;
+                const isUnknown = answers[key] === UNKNOWN_ANSWER;
                 return (
                   <div key={key}>
-                    <p className="text-[12.5px] font-semibold text-gray-700 mb-1.5">{q.label}</p>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-[12.5px] font-semibold text-gray-700">{q.label}</p>
+                      {q.allowUnknown && (
+                        <button
+                          type="button"
+                          onClick={() => setAnswer(key, isUnknown ? '' : UNKNOWN_ANSWER)}
+                          className="cursor-pointer"
+                          style={{
+                            border: 'none', background: 'transparent', padding: 0,
+                            fontSize: 11.5, fontWeight: 600,
+                            color: isUnknown ? '#ef4444' : '#f87171',
+                            textDecoration: isUnknown ? 'underline' : 'none',
+                          }}
+                        >
+                          모르겠어요
+                        </button>
+                      )}
+                    </div>
                     {q.type === 'boolean' ? (
                       <div className="flex gap-2">
                         {[{ label: '예', value: true }, { label: '아니오', value: false }].map((opt) => (
@@ -66,12 +97,22 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
                           </button>
                         ))}
                       </div>
+                    ) : isUnknown ? (
+                      <div
+                        style={{
+                          padding: '9px 12px', borderRadius: 10, fontSize: 13,
+                          border: '1.5px solid #fecaca', backgroundColor: '#fef2f2', color: '#ef4444',
+                        }}
+                      >
+                        모르겠어요로 답변했어요
+                      </div>
                     ) : (
                       <div className="flex items-center gap-1.5">
                         <input
-                          type="number"
-                          value={answers[key] ?? ''}
-                          onChange={(e) => setAnswer(key, e.target.value)}
+                          type="text"
+                          inputMode="numeric"
+                          value={formatWithCommas(answers[key])}
+                          onChange={(e) => handleNumberChange(key, e.target.value)}
                           placeholder="숫자만 입력"
                           style={{
                             flex: 1, padding: '9px 12px', borderRadius: 10, fontSize: 13,
@@ -91,11 +132,11 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
               <span
                 style={{
                   padding: '5px 14px', borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 10,
-                  backgroundColor: result.eligible ? '#dcfce7' : '#fee2e2',
-                  color: result.eligible ? '#16a34a' : '#ef4444',
+                  backgroundColor: result.eligible === null ? '#f3f4f6' : result.eligible ? '#dcfce7' : '#fee2e2',
+                  color: result.eligible === null ? '#6b7280' : result.eligible ? '#16a34a' : '#ef4444',
                 }}
               >
-                {result.eligible ? '지원 가능' : '지원 불가'}
+                {result.eligible === null ? '확인 필요' : result.eligible ? '지원 가능' : '지원 불가'}
               </span>
               <p className="text-[12.5px] text-gray-600 leading-relaxed text-center">{result.reason}</p>
             </div>
