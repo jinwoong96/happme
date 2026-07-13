@@ -1,6 +1,33 @@
-import {useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import useBookmarks from './useBookmarks';
+
+const SESSION_KEY = 'bene_summary_state';
+
+function loadPersisted() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePersisted(state) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+  } catch {
+    // 저장 실패는 무시 (용량 초과 등)
+  }
+}
+
+function clearPersisted() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // 무시
+  }
+}
 
 const KNOWN_LABELS = [
   '한줄요약', '요약', '지원대상', '지원내용', '신청방법',
@@ -34,12 +61,14 @@ function parseSummaryFields(text) {
 
 
 export default function useSummary() {
+  const persisted = loadPersisted();
+
   const [files, setFiles] = useState([]);
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
-  const [results, setResults] = useState(null);
-  const [policyName, setPolicyName] = useState(null);
-  const [policyId, setPolicyId] = useState(null);
+  const [results, setResults] = useState(persisted?.results ?? null);
+  const [policyName, setPolicyName] = useState(persisted?.policyName ?? null);
+  const [policyId, setPolicyId] = useState(persisted?.policyId ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -48,6 +77,12 @@ export default function useSummary() {
   const [asking, setAsking] = useState(false);
 
   const { isBookmarked, toggleBookmark } = useBookmarks();
+
+  useEffect(() => {
+    if (results) {
+      savePersisted({ results, policyName, policyId });
+    }
+  }, [results, policyName, policyId]);
 
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
@@ -79,6 +114,7 @@ export default function useSummary() {
     const first = aiResult?.results?.[0];
 
     if (!first?.matched) {
+      const topCandidate = first.candidates?.[0];
       setPolicyName(null);
       setPolicyId(null);
       setResults({
@@ -121,6 +157,11 @@ export default function useSummary() {
     setLoading(true);
     setError(null);
     setResults(null);
+    setQuestion('');
+    setAnswer(null);
+    setPolicyName(null);
+    setPolicyId(null);
+    clearPersisted();
 
     try {
       let res;
@@ -163,7 +204,12 @@ export default function useSummary() {
     setError(null);
     setQuestion('');
     setAnswer(null);
+    setPolicyName(null);
+    setPolicyId(null);
+    clearPersisted();
   };
+
+  const clearSummarySession = clearPersisted;
 
   return {
     files,
@@ -182,10 +228,13 @@ export default function useSummary() {
     handleSummarize,
     canSummarize,
     setQuestion,
+    setAnswer, 
     handleAsk,
     handleReset,
     policyId,
+    setPolicyName,
     isBookmarked,
     toggleBookmark,
+    clearSummarySession,
   };
 }

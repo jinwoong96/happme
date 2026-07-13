@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home, Bookmark, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home, Bookmark, ChevronDown, ChevronUp, ExternalLink, CheckCircle2 } from 'lucide-react';
 import useSummary from '../../hooks/useSummary';
 import useBookmarks from '../../hooks/useBookmarks';
 
@@ -12,22 +12,23 @@ export default function SummaryPage() {
       question, answer, asking,
       handleFileChange, handleRemoveFile, handleTextChange, handleUrlChange,
       handleSummarize, canSummarize,
-      setQuestion, handleAsk,
-      handleReset, policyId,
+      setQuestion, setAnswer, handleAsk,
+      handleReset, policyId, setPolicyName, clearSummarySession,
   } = useSummary();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const navigate = useNavigate();
+  const [activeCandidateIndex, setActiveCandidateIndex] = useState(null);
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="flex items-center justify-between bg-white" style={{ padding: '20px 20px 16px' }}>
           <div className="flex items-center gap-2">
-              <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+              <button onClick={() => { clearSummarySession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
                   <ChevronLeft size={24} color="#333" />
               </button>
               <p className="text-[18px] font-bold text-gray-900">공고문 요약</p>
           </div>
-          <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+          <button onClick={() => { clearSummarySession(); navigate('/'); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
               <Home size={22} color="#333" />
           </button>
       </div>
@@ -125,6 +126,26 @@ export default function SummaryPage() {
 
         {results && (
           <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} color="#22c55e" />
+                <p className="text-[14px] font-bold text-gray-900">
+                  분석 완료 · 정책 {results.candidates ? results.candidates.length : 1}건 매칭
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/bookmark')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+                  padding: '6px 10px', borderRadius: 999, border: 'none',
+                  backgroundColor: '#eff6ff', color: '#3b82f6', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                <Bookmark size={13} />
+                즐겨찾기 보기
+              </button>
+            </div>
+
             {[
               { label: results.candidates ? '관련 정책' : '공고 제목', body: (
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -201,23 +222,68 @@ export default function SummaryPage() {
                                 </p>
                               ))}
 
-                              {candidate.apply_url && candidate.apply_url.trim() !== "" && (
-                                <button
-                                  onClick={() => window.open(candidate.apply_url, "_blank")}
-                                  style={{
-                                    marginTop: 8,
-                                    width: '100%',
-                                    padding: '10px',
-                                    border: 'none',
-                                    borderRadius: 10,
-                                    background: '#3b82f6',
-                                    color: '#fff',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
+                              {candidate.apply_url && candidate.apply_url.trim() !== "" ? (
+                                  <a
+                                      href={candidate.apply_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{
+                                          marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                          padding: '10px 0', borderRadius: 10, backgroundColor: '#eff6ff', color: '#3b82f6',
+                                          fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                                      }}
+                                  >
+                                      공식 사이트
+                                      <ExternalLink size={14} />
+                                  </a>
+                              ) : (
+                                  <div style={{
+                                      marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      padding: '10px 0', borderRadius: 10, backgroundColor: '#f9fafb', color: '#c1c5cb',
+                                      fontSize: 13, fontWeight: 700,
+                                  }}>
+                                      공식 사이트 정보 없음
+                                  </div>
+                              )}
+
+                              {/* ✅ 이 정책에 질문하기 버튼 */}
+                              <button
+                                  onClick={() => {
+                                      setPolicyName(candidate.policy_name);
+                                      setQuestion('');
+                                      setAnswer(null);
+                                      setActiveCandidateIndex(index);
                                   }}
-                                >
-                                  정책 신청하기
-                                </button>
+                                  style={{
+                                      marginTop: 12, width: '100%', padding: '10px', border: '1px solid #3b82f6',
+                                      borderRadius: 10, background: '#fff', color: '#3b82f6',
+                                      fontWeight: 700, cursor: 'pointer',
+                                  }}
+                              >
+                                  💬 이 정책에 질문하기
+                              </button>
+
+                              {/* ✅ 선택된 후보 카드에만 질문창 표시 */}
+                              {activeCandidateIndex === index && (
+                                  <div style={{ marginTop: 12 }}>
+                                      <textarea
+                                          value={question}
+                                          onChange={(e) => setQuestion(e.target.value)}
+                                          placeholder="궁금한 점을 입력하세요"
+                                          style={{ width: '100%', minHeight: 70, borderRadius: 12, border: '1px solid #e5e7eb', padding: '10px 12px', fontSize: 13, resize: 'vertical' }}
+                                      />
+                                      <button onClick={handleAsk} disabled={asking || !question.trim()}
+                                          style={{
+                                              marginTop: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
+                                              background: question.trim() ? '#3b82f6' : '#e5e7eb',
+                                              color: question.trim() ? '#fff' : '#9ca3af',
+                                              fontSize: 13, fontWeight: 700, cursor: question.trim() ? 'pointer' : 'default',
+                                          }}
+                                      >
+                                          {asking ? '답변 생성 중...' : '질문하기'}
+                                      </button>
+                                      {answer && <p style={{ marginTop: 10, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{answer}</p>}
+                                  </div>
                               )}
                             </div>
                           )}
@@ -239,23 +305,28 @@ export default function SummaryPage() {
                       </p>
                     ))}
 
-                    {results.applyUrl && (
-                        <button
-                            onClick={() => window.open(results.applyUrl, "_blank")}
-                        style={{
-                          marginTop: 16,
-                          width: '100%',
-                          padding: '12px',
-                          border: 'none',
-                          borderRadius: 12,
-                          background: '#3b82f6',
-                          color: '#fff',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        정책 신청하기
-                      </button>
+                    {results.applyUrl ? (
+                        <a
+                            href={results.applyUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                                marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                padding: '12px 0', borderRadius: 12, backgroundColor: '#eff6ff', color: '#3b82f6',
+                                fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                            }}
+                        >
+                            공식 사이트
+                            <ExternalLink size={14} />
+                        </a>
+                    ) : (
+                        <div style={{
+                            marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '12px 0', borderRadius: 12, backgroundColor: '#f9fafb', color: '#c1c5cb',
+                            fontSize: 13, fontWeight: 700,
+                        }}>
+                            공식 사이트 정보 없음
+                        </div>
                     )}
                   </div>
                 ),
@@ -266,30 +337,35 @@ export default function SummaryPage() {
                 {body}
               </div>
             ))}
-            <div style={{ backgroundColor: '#fff', borderRadius: 18, padding: 18, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-              <p className="mb-2.5 text-[12px] text-blue-500 font-bold flex items-center gap-1">
-                <MessageCircle size={14} /> 질문 입력
-              </p>
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="궁금한 점을 입력하세요"
-                style={{ width: '100%', minHeight: 70, borderRadius: 12, border: '1px solid #e5e7eb', padding: '10px 12px', fontSize: 13, resize: 'vertical' }}
-              />
-              <button onClick={handleAsk} disabled={asking || !question.trim()}
-                style={{
-                  marginTop: 10, padding: '10px 16px', borderRadius: 12, border: 'none',
-                  background: question.trim() ? '#3b82f6' : '#e5e7eb',
-                  color: question.trim() ? '#fff' : '#9ca3af',
-                  fontSize: 13, fontWeight: 700, cursor: question.trim() ? 'pointer' : 'default',
-                }}>
-                {asking ? '답변 생성 중...' : '질문하기'}
-              </button>
-              {answer && <p className="mt-3 text-[13px] text-gray-700 leading-relaxed">{answer}</p>}
-            </div>
+            {!results.candidates && (
+                <div style={{ backgroundColor: '#fff', borderRadius: 18, padding: 18, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+                    <p className="mb-2.5 text-[12px] text-blue-500 font-bold flex items-center gap-1">
+                        <MessageCircle size={14} /> 질문 입력
+                    </p>
+                    <textarea
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="궁금한 점을 입력하세요"
+                        style={{ width: '100%', minHeight: 70, borderRadius: 12, border: '1px solid #e5e7eb', padding: '10px 12px', fontSize: 13, resize: 'vertical' }}
+                    />
+                    <button onClick={handleAsk} disabled={asking || !question.trim()}
+                        style={{
+                            marginTop: 10, padding: '10px 16px', borderRadius: 12, border: 'none',
+                            background: question.trim() ? '#3b82f6' : '#e5e7eb',
+                            color: question.trim() ? '#fff' : '#9ca3af',
+                            fontSize: 13, fontWeight: 700, cursor: question.trim() ? 'pointer' : 'default',
+                        }}>
+                        {asking ? '답변 생성 중...' : '질문하기'}
+                    </button>
+                    {answer && <p className="mt-3 text-[13px] text-gray-700 leading-relaxed">{answer}</p>}
+                </div>
+            )}
             {/* 질문 섹션 닫는 div 바로 아래 */}
             <button
-                onClick={handleReset}
+                onClick={() => {
+                    handleReset();
+                    setActiveCandidateIndex(null);  // ← 추가
+                }}
                 style={{
                     width: '100%',
                     padding: '14px 0',

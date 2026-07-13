@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, X, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
 import Modal from '../../Components/Modal';
 
@@ -17,18 +17,64 @@ function buildCalendarCells(year, month) {
   return cells;
 }
 
+function BookmarkItemCard({ item, onRemove }) {
+  return (
+    <div style={{ backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
+          <p className="text-[14px] font-bold text-gray-900">{item.plcyNm}</p>
+        </div>
+        <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
+          {item.dday !== null && (
+            <span
+              className="text-[11px] font-bold"
+              style={{
+                padding: '3px 9px', borderRadius: 999,
+                backgroundColor: item.dday <= 3 ? '#fee2e2' : '#eff6ff',
+                color: item.dday <= 3 ? '#ef4444' : '#3b82f6',
+              }}
+            >
+              {item.dday >= 0 ? `D-${item.dday}` : '마감'}
+            </span>
+          )}
+          <button
+            onClick={() => onRemove(item.bookmark_id)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+          >
+            <Bookmark size={18} color="#3b82f6" fill="#3b82f6" />
+          </button>
+        </div>
+      </div>
+      <p className="mt-1 text-[12px] text-gray-400" style={{ marginLeft: 16 }}>
+        {item.sprvsnInstCdNm ? `${item.sprvsnInstCdNm} · ` : ''}
+        {item.aplyEnd ? `신청마감 ${item.aplyEnd.getMonth() + 1}/${item.aplyEnd.getDate()}` : '신청기간 정보 없음'}
+      </p>
+      {item.prep_tip && (
+        <div className="flex items-start gap-1.5" style={{ marginTop: 8, marginLeft: 16, padding: '8px 10px', borderRadius: 10, backgroundColor: '#f8f9ff' }}>
+          <Sparkles size={13} color="#3b82f6" style={{ marginTop: 1, flexShrink: 0 }} />
+          <p className="text-[11px] text-blue-500 font-medium">AI 준비: {item.prep_tip}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BookmarkPage() {
   const navigate = useNavigate();
-  const { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey } = useBookmark();
+  const { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey, removeBookmark } = useBookmark();
   const [searchOpen, setSearchOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
+  const [hideExpired, setHideExpired] = useState(false);
+  const [expiredOpen, setExpiredOpen] = useState(false);
 
   const cells = buildCalendarCells(cursor.year, cursor.month);
   const selectedDots = selectedDate ? (dotsByDate[selectedDate] || []) : [];
-  const filteredItems = keyword.trim()
-    ? items.filter((item) => item.plcyNm.includes(keyword.trim()))
-    : items;
+  const isExpired = (item) => item.dday !== null && item.dday < 0;
+  const searchedItems = items.filter((item) => !keyword.trim() || item.plcyNm.includes(keyword.trim()));
+  const activeItems = searchedItems.filter((item) => !isExpired(item));
+  const expiredItems = searchedItems.filter(isExpired);
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
@@ -140,49 +186,62 @@ export default function BookmarkPage() {
         </div>
 
         {/* 즐겨찾기 일정 리스트 */}
-        <div className="flex items-center justify-between" style={{ margin: '20px 0 12px' }}>
+        <div style={{ margin: '20px 0 12px' }}>
           <p className="text-[15px] font-bold text-gray-900">즐겨찾기 일정 {items.length}</p>
+          <button
+            onClick={() => setHideExpired((v) => !v)}
+            style={{
+              marginTop: 8,
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              backgroundColor: hideExpired ? '#3b82f6' : '#fff',
+              color: hideExpired ? '#fff' : '#6b7280',
+              fontSize: 12, fontWeight: 700,
+              boxShadow: hideExpired ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+            }}
+          >
+            {hideExpired ? '마감 공고 숨기기' : '마감공고 포함'}
+          </button>
         </div>
 
         <div className="flex flex-col gap-2.5">
           {loading ? (
             <div style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>불러오는 중...</div>
-          ) : filteredItems.length === 0 ? (
+          ) : searchedItems.length === 0 ? (
             <div style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>
               {items.length === 0 ? '즐겨찾기한 정책이 없어요. 전체보기에서 관심있는 정책을 즐겨찾기 해보세요.' : `'${keyword}'와 일치하는 즐겨찾기가 없어요.`}
             </div>
-          ) : filteredItems.map((item) => (
-            <div key={item.bookmark_id} style={{ backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
-                  <p className="text-[14px] font-bold text-gray-900">{item.plcyNm}</p>
-                </div>
-                {item.dday !== null && (
-                  <span
-                    className="text-[11px] font-bold"
+          ) : (
+            <>
+              {activeItems.map((item) => (
+                <BookmarkItemCard key={item.bookmark_id} item={item} onRemove={removeBookmark} />
+              ))}
+
+              {!hideExpired && expiredItems.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setExpiredOpen((v) => !v)}
                     style={{
-                      padding: '3px 9px', borderRadius: 999, flexShrink: 0,
-                      backgroundColor: item.dday <= 3 ? '#fee2e2' : '#eff6ff',
-                      color: item.dday <= 3 ? '#ef4444' : '#3b82f6',
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                      backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                     }}
                   >
-                    {item.dday >= 0 ? `D-${item.dday}` : '마감'}
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-[12px] text-gray-400" style={{ marginLeft: 16 }}>
-                {item.sprvsnInstCdNm ? `${item.sprvsnInstCdNm} · ` : ''}
-                {item.aplyEnd ? `신청마감 ${item.aplyEnd.getMonth() + 1}/${item.aplyEnd.getDate()}` : '신청기간 정보 없음'}
-              </p>
-              {item.prep_tip && (
-                <div className="flex items-start gap-1.5" style={{ marginTop: 8, marginLeft: 16, padding: '8px 10px', borderRadius: 10, backgroundColor: '#f8f9ff' }}>
-                  <Sparkles size={13} color="#3b82f6" style={{ marginTop: 1, flexShrink: 0 }} />
-                  <p className="text-[11px] text-blue-500 font-medium">AI 준비: {item.prep_tip}</p>
+                    <span className="text-[13px] font-semibold text-gray-500">마감된 공고 {expiredItems.length}건</span>
+                    {expiredOpen ? <ChevronUp size={16} color="#9ca3af" /> : <ChevronDown size={16} color="#9ca3af" />}
+                  </button>
+
+                  {expiredOpen && (
+                    <div className="flex flex-col gap-2.5">
+                      {expiredItems.map((item) => (
+                        <BookmarkItemCard key={item.bookmark_id} item={item} onRemove={removeBookmark} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          ))}
+            </>
+          )}
         </div>
       </div>
 
