@@ -74,6 +74,10 @@ class RecommendationService:
         }
 
         def build_bucket(policies_in_bucket: list[dict], with_fail_reasons: bool) -> list[dict]:
+            # similarity_service.search()는 policy_search_docs.json 기준이라 rgtrInstCdNm이 없으므로,
+            # rule engine이 이미 만들어둔 policies_in_bucket에서 plcyNo로 다시 채워준다.
+            rgtr_inst_by_plcyno = {str(p.get("plcyNo")): p.get("rgtrInstCdNm") for p in policies_in_bucket}
+
             if chat and chat.strip():
                 matches = self.similarity_service.search(chat, policies_in_bucket, top_k=None)
             else:
@@ -89,6 +93,7 @@ class RecommendationService:
                 ]
             for match in matches:
                 match["category"] = category_by_plcyno.get(str(match.get("plcyNo")), "기타")
+                match.setdefault("rgtrInstCdNm", rgtr_inst_by_plcyno.get(str(match.get("plcyNo"))))
                 if with_fail_reasons:
                     details = fail_reasons_by_plcyno.get(str(match.get("plcyNo")), {})
                     match["fail_reasons"] = [
@@ -120,6 +125,11 @@ class RecommendationService:
                 "plcyNo": plcy_no,
                 "policy_name": policy.get("plcyNm"),
                 "policy_summary": policy.get("plcyExplnCn"),
+
+                # 등록기관명. 같은 이름의 정책이 지자체별로 여러 개 등록돼 있는 경우가 많아서
+                # (예: "전세보증금반환보증 보증료 지원"이 세종/광주/부산 등 기관마다 따로 있음)
+                # 화면에서 어느 기관/지역 정책인지 구분할 수 있도록 같이 내려준다.
+                "rgtrInstCdNm": policy.get("rgtrInstCdNm"),
 
                 "large_category": policy.get("lclsfNm", "기타"),
                 "middle_category": policy.get("mclsfNm", "기타"),
