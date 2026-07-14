@@ -45,7 +45,7 @@ export default function useLogin() {
       if (data?.user?.role) {
         localStorage.setItem('userRole', data.user.role);
       }
-      navigate(data?.user?.role === 'ADMIN' ? '/admin' : '/');
+      navigate('/');
     } catch (err) {
       setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {
