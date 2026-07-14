@@ -11,6 +11,35 @@ function formatAge(min, max) {
   return `${max}세 이하`;
 }
 
+// 정책 고유 페이지가 아니라 범용 포털(고용24 등)로 연결되는 URL을 판별한다.
+// 여기 없는 범용 사이트를 발견하면 이 목록에 도메인을 추가하면 됨.
+const GENERIC_PORTAL_HOSTS = ['work24.go.kr', 'bokjiro.go.kr', 'youthcenter.go.kr'];
+
+// DB의 aplyUrlAddr/refUrlAddr1/refUrlAddr2는 프로토콜(https://) 없이 저장된 경우가 있다.
+// 프로토콜 없이 <a href>에 그대로 쓰면 브라우저가 "상대경로"로 해석해서 외부 사이트가
+// 아니라 우리 앱 안의 다른 페이지로 이동해버리므로, 반드시 정규화하고 사용해야 한다.
+function normalizeUrl(raw) {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  // 도메인 형태(예: "www.moel.go.kr", "moel.go.kr/apply")인지 최소한 확인하고 붙여줌
+  if (/^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return null;
+}
+
+function isGenericPortalUrl(url) {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return GENERIC_PORTAL_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 function extractUrl(text) {
   if (!text) return null;
   const match = text.match(/(https?:\/\/[^\s)]+|www\.[^\s),]+)/i);
@@ -74,8 +103,13 @@ function Field({ label, value, asList = false }) {
 function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmark }) {
   const docs = splitItems(match.sbmsnDcmntCn);
   const maxAmount = extractMaxAmount(match.plcySprtCn);
+  const urlCandidates = [match.aplyUrlAddr, match.refUrlAddr1, match.refUrlAddr2]
+    .map(normalizeUrl)
+    .filter(Boolean);
+  const specificUrl = urlCandidates.find((u) => !isGenericPortalUrl(u));
   const effectiveUrl =
-    match.aplyUrlAddr ||
+    specificUrl ||
+    urlCandidates[0] ||
     extractUrl(match.plcyAplyMthdCn) ||
     extractUrl(match.plcySprtCn) ||
     extractUrl(match.plcyExplnCn);
