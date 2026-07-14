@@ -17,7 +17,16 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
   const orderedFields = Object.keys(INCOME_QUESTIONS).filter((key) => requiredFields.includes(key));
 
   const setAnswer = (key, value) => setAnswers((prev) => ({ ...prev, [key]: value }));
-  const isFilled = orderedFields.every((key) => answers[key] !== undefined && answers[key] !== '');
+
+  // dependsOn이 걸린 질문(예: annual_sales는 is_business_owner가 true일 때만 의미 있음)은
+  // 조건이 안 맞으면 "해당없음"으로 자동 처리되므로 답변을 채우지 않아도 다음으로 넘어갈 수 있다.
+  const isNotApplicable = (key) => {
+    const dependsOn = INCOME_QUESTIONS[key]?.dependsOn;
+    return dependsOn ? answers[dependsOn.key] !== dependsOn.value : false;
+  };
+  const isFilled = orderedFields.every(
+    (key) => isNotApplicable(key) || (answers[key] !== undefined && answers[key] !== '')
+  );
 
   // 입력값은 콤마 없는 순수 숫자 문자열로 저장(백엔드로 그대로 전송)하고, 화면 표시만 콤마를 붙인다.
   const formatWithCommas = (value) => {
@@ -59,11 +68,12 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
                 const q = INCOME_QUESTIONS[key];
                 if (!q) return null;
                 const isUnknown = answers[key] === UNKNOWN_ANSWER;
+                const notApplicable = isNotApplicable(key);
                 return (
                   <div key={key}>
                     <div className="flex items-center justify-between mb-1.5">
                       <p className="text-[12.5px] font-semibold text-gray-700">{q.label}</p>
-                      {q.allowUnknown && (
+                      {!notApplicable && q.allowUnknown && (
                         <button
                           type="button"
                           onClick={() => setAnswer(key, isUnknown ? '' : UNKNOWN_ANSWER)}
@@ -79,7 +89,16 @@ export default function IncomeEligibilityModal({ plcyNo, requiredFields, onClose
                         </button>
                       )}
                     </div>
-                    {q.type === 'boolean' ? (
+                    {notApplicable ? (
+                      <div
+                        style={{
+                          padding: '9px 12px', borderRadius: 10, fontSize: 13,
+                          border: '1.5px solid #e5e7eb', backgroundColor: '#f9fafb', color: '#9ca3af',
+                        }}
+                      >
+                        해당없음
+                      </div>
+                    ) : q.type === 'boolean' ? (
                       <div className="flex gap-2">
                         {[{ label: '예', value: true }, { label: '아니오', value: false }].map((opt) => (
                           <button

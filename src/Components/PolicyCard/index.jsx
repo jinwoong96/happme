@@ -7,7 +7,12 @@ export default function PolicyCard({ policy, badge, onOpen, isBookmarked, onTogg
       style={{ cursor: 'pointer', backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}
     >
       <div className="flex justify-between items-start gap-2">
-        <p className="text-[15px] font-bold text-gray-900">{policy.policy_name}</p>
+        <div>
+          <p className="text-[15px] font-bold text-gray-900">{policy.policy_name}</p>
+          {policy.rgtrInstCdNm && (
+            <p className="mt-0.5 text-[11px] text-gray-400">{policy.rgtrInstCdNm}</p>
+          )}
+        </div>
         <button
           onClick={(e) => { e.stopPropagation(); onToggleBookmark(policy.policy_id); }}
           disabled={bookmarkDisabled || policy.policy_id == null}

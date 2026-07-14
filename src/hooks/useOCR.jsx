@@ -32,26 +32,38 @@ export default function useOCR() {
   const persisted = loadPersisted();
 
   const [files, setFiles] = useState([]);
+  const [previewDataUrl, setPreviewDataUrl] = useState(persisted?.previewDataUrl ?? null);
   const [results, setResults] = useState(persisted?.results ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (results) {
-      savePersisted({ results });
+      savePersisted({ results, previewDataUrl });
     }
-  }, [results]);
+  }, [results, previewDataUrl]);
 
   const handleFileChange = (e) => {
-    setFiles(Array.from(e.target.files));
+    const selected = Array.from(e.target.files);
+    setFiles(selected);
     setResults(null);
     setError('');
+
+    if (selected[0]) {
+      const reader = new FileReader();
+      reader.onload = () => setPreviewDataUrl(reader.result);
+      reader.readAsDataURL(selected[0]);
+    } else {
+      setPreviewDataUrl(null);
+    }
   };
 
   const handleRemoveFile = () => {
     setFiles([]);
     setResults(null);
     setError('');
+    setPreviewDataUrl(null);
+    clearPersisted();
   };
 
   const handleAnalyze = async () => {
@@ -93,5 +105,5 @@ export default function useOCR() {
 
   const clearOcrSession = clearPersisted;
 
-  return { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession };
+  return { files, loading, results, error, previewDataUrl, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession };
 }

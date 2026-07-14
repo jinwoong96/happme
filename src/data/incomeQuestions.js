@@ -3,7 +3,8 @@
 export const INCOME_QUESTIONS = {
   annual_income: { label: '현재 연소득은 얼마인가요?', type: 'number', unit: '원' },
   is_business_owner: { label: '사업자 등록이 되어 있나요?', type: 'boolean' },
-  annual_sales: { label: '연매출은 얼마인가요?', type: 'number', unit: '원' },
+  // is_business_owner가 "아니오"면 이 질문은 의미가 없어서 "해당없음"으로 자동 처리한다.
+  annual_sales: { label: '연매출은 얼마인가요?', type: 'number', unit: '원', dependsOn: { key: 'is_business_owner', value: true } },
   household_size: { label: '가구원 수는 몇 명인가요?', type: 'number', unit: '명' },
   household_income: { label: '가구 전체 월소득은 얼마인가요?', type: 'number', unit: '원', allowUnknown: true },
 };
