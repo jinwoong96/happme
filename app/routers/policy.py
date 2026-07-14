@@ -58,6 +58,13 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
     return await policy_svc.get_category_list_svc(db)
 
 
+# 홈 화면 "이번 달 정책 추천" 배너 (지원금액 높은 순/마감임박/최신 등록 순으로 중복 없이 구성).
+# "/{policy_id}"보다 먼저 선언해야 "home-banner"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.get("/home-banner", response_model=list[PolicyListRead])
+async def get_home_banner(db: AsyncSession = Depends(get_db)):
+    return await policy_svc.get_home_banner_svc(db)
+
+
 # 외부 데이터(온통청년/복지로) 최신화 - 관리자 사이트 "최신화" 버튼용.
 # 백그라운드에서 기존 import 스크립트들을 순서대로 실행한다 (수동 트리거, 자동 스케줄은 아직 없음).
 @router.post("/refresh")
