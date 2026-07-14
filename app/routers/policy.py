@@ -49,6 +49,13 @@ async def get_all_policies(
     )
 
 
+# 홈 화면 "이번 달 정책 추천" 배너 (지원금액 높은 순/마감임박/최신 등록 순으로 중복 없이 구성).
+# "/{policy_id}"보다 먼저 선언해야 "home-banner"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.get("/home-banner", response_model=list[PolicyListRead])
+async def get_home_banner(db: AsyncSession = Depends(get_db)):
+    return await policy_svc.get_home_banner_svc(db)
+
+
 # R 단일 조회
 @router.get("/{policy_id}", response_model=PolicyRead)
 async def get_policy(policy_id: int, db: AsyncSession = Depends(get_db)):
