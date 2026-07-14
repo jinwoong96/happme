@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 
+import numpy as np
 from paddleocr import PaddleOCR
 
 from app.core.settings import settings
@@ -21,6 +22,9 @@ class OcrService:
             use_doc_unwarping=False,
             use_textline_orientation=False,
         )
+        # numpy 배열을 직접 predict()에 넣을 수 있는지 최초 1회만 확인해서 캐싱
+        # (지원 안 되면 매 요청마다 임시파일 방식으로 폴백)
+        self._supports_ndarray_input = True
         print("[OcrService] 준비 완료")
 
     @staticmethod
@@ -28,6 +32,28 @@ class OcrService:
         text = re.sub(r"[^\w\s가-힣]", "", text)
         text = re.sub(r"\s+", " ", text).strip()
         return text
+
+    def _run_ocr(self, img) -> list:
+        """
+        가능하면 numpy 배열로 바로 predict() 호출(디스크 왕복 없음).
+        실패하면(버전 차이 등) 임시파일 방식으로 폴백.
+        """
+        rgb_img = img.convert("RGB")
+
+        if self._supports_ndarray_input:
+            try:
+                return self.ocr_engine.predict(np.array(rgb_img))
+            except Exception as e:
+                print(f"[OcrService] numpy 입력 실패, 파일 방식으로 폴백: {e}")
+                self._supports_ndarray_input = False
+
+        tmp_path = os.path.join(settings.temp_upload_dir, f"{uuid.uuid4().hex}.jpg")
+        rgb_img.save(tmp_path, quality=95)
+        try:
+            return self.ocr_engine.predict(tmp_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
     def extract_svc(self, crop_images: list, min_score: float = None) -> list[dict]:
         """
@@ -38,23 +64,17 @@ class OcrService:
         results = []
 
         for img in crop_images:
-            tmp_path = os.path.join(settings.temp_upload_dir, f"{uuid.uuid4().hex}.jpg")
-            img.convert("RGB").save(tmp_path, quality=95)
-            try:
-                ocr_out = self.ocr_engine.predict(tmp_path)
-                for line in ocr_out:
-                    texts = line.get("rec_texts", [])
-                    scores = line.get("rec_scores", [])
-                    for t, s in zip(texts, scores):
-                        if s < min_score:
-                            continue
-                        cleaned = self._clean_text(t)
-                        if not cleaned:
-                            continue
-                        results.append({"raw_text": t, "cleaned_text": cleaned, "score": float(s)})
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
+            ocr_out = self._run_ocr(img)
+            for line in ocr_out:
+                texts = line.get("rec_texts", [])
+                scores = line.get("rec_scores", [])
+                for t, s in zip(texts, scores):
+                    if s < min_score:
+                        continue
+                    cleaned = self._clean_text(t)
+                    if not cleaned:
+                        continue
+                    results.append({"raw_text": t, "cleaned_text": cleaned, "score": float(s)})
 
         return results
 

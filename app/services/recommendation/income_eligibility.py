@@ -52,6 +52,18 @@ def _fmt_range(min_amt, max_amt) -> str:
     return f"{_fmt_amount(min_amt)} ~ {_fmt_amount(max_amt)}"
 
 
+_INCOME_TEXT_KEYWORDS = ("소득",)
+
+
+def _mentions_income_condition(policy: dict) -> bool:
+    """earnCndSeCd가 '무관'/비어있음으로 등록돼 있어도, 실제 지원내용 원문(plcySprtCn/earnEtcCn)에
+    소득 관련 표현이 있으면 구조화 필드가 잘못 등록됐을 가능성이 있다고 보고 True를 반환한다.
+    (예: 한국고용정보원 전세보증금반환보증 정책이 earnCndSeCd=무관인데 본문엔 "연소득 5천만원 이하"가 있는 실제 사례)
+    """
+    text = f"{policy.get('plcySprtCn') or ''} {policy.get('earnEtcCn') or ''}"
+    return any(keyword in text for keyword in _INCOME_TEXT_KEYWORDS)
+
+
 class IncomeEligibilityService:
     """
     정책별 소득 조건(earnCndSeCd/earnMinAmt/earnMaxAmt/earnEtcCn)과 사용자가 모달에서 입력한 답변을
@@ -98,6 +110,14 @@ class IncomeEligibilityService:
         earn_type = EARN_TYPE_MAP.get(earn_cnd)
 
         if earn_type == "무관" or is_empty_or_unlimited(earn_cnd):
+            if _mentions_income_condition(policy):
+                # 구조화 필드는 "무관"이지만 지원내용 원문에 소득 관련 표현이 있어 데이터 오류로 의심됨.
+                # 섣불리 지원 가능 처리하지 않고 원문을 직접 확인하도록 안내한다.
+                return {
+                    "eligible": None,
+                    "method": "unknown_income",
+                    "reason": "이 정책은 소득 조건이 '무관'으로 등록돼 있지만, 지원내용에 소득 관련 표현이 있어 정확하지 않을 수 있어요. 공고문의 소득 조건을 직접 확인해주세요.",
+                }
             return {"eligible": True, "method": "rule", "reason": "이 정책은 소득 조건과 무관하게 지원 가능합니다."}
 
         max_amt_won = _manwon_to_won(policy.get("earnMaxAmt"))
@@ -124,6 +144,10 @@ class IncomeEligibilityService:
         earn_type = EARN_TYPE_MAP.get(earn_cnd)
 
         if earn_type == "무관" or is_empty_or_unlimited(earn_cnd):
+            if _mentions_income_condition(policy):
+                # 구조화 필드는 "무관"이지만 지원내용 원문에 소득 관련 표현이 있어 데이터 오류로 의심됨.
+                # 규칙 엔진으로 단정 짓지 말고 LLM이 원문을 보고 판단하게 위임한다.
+                return None
             return True, ""
 
         min_amt = policy.get("earnMinAmt")
@@ -183,18 +207,21 @@ class IncomeEligibilityService:
         prompt = f"""당신은 청년 정책의 소득 조건 충족 여부를 판정하는 전문가입니다.
 
 [정책명]: {policy.get("plcyNm", "")}
-[소득 조건 유형]: {earn_type}
-[소득 조건 상세 설명]: {policy.get("earnEtcCn") or "(별도 설명 없음)"}
-[소득 하한]: {_fmt_amount(policy.get("earnMinAmt"))}
-[소득 상한]: {_fmt_amount(policy.get("earnMaxAmt"))}
+[소득 조건 유형(구조화 필드, 부정확할 수 있음)]: {earn_type}
+[소득 조건 상세 설명(earnEtcCn)]: {policy.get("earnEtcCn") or "(별도 설명 없음)"}
+[소득 하한(구조화 필드)]: {_fmt_amount(policy.get("earnMinAmt"))}
+[소득 상한(구조화 필드)]: {_fmt_amount(policy.get("earnMaxAmt"))}
+[지원내용 원문(plcySprtCn) - 구조화 필드와 다르면 이 원문을 우선하세요]:
+{policy.get("plcySprtCn") or "(내용 없음)"}
 
 [사용자 답변]
 {answers_text}
 
 규칙:
-1. 위 소득 조건 설명과 사용자 답변을 비교해서 이 사용자가 이 정책에 소득 기준상 지원 가능한지 판단하세요.
-2. 조건을 판단하기에 정보가 부족하면 사용자에게 불리하지 않도록 '가능'으로 판단하세요.
-3. 반드시 아래 형식으로만 답하세요. 다른 말은 하지 마세요.
+1. 구조화 필드(소득 조건 유형/하한/상한)와 지원내용 원문이 서로 다르면, 지원내용 원문에 적힌 실제 소득 조건을 기준으로 판단하세요.
+2. 위 정보와 사용자 답변을 비교해서 이 사용자가 이 정책에 소득 기준상 지원 가능한지 판단하세요.
+3. 조건을 판단하기에 정보가 부족하면 사용자에게 불리하지 않도록 '가능'으로 판단하세요.
+4. 반드시 아래 형식으로만 답하세요. 다른 말은 하지 마세요.
 
 가능여부: 가능 또는 불가능
 사유: (한 문장으로 간결하게)"""

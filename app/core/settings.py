@@ -23,6 +23,10 @@ class Settings(BaseSettings):
 
     crop_padding: float = Field(0.05, alias="CROP_PADDING")
 
+    # 업로드/추론 안전장치
+    max_upload_size_mb: int = Field(10, alias="MAX_UPLOAD_SIZE_MB")
+    max_image_pixels: int = Field(20_000_000, alias="MAX_IMAGE_PIXELS")  # 약 20MP
+
     # 정책 파일 경로(임시)
     policy_json_path: str = Field("./data/ontongAPI.json", alias="POLICY_JSON_PATH")
 
@@ -51,12 +55,17 @@ class Settings(BaseSettings):
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
     ocr_min_score: float = Field(0.5, alias="OCR_MIN_SCORE")
+    # 공고문 이미지 판별용 최소 추출 텍스트 길이 (이보다 짧으면 "텍스트 추출 실패"로 처리)
+    ocr_min_text_length: int = Field(5, alias="OCR_MIN_TEXT_LENGTH")
+
+    # 정책 매칭 최소 유사도 (이보다 낮으면 "일치하는 정책 없음"으로 처리 -> 공고문이 아닌 사진 필터링)
+    match_min_score: float = Field(0.4, alias="MATCH_MIN_SCORE")
 
     # watsonx.ai
     watsonx_url: str = Field("https://us-south.ml.cloud.ibm.com", alias="WATSONX_URL")
     watsonx_api_key: str = Field("", alias="WATSONX_API_KEY")
     watsonx_project_id: str = Field("", alias="WATSONX_PROJECT_ID")
-    watsonx_model_id: str = Field("meta-llama/llama-3-3-70b-instruct", alias="WATSONX_MODEL_ID")
+    watsonx_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="WATSONX_MODEL_ID")
     enable_llm_summary: bool = Field(True, alias="ENABLE_LLM_SUMMARY")
 
     # 정책 일정 추출 (rule-engine + LLM)

@@ -51,7 +51,7 @@ class SearchService:
                     SELECT
                         policy_id, plcyNo, plcyNm, plcyExplnCn, plcySprtCn,
                         sprtTrgtMinAge, sprtTrgtMaxAge, aplyYmd, bizPrdEtcCn,
-                        plcyAplyMthdCn, aplyUrlAddr, sbmsnDcmntCn
+                        plcyAplyMthdCn, aplyUrlAddr, refUrlAddr1, refUrlAddr2, sbmsnDcmntCn
                     FROM policy
                 """)
                 return cursor.fetchall()
