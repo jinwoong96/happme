@@ -60,9 +60,12 @@ class PolicyCrud:
                 | func.replace(Policy.plcyKywdNm, ' ', '').ilike(f"%{normalized_keyword}%")
             )
         if region:
-            stmt = stmt.join(PolicyRegion, Policy.policy_id == PolicyRegion.policy_id).where(
-                PolicyRegion.zip_code.startswith(region)
-            )
+            # JOIN을 쓰면 전국 단위 정책(policy_region 행이 수백 개)이 매칭 행을 여러 개
+            # 만들어내서, 뒤에서 offset/limit이 그 중복 행 기준으로 적용되어 실제로는 소수의
+            # 정책만 살아남는 문제가 있었다. 서브쿼리로 policy_id만 걸러내면 정책당 한 행만
+            # 나오므로 이 문제가 없다.
+            matching_policy_ids = select(PolicyRegion.policy_id).where(PolicyRegion.zip_code.startswith(region))
+            stmt = stmt.where(Policy.policy_id.in_(matching_policy_ids))
         if not include_closed:
             # 마감일을 모르는 정책(NULL, 상시 등)은 마감됐다고 판단할 근거가 없으므로 계속 보여준다.
             stmt = stmt.where(or_(Policy.aplyEndDt.is_(None), Policy.aplyEndDt >= date.today()))
