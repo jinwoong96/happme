@@ -11,6 +11,7 @@ class PolicyCreate(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
@@ -45,6 +46,7 @@ class PolicyCreate(BaseModel):
 
 class PolicyUpdate(BaseModel):
     plcyNm: Optional[str] = None
+    source: Optional[str] = None
     plcyKywdNm: Optional[str] = None
     plcyExplnCn: Optional[str] = None
     lclsfNm: Optional[str] = None
@@ -98,6 +100,7 @@ class PolicyRead(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
@@ -134,6 +137,12 @@ class PolicyRead(BaseModel):
     updatedAt: Optional[datetime] = None
     regions: List[PolicyRegionRead] = []
 
+    # 카드 표시용(policy_cards.json 기반). 매칭되는 카드가 없으면 None.
+    policy_summary: Optional[str] = None
+    apply_period_type: Optional[str] = None
+    apply_period: Optional[str] = None
+    target: Optional[str] = None
+
     class Config:
         from_attributes = True
 
@@ -158,6 +167,7 @@ class PolicyListRead(BaseModel):
     plcyKywdNm: str
     lclsfNm: str
     mclsfNm: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int
@@ -173,6 +183,9 @@ class PolicyListRead(BaseModel):
     apply_period_type: Optional[str] = None
     apply_period: Optional[str] = None
     target: Optional[str] = None
+
+    # 홈 화면 배너 전용. amount(지원금액 높은 순)/deadline(마감임박)/latest(최신 등록) 중 하나.
+    banner_reason: Optional[str] = None
 
     class Config:
         from_attributes = True

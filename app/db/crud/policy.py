@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, case, or_, func
 from sqlalchemy.orm import selectinload
@@ -30,10 +30,17 @@ class PolicyCrud:
         age: Optional[int] = None,
         region: Optional[str] = None,
         lclsf: Optional[str] = None,
+        mclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
         include_closed: bool = False,
         consonant: Optional[str] = None,
+        exclude_ids: Optional[list[int]] = None,
+        exclude_names: Optional[list[str]] = None,
+        max_sprt_amt_not_null: bool = False,
+        max_sprt_amt_below: Optional[int] = None,
+        deadline_within_days: Optional[int] = None,
+        exclude_keywords: Optional[list[str]] = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[Policy]:
@@ -42,6 +49,8 @@ class PolicyCrud:
             stmt = stmt.where(Policy.sprtTrgtMinAge <= age, Policy.sprtTrgtMaxAge >= age)
         if lclsf:
             stmt = stmt.where(Policy.lclsfNm == lclsf)
+        if mclsf:
+            stmt = stmt.where(Policy.mclsfNm == mclsf)
         if keyword:
             # 정책명 띄어쓰기가 기관마다 제각각이라(예: "전세보증금 반환보증" vs "전세보증금반환보증"),
             # 검색어/컬럼 양쪽 다 공백을 제거하고 부분일치시킨다.
@@ -57,6 +66,23 @@ class PolicyCrud:
         if not include_closed:
             # 마감일을 모르는 정책(NULL, 상시 등)은 마감됐다고 판단할 근거가 없으므로 계속 보여준다.
             stmt = stmt.where(or_(Policy.aplyEndDt.is_(None), Policy.aplyEndDt >= date.today()))
+        if exclude_ids:
+            stmt = stmt.where(Policy.policy_id.notin_(exclude_ids))
+        if exclude_names:
+            # policy_id는 다르지만 plcyNm이 같은 정책(같은 정책이 다른 연도/기관으로 재등록된 경우
+            # 등)까지 걸러내기 위한 이름 기준 제외.
+            stmt = stmt.where(Policy.plcyNm.notin_(exclude_names))
+        if max_sprt_amt_not_null:
+            stmt = stmt.where(Policy.maxSprtAmt.isnot(None))
+        if max_sprt_amt_below is not None:
+            stmt = stmt.where(Policy.maxSprtAmt < max_sprt_amt_below)
+        if deadline_within_days is not None:
+            threshold = date.today() + timedelta(days=deadline_within_days)
+            stmt = stmt.where(Policy.aplyEndDt.isnot(None), Policy.aplyEndDt <= threshold)
+        if exclude_keywords:
+            # plcyKywdNm이 NULL인 정책은 해당 키워드가 없는 것이므로 계속 보여준다.
+            for kw in exclude_keywords:
+                stmt = stmt.where(or_(Policy.plcyKywdNm.is_(None), ~Policy.plcyKywdNm.ilike(f"%{kw}%")))
 
         if sort == "latest":
             stmt = stmt.order_by(Policy.createdAt.desc())
@@ -64,6 +90,8 @@ class PolicyCrud:
             stmt = stmt.order_by(Policy.inqCnt.desc())
         elif sort == "alpha":
             stmt = stmt.order_by(Policy.plcyNm.asc())
+        elif sort == "amount":
+            stmt = stmt.where(Policy.maxSprtAmt.isnot(None)).order_by(Policy.maxSprtAmt.desc())
         elif sort == "deadline":
             today = date.today()
             # 아직 마감 전(아래로 갈수록 우선순위 낮음): 1) 마감일 없음(NULL, 상시 등)은 맨 뒤,
@@ -84,6 +112,13 @@ class PolicyCrud:
 
         result = await db.execute(stmt)
         return list(result.scalars().unique().all())
+
+    @staticmethod
+    async def get_distinct_mclsf(db: AsyncSession) -> list[str]:
+        result = await db.execute(
+            select(Policy.mclsfNm).where(Policy.mclsfNm.is_not(None)).distinct().order_by(Policy.mclsfNm.asc())
+        )
+        return [row[0] for row in result.all() if row[0]]
 
     @staticmethod
     async def get_policies_by_ids(db: AsyncSession, policy_ids: list[int]) -> list[Policy]:

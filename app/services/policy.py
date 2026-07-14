@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.core.settings import settings
 from app.db.crud.policy import PolicyCrud
-from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyListRead
+from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead
 from app.db.models.policy import Policy
 from app.services.ai_client import AiClient
 
@@ -15,6 +15,18 @@ CARD_SUMMARY_MAX_LENGTH = 150
 CARD_TARGET_MAX_LENGTH = 70
 
 _policy_cards_cache: dict[str, dict] | None = None
+
+# 홈 화면 "이번 달 정책 추천" 배너 구성: 지원금액 높은 순 -> 마감임박 순 -> 최신 등록 순으로
+# 그룹당 이만큼씩 뽑고, 앞 그룹에서 이미 뽑힌 정책은 뒤 그룹에서 제외해 중복 없이 구성한다.
+_BANNER_GROUP_SIZE = 3
+# 배너에는 지원금액이 확인된(추출된) 정책만 노출하고, 소액 지원 위주로 보여주기 위해 상한을 둔다.
+_BANNER_MAX_SPRT_AMT_LIMIT = 10_000_000
+# "마감임박"은 실제로 임박한 것만 보이도록 마감일이 이 안에 드는 정책으로 제한한다.
+_BANNER_DEADLINE_WITHIN_DAYS = 30
+# 지원금액 높은 순 그룹에서 대분류(lclsfNm)가 겹치지 않게 고르기 위한 후보 풀 크기.
+_BANNER_AMOUNT_POOL_SIZE = _BANNER_GROUP_SIZE * 5
+# 배너에는 대출/금리혜택성 정책은 지원금 자체가 아니므로 제외한다.
+_BANNER_EXCLUDE_KEYWORDS = ["금리혜택", "대출"]
 
 # 가나다순 초성 필터용. 한글 음절의 유니코드 구조(0xAC00 + 초성*588 + 중성*28 + 종성)를 이용해
 # 초성 인덱스(0~18: ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ)를 구한 뒤, 된소리(ㄲㄸㅃㅆㅉ)는
@@ -60,6 +72,20 @@ _SPRT_SELF_PAY_WORDS = ("본인부담", "자기부담")
 _SPRT_SELF_PAY_BEFORE_WINDOW = 45
 _SPRT_SELF_PAY_AFTER_WINDOW = 15
 
+# 같은 문장 안에서 "기업은"/"기업이"처럼 기업/업체/사업체가 문장의 주어로 쓰이면, 그 문장이
+# 서술하는 지원금은 청년 개인이 아니라 그 기업이 받는 돈이라고 본다(예: "기업은 ... 프로그램별
+# 최대 50억원까지 지원한다"). 문자 수 제한 없이 문장 경계(마침표 "다."/줄바꿈)까지만 거슬러
+# 올라가서 찾기 때문에, 앞 문장의 무관한 "기업" 언급까지 걸리지 않는다. "기업당"/"업체당"처럼
+# 자기 사업체를 가리키는 표현(예: "사업화 자금(기업당 최대 4천만원)")은 주어 조사(은/는/이/가)가
+# 아니라 부사격 조사라 이 패턴에 걸리지 않는다.
+_SPRT_BIZ_SUBJECT_RE = re.compile(r"(?:기업|업체|사업체)(?:은|는|이|가)")
+
+# "소득공제" 문맥의 금액(예: "연 300만원 한도로 40%까지 소득공제 제공")은 실제로 받는
+# 지원금이 아니라 세금 계산할 때 빼주는 소득 한도라서 제외한다. 같은 문장/줄 안에서만
+# 확인해서(마침표 "다."/줄바꿈이 경계) 다른 문장의 무관한 "소득공제" 언급까지 걸리지
+# 않게 한다.
+_SPRT_INCOME_DEDUCTION_WORD = "소득공제"
+
 
 class PolicyService:
 
@@ -82,12 +108,22 @@ class PolicyService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="정책 생성에 실패했습니다.")
 
     @staticmethod
-    async def get_policy_svc(db: AsyncSession, policy_id: int) -> Policy:
+    async def get_policy_svc(db: AsyncSession, policy_id: int) -> dict:
         policy = await PolicyService._require_policy(db, policy_id)
         await PolicyCrud.increment_inq_cnt(db, policy)
         await db.commit()
         await db.refresh(policy)
-        return policy
+
+        item = PolicyRead.model_validate(policy).model_dump()
+        if policy.plcyNo:
+            cards = await PolicyService.get_policy_cards_svc(db, [policy.plcyNo])
+            card = cards.get(policy.plcyNo)
+            if card:
+                item["policy_summary"] = card.get("policy_summary")
+                item["apply_period_type"] = card.get("apply_period_type")
+                item["apply_period"] = card.get("apply_period")
+                item["target"] = card.get("target")
+        return item
 
     @staticmethod
     async def get_all_policies_svc(
@@ -95,6 +131,7 @@ class PolicyService:
         age: Optional[int] = None,
         region: Optional[str] = None,
         lclsf: Optional[str] = None,
+        mclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
         include_closed: bool = False,
@@ -103,8 +140,8 @@ class PolicyService:
         offset: int = 0,
     ) -> list[dict]:
         policies = await PolicyCrud.get_all_policies(
-            db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, include_closed=include_closed,
-            consonant=consonant, limit=limit, offset=offset,
+            db, age=age, region=region, lclsf=lclsf, mclsf=mclsf, keyword=keyword, sort=sort,
+            include_closed=include_closed, consonant=consonant, limit=limit, offset=offset,
         )
 
         if consonant:
@@ -122,6 +159,97 @@ class PolicyService:
                 item["apply_period_type"] = card.get("apply_period_type")
                 item["apply_period"] = card.get("apply_period")
                 item["target"] = card.get("target")
+            results.append(item)
+        return results
+
+    @staticmethod
+    def _pick_diverse_by_category(policies: list[Policy], count: int, seen_categories: set) -> list[Policy]:
+        """대분류(lclsfNm)가 최대한 겹치지 않게 순위 순으로 고르고, 종류가 모자라면 순위 순으로 채운다.
+        seen_categories는 호출 간에 공유되는 집합으로, 이미 고른 카테고리를 계속 누적한다."""
+        selected: list[Policy] = []
+        leftover: list[Policy] = []
+        for p in policies:
+            if len(selected) == count:
+                break
+            if p.lclsfNm not in seen_categories:
+                selected.append(p)
+                seen_categories.add(p.lclsfNm)
+            else:
+                leftover.append(p)
+        if len(selected) < count:
+            selected.extend(leftover[: count - len(selected)])
+        return selected
+
+    @staticmethod
+    async def get_home_banner_svc(db: AsyncSession) -> list[dict]:
+        """
+        홈 화면 "이번 달 정책 추천" 배너용. 지원금액 높은 순/마감임박 순/최신 등록 순으로
+        각각 몇 개씩 뽑되, 앞에서 이미 뽑힌 정책은 뒤 그룹에서 제외해 중복 없이 구성한다.
+        마감임박은 실제로 30일 이내인 것만 인정하고, 그만큼 부족해진 개수는 지원금액 높은
+        순으로 채운다.
+        """
+        exclude_ids: list[int] = []
+        exclude_names: list[str] = []
+        selected: list[tuple[str, Policy]] = []
+
+        amount_seen_categories: set = set()
+
+        async def fetch_amount(count: int) -> list[Policy]:
+            pool = await PolicyCrud.get_all_policies(
+                db, sort="amount", include_closed=False, exclude_ids=exclude_ids,
+                exclude_names=exclude_names, max_sprt_amt_not_null=True,
+                max_sprt_amt_below=_BANNER_MAX_SPRT_AMT_LIMIT,
+                exclude_keywords=_BANNER_EXCLUDE_KEYWORDS,
+                limit=max(count * 5, _BANNER_AMOUNT_POOL_SIZE),
+            )
+            return PolicyService._pick_diverse_by_category(pool, count, amount_seen_categories)
+
+        amount_policies = await fetch_amount(_BANNER_GROUP_SIZE)
+        exclude_ids.extend(p.policy_id for p in amount_policies)
+        exclude_names.extend(p.plcyNm for p in amount_policies)
+        selected.extend(("amount", p) for p in amount_policies)
+
+        deadline_policies = await PolicyCrud.get_all_policies(
+            db, sort="deadline", include_closed=False, exclude_ids=exclude_ids,
+            exclude_names=exclude_names, max_sprt_amt_not_null=True,
+            max_sprt_amt_below=_BANNER_MAX_SPRT_AMT_LIMIT,
+            deadline_within_days=_BANNER_DEADLINE_WITHIN_DAYS,
+            exclude_keywords=_BANNER_EXCLUDE_KEYWORDS, limit=_BANNER_GROUP_SIZE,
+        )
+        exclude_ids.extend(p.policy_id for p in deadline_policies)
+        exclude_names.extend(p.plcyNm for p in deadline_policies)
+        selected.extend(("deadline", p) for p in deadline_policies)
+
+        shortfall = _BANNER_GROUP_SIZE - len(deadline_policies)
+        if shortfall > 0:
+            backfill = await fetch_amount(shortfall)
+            exclude_ids.extend(p.policy_id for p in backfill)
+            exclude_names.extend(p.plcyNm for p in backfill)
+            selected.extend(("amount", p) for p in backfill)
+
+        latest_policies = await PolicyCrud.get_all_policies(
+            db, sort="latest", include_closed=False, exclude_ids=exclude_ids,
+            exclude_names=exclude_names, max_sprt_amt_not_null=True,
+            max_sprt_amt_below=_BANNER_MAX_SPRT_AMT_LIMIT,
+            exclude_keywords=_BANNER_EXCLUDE_KEYWORDS, limit=_BANNER_GROUP_SIZE,
+        )
+        exclude_ids.extend(p.policy_id for p in latest_policies)
+        exclude_names.extend(p.plcyNm for p in latest_policies)
+        selected.extend(("latest", p) for p in latest_policies)
+
+        plcy_nos = [p.plcyNo for _, p in selected if p.plcyNo]
+        cards = await PolicyService.get_policy_cards_svc(db, plcy_nos)
+
+        results = []
+        for reason, p in selected:
+            item = PolicyListRead.model_validate(p).model_dump()
+            card = cards.get(p.plcyNo) if p.plcyNo else None
+            if card:
+                item["policy_summary"] = card.get("policy_summary")
+                item["apply_period_type"] = card.get("apply_period_type")
+                item["apply_period"] = card.get("apply_period")
+                item["target"] = card.get("target")
+            item["banner_reason"] = reason
             results.append(item)
         return results
 
@@ -193,6 +321,34 @@ class PolicyService:
         return not ("지원" in after or "지급" in after)
 
     @staticmethod
+    def _is_business_subject_context(text: str, match_start: int) -> bool:
+        """
+        매치가 속한 문장 안에서 "기업은"/"기업이"처럼 기업/업체/사업체가 문장의 주어로
+        쓰였으면, 그 문장이 서술하는 지원금은 그 기업이 받는 돈이라고 본다. 문장 경계
+        (마침표 "다."/줄바꿈)까지만 거슬러 올라가서 찾으므로 앞 문장의 무관한 "기업"
+        언급까지 걸리지 않는다.
+        """
+        before = text[:match_start]
+        cut = max(before.rfind("다."), before.rfind("\n"))
+        scoped = before[cut + 1:] if cut != -1 else before
+        return bool(_SPRT_BIZ_SUBJECT_RE.search(scoped))
+
+    @staticmethod
+    def _is_income_deduction_context(text: str, match_start: int, match_end: int) -> bool:
+        """
+        매치가 속한 문장/줄 안에 "소득공제"가 있으면(예: "연 300만원 한도로 40%까지
+        소득공제 제공") 실제 지원금이 아니라 세제 혜택 한도이므로 제외한다. "소득공제"는
+        금액 앞/뒤 어느 쪽에도 올 수 있어 문장 경계(마침표 "다."/줄바꿈)까지 양쪽 다 살핀다.
+        """
+        before_cut = max(text.rfind("다.", 0, match_start), text.rfind("\n", 0, match_start))
+        start = before_cut + 1 if before_cut != -1 else 0
+        after_dot = text.find("다.", match_end)
+        after_nl = text.find("\n", match_end)
+        boundaries = [b for b in (after_dot, after_nl) if b != -1]
+        end = min(boundaries) if boundaries else len(text)
+        return _SPRT_INCOME_DEDUCTION_WORD in text[start:end]
+
+    @staticmethod
     def extract_max_support_amount(plcy_sprt_cn: Optional[str]) -> Optional[int]:
         """
         plcySprtCn(지원 내용) 텍스트에서 "최대 지원 금액"(원)을 뽑아낸다. "최대 100만원",
@@ -211,6 +367,10 @@ class PolicyService:
                 if PolicyService._is_loan_principal_after_context(plcy_sprt_cn, m.end()):
                     continue
                 if PolicyService._is_self_payment_context(plcy_sprt_cn, m.start(), m.end()):
+                    continue
+                if PolicyService._is_business_subject_context(plcy_sprt_cn, m.start()):
+                    continue
+                if PolicyService._is_income_deduction_context(plcy_sprt_cn, m.start(), m.end()):
                     continue
                 won = PolicyService._sprt_amount_to_won(m.group(1), m.group(2))
                 if won is not None:
@@ -259,6 +419,10 @@ class PolicyService:
             if policy:
                 results.append({"policy": policy, "score": m["score"]})
         return results
+
+    @staticmethod
+    async def get_category_list_svc(db: AsyncSession) -> list[str]:
+        return await PolicyCrud.get_distinct_mclsf(db)
 
     @staticmethod
     async def add_region_svc(db: AsyncSession, policy_id: int, zip_code: str) -> dict:

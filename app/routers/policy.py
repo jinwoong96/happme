@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.scheme.policy import (
@@ -7,6 +7,7 @@ from app.db.scheme.policy import (
     PolicySimilaritySearchRequest, PolicySimilarityMatch,
 )
 from app.services.policy import PolicyService as policy_svc
+from app.services import external_sync
 from app.db.models.user import User
 from app.core.admin import get_current_admin
 
@@ -35,6 +36,7 @@ async def get_all_policies(
     age: Optional[int] = Query(None, description="나이 필터"),
     region: Optional[str] = Query(None, description="지역 코드 (우편번호 prefix)"),
     lclsf: Optional[str] = Query(None, description="대분류명"),
+    mclsf: Optional[str] = Query(None, description="중분류명"),
     keyword: Optional[str] = Query(None, description="검색 키워드"),
     sort: Optional[str] = Query(None, description="정렬 기준: latest(최신 등록순), popular(인기순), alpha(가나다순), deadline(마감임박순). 생략 시 정렬 없음"),
     include_closed: bool = Query(False, description="마감된 정책 포함 여부 (기본: 마감 지난 정책 제외)"),
@@ -44,9 +46,42 @@ async def get_all_policies(
     db: AsyncSession = Depends(get_db),
 ):
     return await policy_svc.get_all_policies_svc(
-        db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, include_closed=include_closed,
-        consonant=consonant, limit=limit, offset=offset,
+        db, age=age, region=region, lclsf=lclsf, mclsf=mclsf, keyword=keyword, sort=sort,
+        include_closed=include_closed, consonant=consonant, limit=limit, offset=offset,
     )
+
+
+# 중분류(mclsfNm) 목록 (관리자 화면 카테고리 필터 드롭다운용). /{policy_id}보다 먼저 선언해야
+# "categories"가 policy_id로 파싱되는 걸 막을 수 있다.
+@router.get("/categories", response_model=list[str])
+async def get_categories(db: AsyncSession = Depends(get_db)):
+    return await policy_svc.get_category_list_svc(db)
+
+
+# 홈 화면 "이번 달 정책 추천" 배너 (지원금액 높은 순/마감임박/최신 등록 순으로 중복 없이 구성).
+# "/{policy_id}"보다 먼저 선언해야 "home-banner"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.get("/home-banner", response_model=list[PolicyListRead])
+async def get_home_banner(db: AsyncSession = Depends(get_db)):
+    return await policy_svc.get_home_banner_svc(db)
+
+
+# 외부 데이터(온통청년/복지로) 최신화 - 관리자 사이트 "최신화" 버튼용.
+# 백그라운드에서 기존 import 스크립트들을 순서대로 실행한다 (수동 트리거, 자동 스케줄은 아직 없음).
+@router.post("/refresh")
+async def refresh_external_policies(
+    background_tasks: BackgroundTasks,
+    current_admin: User = Depends(get_current_admin),
+):
+    status = external_sync.get_status()
+    if status["running"]:
+        return {"message": "이미 최신화가 진행 중입니다.", "status": status}
+    background_tasks.add_task(external_sync.run_refresh_all)
+    return {"message": "최신화를 시작했습니다."}
+
+
+@router.get("/refresh/status")
+async def get_refresh_status(current_admin: User = Depends(get_current_admin)):
+    return external_sync.get_status()
 
 
 # R 단일 조회
