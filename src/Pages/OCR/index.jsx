@@ -243,11 +243,6 @@ export default function OCRPage() {
         <button onClick={() => { clearOcrSession(); navigate('/'); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Home size={22} color="#333" />
         </button>
-      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
-        <button onClick={() => { clearOcrSession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-          <ChevronLeft size={24} color="#333" />
-        </button>
-        <p className="text-[20px] font-bold text-gray-900">공고문 사진 분석</p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -384,5 +379,5 @@ export default function OCRPage() {
         )}
       </div>
     </div>
-  );
-}
+  )
+};
