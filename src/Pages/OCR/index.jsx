@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ImageIcon, Bot, ChevronDown, ExternalLink, CheckCircle2, Loader2, X, Bookmark, Home } from 'lucide-react';
+import { ChevronLeft, ImageIcon, Bot, ChevronDown, ExternalLink, CheckCircle2, Loader2, X, Bookmark, Home, User, Calendar, FileText, Info } from 'lucide-react';
 import useOCR from '../../hooks/useOCR';
 import useBookmarks from '../../hooks/useBookmarks';
 
@@ -9,6 +9,36 @@ function formatAge(min, max) {
   if (min && max) return `${min}세 ~ ${max}세`;
   if (min) return `${min}세 이상`;
   return `${max}세 이하`;
+}
+
+// 접힌 카드의 칩(chip)에 넣을 짧은 연령 텍스트 (예: "만 19~34세")
+function formatAgeChip(min, max) {
+  if (!min && !max) return null;
+  if (min && max) return `만 ${min}~${max}세`;
+  if (min) return `만 ${min}세 이상`;
+  return `만 ${max}세 이하`;
+}
+
+// aplyYmd 문자열(예: "2026.07.01 ~ 2026.07.26", "20251015 ~ 20251114")에서
+// 가장 마지막에 나오는 날짜를 마감일로 보고 오늘 기준 D-day를 계산한다.
+// 날짜를 찾을 수 없으면(상시모집 등 텍스트) null을 반환해 칩을 아예 표시하지 않는다.
+function formatDday(aplyYmd) {
+  if (!aplyYmd) return null;
+  const matches = [...aplyYmd.matchAll(/(\d{4})[.\-]?(\d{2})[.\-]?(\d{2})/g)];
+  if (matches.length === 0) return null;
+
+  const last = matches[matches.length - 1];
+  const end = new Date(Number(last[1]), Number(last[2]) - 1, Number(last[3]));
+  if (Number.isNaN(end.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((end - today) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return '마감';
+  if (diffDays === 0) return 'D-DAY';
+  return `D-${diffDays}`;
 }
 
 // 정책 고유 페이지가 아니라 범용 포털(고용24 등)로 연결되는 URL을 판별한다.
@@ -78,6 +108,21 @@ function splitItems(text) {
     .filter(Boolean);
 }
 
+// 지원내용 미리보기(한 줄)에서만 맨 앞 불릿 기호(□, ○, ●, • 등)를 떼어낸다.
+// "자세히 보기"에서 보여주는 전체 목록(splitItems)에는 그대로 두고,
+// 요약 미리보기 한 줄에서만 보기 좋게 정리하기 위한 용도.
+function stripLeadingBullet(text) {
+  if (!text) return text;
+  return text.replace(/^[✅○●•·□▪▫◦‣∙\-*]+\s*/, '');
+}
+// 한 줄 분량으로 잘라 대신 보여주기 위한 헬퍼
+function truncate(text, max = 40) {
+  if (!text) return null;
+  const cleaned = text.trim();
+  if (!cleaned) return null;
+  return cleaned.length <= max ? cleaned : `${cleaned.slice(0, max).trimEnd()}...`;
+}
+
 function Field({ label, value, asList = false }) {
   const items = asList ? splitItems(value) : [];
   const isEmpty = asList ? items.length === 0 : !value;
@@ -100,9 +145,50 @@ function Field({ label, value, asList = false }) {
   );
 }
 
+// 접힌/펼친 카드 상단에서 매칭도·최대지원금·연령·마감일 등을 한눈에 보여주는 배지
+function Chip({ tone = 'neutral', children }) {
+  const tones = {
+    accent: { backgroundColor: '#eff6ff', color: '#2563eb' },
+    success: { backgroundColor: '#f0fdf4', color: '#16a34a' },
+    neutral: { backgroundColor: '#fff', color: '#6b7280', border: '1px solid #e5e7eb' },
+  };
+  return (
+    <span style={{
+      fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+      whiteSpace: 'nowrap', ...tones[tone],
+    }}>
+      {children}
+    </span>
+  );
+}
+
+// 펼친 카드에서 지원대상/신청기간/지원내용처럼 아이콘 + 라벨 + 값을 한 줄로 보여주는 행.
+// singleLine=true면 값이 길어도 줄바꿈하지 않고 한 줄로 말줄임(...) 처리한다.
+function IconRow({ icon, label, value, singleLine = false }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, fontSize: 13, minWidth: 0 }}>
+      <span style={{ color: '#9ca3af', flexShrink: 0, marginTop: 1, display: 'flex' }}>{icon}</span>
+      <p style={{
+        margin: 0, lineHeight: 1.5, minWidth: 0,
+        ...(singleLine
+          ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+          : { wordBreak: 'keep-all', overflowWrap: 'break-word' }),
+      }}>
+        {label && <span style={{ color: '#6b7280' }}>{label}</span>}
+        <span style={{ color: '#111827', marginLeft: label ? 8 : 0 }}>{value || '정보 없음'}</span>
+      </p>
+    </div>
+  );
+}
+
 function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmark }) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const docs = splitItems(match.sbmsnDcmntCn);
   const maxAmount = extractMaxAmount(match.plcySprtCn);
+  const ageChip = formatAgeChip(match.sprtTrgtMinAge, match.sprtTrgtMaxAge);
+  const dday = formatDday(match.aplyYmd);
+  const supportPreview = stripLeadingBullet(splitItems(match.plcySprtCn)[0] || match.plcySprtCn || null);
+  const explanationLine = (match.plcyExplnSummary && match.plcyExplnSummary.trim()) || truncate(match.plcyExplnCn);
   const urlCandidates = [match.aplyUrlAddr, match.refUrlAddr1, match.refUrlAddr2]
     .map(normalizeUrl)
     .filter(Boolean);
@@ -122,42 +208,43 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
         onClick={onToggle}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(); }}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', display: 'flex', flexDirection: 'column', gap: 8,
           padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <p style={{
-            fontSize: 16, fontWeight: 800, color: '#111827', margin: 0,
+            fontSize: 16, fontWeight: 800, color: '#111827', margin: 0, minWidth: 0,
             ...(isOpen ? {} : { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }),
           }}>
             {match.plcyNm}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {maxAmount && (
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#16a34a' }}>{maxAmount}</span>
-            )}
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#3b82f6' }}>
-              매칭도 {Math.round((match.score || 0) * 100)}%
-            </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 8 }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleBookmark(match.policy_id); }}
+              disabled={match.policy_id == null}
+              className="bg-transparent border-none p-0.5"
+              style={{ cursor: match.policy_id == null ? 'default' : 'pointer', display: 'flex' }}
+              aria-label="즐겨찾기"
+            >
+              <Bookmark size={18} color={isBookmarked ? '#3b82f6' : '#ccc'} fill={isBookmarked ? '#3b82f6' : 'none'} />
+            </button>
+            <ChevronDown
+              size={18}
+              color="#9ca3af"
+              style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+            />
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 8 }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleBookmark(match.policy_id); }}
-            disabled={match.policy_id == null}
-            className="bg-transparent border-none p-0.5"
-            style={{ cursor: match.policy_id == null ? 'default' : 'pointer', display: 'flex' }}
-            aria-label="즐겨찾기"
-          >
-            <Bookmark size={18} color={isBookmarked ? '#3b82f6' : '#ccc'} fill={isBookmarked ? '#3b82f6' : 'none'} />
-          </button>
-          <ChevronDown
-            size={18}
-            color="#9ca3af"
-            style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-          />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <Chip tone="accent">매칭도 {Math.round((match.score || 0) * 100)}%</Chip>
+          {maxAmount && <Chip tone="success">{maxAmount}</Chip>}
+          {/* 연령/마감일은 접힌 상태에서 한눈에 훑어보라고 넣는 칩이라, 펼치면
+              바로 아래 아이콘 줄에서 다시 자세히 보여주므로 여기선 숨긴다 */}
+          {!isOpen && ageChip && <Chip>{ageChip}</Chip>}
+          {!isOpen && dday && <Chip>{dday}</Chip>}
         </div>
       </div>
 
@@ -165,22 +252,46 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
         <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 12 }} />
 
-          <Field label="정책 설명" value={match.plcyExplnCn} />
-          <Field label="지원 대상" value={formatAge(match.sprtTrgtMinAge, match.sprtTrgtMaxAge)} />
-          <Field label="지원 내용" value={match.plcySprtCn} asList />
-          <Field label="신청 기간" value={match.aplyYmd} />
-          <Field label="신청 방법" value={match.plcyAplyMthdCn} asList />
-
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>필요 서류</p>
-            {docs.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#c1c5cb', margin: 0 }}>정보 없음</p>
-            ) : (
-              <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {docs.map((d, i) => <li key={i} style={{ fontSize: 13, fontWeight: 400, color: '#6b7280' }}>{d}</li>)}
-              </ul>
-            )}
+          {/* 핵심 정보: "나한테 해당되는지, 언제까지인지, 얼마나 받는지"를
+              먼저 훑어보라고 맨 위에 둔다. 정책설명·필요서류·신청방법처럼
+              텍스트가 긴 항목은 아래 "자세히 보기" 뒤로 미룬다. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <IconRow icon={<Info size={16} />} label={null} value={explanationLine} singleLine />
+            <IconRow icon={<User size={16} />} label="지원 대상" value={formatAge(match.sprtTrgtMinAge, match.sprtTrgtMaxAge)} />
+            <IconRow icon={<Calendar size={16} />} label="신청 기간" value={match.aplyYmd} />
+            <IconRow icon={<FileText size={16} />} label={null} value={supportPreview} />
           </div>
+
+          <div style={{ borderTop: '1px solid #f3f4f6' }} />
+
+          <button
+            onClick={(e) => { e.stopPropagation(); setDetailOpen((v) => !v); }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+              background: 'none', border: 'none', padding: 0, fontSize: 13, color: '#6b7280', cursor: 'pointer',
+            }}
+          >
+            자세히 보기 (필요 서류, 신청 방법)
+            <ChevronDown size={16} color="#9ca3af" style={{ transform: detailOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0, marginLeft: 8 }} />
+          </button>
+
+          {detailOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Field label="지원 내용" value={match.plcySprtCn} asList />
+              <Field label="신청 방법" value={match.plcyAplyMthdCn} asList />
+
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>필요 서류</p>
+                {docs.length === 0 ? (
+                  <p style={{ fontSize: 13, color: '#c1c5cb', margin: 0 }}>정보 없음</p>
+                ) : (
+                  <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {docs.map((d, i) => <li key={i} style={{ fontSize: 13, fontWeight: 400, color: '#6b7280' }}>{d}</li>)}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
 
           {effectiveUrl ? (
             <a
