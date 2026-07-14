@@ -50,8 +50,18 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
         matched_name = match_result["matched_policy"]
         method = match_result["method"]
 
+        if match_result.get("method") == "텍스트추출실패":
+            return {
+                "filename": filename,
+                "matched": False,
+                "policy_name": None,
+                "method": "텍스트추출실패",
+                "summary": None,
+                "candidates": [],
+                "error_message": "이미지 기반 PDF라 텍스트를 추출할 수 없어요. 텍스트가 포함된 PDF를 업로드해주세요."
+            }
+        
         if matched_name in (None, "해당 없음"):
-
             candidate_infos = []
 
             for name in match_result.get("candidates", []):
