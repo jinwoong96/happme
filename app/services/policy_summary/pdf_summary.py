@@ -220,7 +220,8 @@ class PdfSummaryService:
                 text += page.get_text()
             doc.close()
             text = " ".join(text.split())
-
+            print(f"[DEBUG] 추출된 텍스트 길이: {len(text)}자")  # ← 추가
+            print(f"[DEBUG] 추출된 텍스트: {text[:200]}")        # ← 추가
             keyword_text = ""
             for kw in ["사업명", "사업개요", "지원내용", "지원대상", "모집내용", "인턴", "공고명"]:
                 idx = text.find(kw)
@@ -252,8 +253,8 @@ class PdfSummaryService:
     def match_pdf_svc(self, pdf_bytes: bytes, filename: str,
                        raw_threshold_high=0.88, raw_threshold_low=0.875, top_k=10) -> dict:
         combined_text, full_text, pdf_institution = self.extract_pdf_features_svc(pdf_bytes)
-        if not combined_text:
-            return {"matched_policy": None, "method": "텍스트추출실패"}
+        if not combined_text or len(combined_text.strip()) < 10:
+            return {"matched_policy": None, "method": "텍스트추출실패", "candidates": []}
 
         pdf_name_clean = filename.replace(" ", "").replace(".pdf", "").replace(".hwp", "").replace(".hwpx", "")
         pdf_text_clean = full_text.replace(" ", "")
