@@ -30,6 +30,7 @@ class PolicyCrud:
         age: Optional[int] = None,
         region: Optional[str] = None,
         lclsf: Optional[str] = None,
+        mclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
         include_closed: bool = False,
@@ -42,6 +43,8 @@ class PolicyCrud:
             stmt = stmt.where(Policy.sprtTrgtMinAge <= age, Policy.sprtTrgtMaxAge >= age)
         if lclsf:
             stmt = stmt.where(Policy.lclsfNm == lclsf)
+        if mclsf:
+            stmt = stmt.where(Policy.mclsfNm == mclsf)
         if keyword:
             # 정책명 띄어쓰기가 기관마다 제각각이라(예: "전세보증금 반환보증" vs "전세보증금반환보증"),
             # 검색어/컬럼 양쪽 다 공백을 제거하고 부분일치시킨다.
@@ -84,6 +87,13 @@ class PolicyCrud:
 
         result = await db.execute(stmt)
         return list(result.scalars().unique().all())
+
+    @staticmethod
+    async def get_distinct_mclsf(db: AsyncSession) -> list[str]:
+        result = await db.execute(
+            select(Policy.mclsfNm).where(Policy.mclsfNm.is_not(None)).distinct().order_by(Policy.mclsfNm.asc())
+        )
+        return [row[0] for row in result.all() if row[0]]
 
     @staticmethod
     async def get_policies_by_ids(db: AsyncSession, policy_ids: list[int]) -> list[Policy]:

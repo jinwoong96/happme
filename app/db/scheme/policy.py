@@ -11,6 +11,7 @@ class PolicyCreate(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
@@ -45,6 +46,7 @@ class PolicyCreate(BaseModel):
 
 class PolicyUpdate(BaseModel):
     plcyNm: Optional[str] = None
+    source: Optional[str] = None
     plcyKywdNm: Optional[str] = None
     plcyExplnCn: Optional[str] = None
     lclsfNm: Optional[str] = None
@@ -98,6 +100,7 @@ class PolicyRead(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
@@ -158,6 +161,7 @@ class PolicyListRead(BaseModel):
     plcyKywdNm: str
     lclsfNm: str
     mclsfNm: str
+    source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int

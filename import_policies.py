@@ -13,6 +13,14 @@
     관리자 화면에서 수동으로 고친 다른 필드값이 덮어써지는 걸 피하고 싶을 때):
     4. python import_policies.py --backfill-columns rgtrInstCdNm
        (plcyNo로 매칭해서 지정한 컬럼만 UPDATE. 쉼표로 여러 개 지정 가능)
+
+    source 컬럼을 새로 추가한 뒤 기존 행 백필:
+    5. DB에 컬럼이 없다면 먼저 수동으로 추가:
+       ALTER TABLE policy ADD COLUMN source VARCHAR(20) NULL AFTER plcySprtCn;
+    6. python import_policies.py --backfill-columns source
+       (plcyNo가 있는 기존 온통청년 행들에 source='ONTONG' 채움)
+    7. 수동추가 정책(plcyNo가 NULL이라 위 백필로는 안 채워짐)은 직접 실행:
+       UPDATE policy SET source='MANUAL' WHERE plcyNo IS NULL AND source IS NULL;
 """
 
 import os
@@ -44,7 +52,7 @@ PAGE_SIZE = 100  # 온통청년 API 한 페이지 최대 요청 건수 (환경�
 # policy 테이블 컬럼 순서 (auto_increment인 policy_id, createdAt/updatedAt DEFAULT 제외)
 COLUMNS = [
     "plcyNo", "plcyNm", "plcyKywdNm", "plcyExplnCn", "lclsfNm", "mclsfNm",
-    "plcySprtCn", "rgtrInstCdNm", "sprvsnInstCdNm", "sprvsnInstPicNm", "operInstCdNm", "operInstPicNm",
+    "plcySprtCn", "source", "rgtrInstCdNm", "sprvsnInstCdNm", "sprvsnInstPicNm", "operInstCdNm", "operInstPicNm",
     "bizPrdBgngYmd", "bizPrdEndYmd", "bizPrdEtcCn", "plcyAplyMthdCn", "srngMthdCn", "aplyUrlAddr",
     "sbmsnDcmntCn", "aplyYmd", "refUrlAddr1", "refUrlAddr2", "etcMttrCn",
     "sprtSclCnt", "sprtTrgtMinAge", "sprtTrgtMaxAge", "earnMinAmt", "earnMaxAmt",
@@ -141,6 +149,8 @@ def get_total_count(raw: dict) -> int:
 
 
 def transform_value(col: str, val):
+    if col == "source":
+        return "ONTONG"  # 이 스크립트로 적재되는 건 전부 온통청년 API 출처
     if col in ("sprtSclCnt", "sprtTrgtMinAge", "sprtTrgtMaxAge",
                 "earnMinAmt", "earnMaxAmt", "inqCnt"):
         return parse_int(val)

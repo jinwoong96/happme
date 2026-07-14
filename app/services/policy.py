@@ -95,6 +95,7 @@ class PolicyService:
         age: Optional[int] = None,
         region: Optional[str] = None,
         lclsf: Optional[str] = None,
+        mclsf: Optional[str] = None,
         keyword: Optional[str] = None,
         sort: Optional[str] = None,
         include_closed: bool = False,
@@ -103,8 +104,8 @@ class PolicyService:
         offset: int = 0,
     ) -> list[dict]:
         policies = await PolicyCrud.get_all_policies(
-            db, age=age, region=region, lclsf=lclsf, keyword=keyword, sort=sort, include_closed=include_closed,
-            consonant=consonant, limit=limit, offset=offset,
+            db, age=age, region=region, lclsf=lclsf, mclsf=mclsf, keyword=keyword, sort=sort,
+            include_closed=include_closed, consonant=consonant, limit=limit, offset=offset,
         )
 
         if consonant:
@@ -259,6 +260,10 @@ class PolicyService:
             if policy:
                 results.append({"policy": policy, "score": m["score"]})
         return results
+
+    @staticmethod
+    async def get_category_list_svc(db: AsyncSession) -> list[str]:
+        return await PolicyCrud.get_distinct_mclsf(db)
 
     @staticmethod
     async def add_region_svc(db: AsyncSession, policy_id: int, zip_code: str) -> dict:
