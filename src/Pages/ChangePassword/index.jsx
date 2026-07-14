@@ -37,7 +37,7 @@ export default function ChangePasswordPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="text-[18px] font-bold text-gray-900">비밀번호 변경</p>
+        <p className="text-[20px] font-bold text-gray-900">비밀번호 변경</p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px' }}>

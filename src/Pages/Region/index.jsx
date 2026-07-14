@@ -1,5 +1,7 @@
-import { MapPin, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import { ChevronLeft, MapPin, ChevronDown, ChevronRight, ExternalLink, Bookmark } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import useRegion from '../../hooks/useRegion';
+import useBookmarks from '../../hooks/useBookmarks';
 
 export default function RegionPage() {
   const {
@@ -20,13 +22,18 @@ export default function RegionPage() {
     filteredResults,
     groupedByPlace,
   } = useRegion();
+  const { isLocalProgramBookmarked, toggleLocalProgramBookmark } = useBookmarks();
+  const navigate = useNavigate();
 
   const allStatuses = Object.keys(statusFilter);
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
-      <div className="bg-white" style={{ padding: '20px 20px 16px' }}>
-        <p className="text-[22px] font-extrabold text-gray-900">근처 프로그램 찾기</p>
+      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
+        <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+          <ChevronLeft size={24} color="#333" />
+        </button>
+        <p className="text-[20px] font-extrabold text-gray-900">근처 프로그램 찾기</p>
       </div>
 
       <div className="bg-white" style={{ padding: '0 20px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -162,7 +169,19 @@ export default function RegionPage() {
                   <div style={{ padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {items.map((item, idx) => (
                       <div key={idx} style={{ borderTop: '1px solid #f3f4f6', paddingTop: 10 }}>
-                        <p className="text-[13px] font-semibold text-gray-800" style={{ margin: 0 }}>{item.svcnm}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[13px] font-semibold text-gray-800" style={{ margin: 0 }}>{item.svcnm}</p>
+                          <button
+                            onClick={() => toggleLocalProgramBookmark(item.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}
+                          >
+                            <Bookmark
+                              size={16}
+                              color={isLocalProgramBookmarked(item.id) ? '#3b82f6' : '#9ca3af'}
+                              fill={isLocalProgramBookmarked(item.id) ? '#3b82f6' : 'none'}
+                            />
+                          </button>
+                        </div>
                         <p className="text-[12px] text-gray-400" style={{ margin: '4px 0 0' }}>
                           {item.svcstatnm}
                           {item.distanceKm !== null && item.distanceKm !== undefined && ` · ${item.distanceKm}km`}

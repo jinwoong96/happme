@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Home, Bookmark, ChevronDown, ChevronUp, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, FileText, Bot, Link2, MessageCircle, Bookmark, ChevronDown, ChevronUp, ExternalLink, CheckCircle2 } from 'lucide-react';
 import useSummary from '../../hooks/useSummary';
 import useBookmarks from '../../hooks/useBookmarks';
 
@@ -21,16 +21,11 @@ export default function SummaryPage() {
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="flex items-center justify-between bg-white" style={{ padding: '20px 20px 16px' }}>
-          <div className="flex items-center gap-2">
-              <button onClick={() => { clearSummarySession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-                  <ChevronLeft size={24} color="#333" />
-              </button>
-              <p className="text-[18px] font-bold text-gray-900">공고문 요약</p>
-          </div>
-          <button onClick={() => { clearSummarySession(); navigate('/'); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-              <Home size={22} color="#333" />
+      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
+          <button onClick={() => { clearSummarySession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+              <ChevronLeft size={24} color="#333" />
           </button>
+          <p className="text-[20px] font-bold text-gray-900">공고문 요약</p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -101,7 +96,7 @@ export default function SummaryPage() {
           />
         </div>
 
-        {!results && (
+        {!results && !error && (
           <button onClick={handleSummarize} disabled={!canSummarize}
           style={{
             marginTop: 18,
@@ -121,7 +116,19 @@ export default function SummaryPage() {
         )}
 
         {error && (
-          <p style={{ marginTop: 12, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>{error}</p>
+            <>
+                <p style={{ marginTop: 12, fontSize: 13, color: '#ef4444', textAlign: 'center', whiteSpace: 'pre-line' }}>{error}</p>
+                <button
+                    onClick={handleReset}
+                    style={{
+                        marginTop: 12, width: '100%', padding: '14px 0', borderRadius: 16,
+                        border: '2px solid #3b82f6', background: '#fff',
+                        color: '#3b82f6', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                    }}
+                >
+                    🔄 요약 다시하기
+                </button>
+            </>
         )}
 
         {results && (

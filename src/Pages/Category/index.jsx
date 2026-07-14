@@ -1,4 +1,5 @@
-import { Search, X } from 'lucide-react';
+import { ChevronLeft, Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import useCategory from '../../hooks/useCategory';
 import { REGIONS } from '../../data/regions';
 import PolicyCard from '../../Components/PolicyCard';
@@ -35,11 +36,15 @@ export default function CategoryPage() {
     openPolicy,
     closePolicy,
   } = useCategory();
+  const navigate = useNavigate();
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
-      <div className="bg-white" style={{ padding: '20px 20px 16px' }}>
-        <p className="text-[22px] font-extrabold text-gray-900">전체보기</p>
+      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
+        <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+          <ChevronLeft size={24} color="#333" />
+        </button>
+        <p className="text-[20px] font-extrabold text-gray-900">전체보기</p>
       </div>
 
       <div className="bg-white" style={{ padding: '0 20px 16px' }}>

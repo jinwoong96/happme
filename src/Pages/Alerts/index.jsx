@@ -27,7 +27,7 @@ export default function AlertsPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[18px] font-bold text-gray-900">알림함</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">알림함</p>
         {unreadCount > 0 && (
           <button onClick={markAllRead} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>
             모두 읽음

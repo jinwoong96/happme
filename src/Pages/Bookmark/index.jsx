@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink } from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
 import Modal from '../../Components/Modal';
 
@@ -56,6 +56,17 @@ function BookmarkItemCard({ item, onRemove }) {
           <p className="text-[11px] text-blue-500 font-medium">AI 준비: {item.prep_tip}</p>
         </div>
       )}
+      {item.applyUrl && (
+        <a
+          href={item.applyUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1"
+          style={{ marginTop: 8, marginLeft: 16, fontSize: 12, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}
+        >
+          신청 페이지로 이동 <ExternalLink size={12} />
+        </a>
+      )}
     </div>
   );
 }
@@ -68,11 +79,19 @@ export default function BookmarkPage() {
   const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
   const [hideExpired, setHideExpired] = useState(false);
   const [expiredOpen, setExpiredOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'policy' | 'local_program'
 
   const cells = buildCalendarCells(cursor.year, cursor.month);
   const selectedDots = selectedDate ? (dotsByDate[selectedDate] || []) : [];
   const isExpired = (item) => item.dday !== null && item.dday < 0;
-  const searchedItems = items.filter((item) => !keyword.trim() || item.plcyNm.includes(keyword.trim()));
+  const matchesType = (item) => {
+    if (typeFilter === 'policy') return !!item.policy_id;
+    if (typeFilter === 'local_program') return !!item.local_program_id;
+    return true;
+  };
+  const searchedItems = items
+    .filter((item) => !keyword.trim() || item.plcyNm.includes(keyword.trim()))
+    .filter(matchesType);
   const activeItems = searchedItems.filter((item) => !isExpired(item));
   const expiredItems = searchedItems.filter(isExpired);
 
@@ -82,7 +101,7 @@ export default function BookmarkPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[18px] font-bold text-gray-900">내 지원금 캘린더</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">내 지원금 캘린더</p>
         <button onClick={() => setSearchOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Search size={20} color="#555" />
         </button>
@@ -188,20 +207,42 @@ export default function BookmarkPage() {
         {/* 즐겨찾기 일정 리스트 */}
         <div style={{ margin: '20px 0 12px' }}>
           <p className="text-[15px] font-bold text-gray-900">즐겨찾기 일정 {items.length}</p>
-          <button
-            onClick={() => setHideExpired((v) => !v)}
-            style={{
-              marginTop: 8,
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              backgroundColor: hideExpired ? '#3b82f6' : '#fff',
-              color: hideExpired ? '#fff' : '#6b7280',
-              fontSize: 12, fontWeight: 700,
-              boxShadow: hideExpired ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
-            }}
-          >
-            {hideExpired ? '마감 공고 숨기기' : '마감공고 포함'}
-          </button>
+          <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 8 }}>
+            <button
+              onClick={() => setHideExpired((v) => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                backgroundColor: hideExpired ? '#3b82f6' : '#fff',
+                color: hideExpired ? '#fff' : '#6b7280',
+                fontSize: 12, fontWeight: 700,
+                boxShadow: hideExpired ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+              }}
+            >
+              마감공고 제외
+            </button>
+
+            <div style={{ display: 'flex', borderRadius: 999, backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+              {[
+                { value: 'all', label: '전체' },
+                { value: 'policy', label: '정책' },
+                { value: 'local_program', label: '지역프로그램' },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setTypeFilter(opt.value)}
+                  style={{
+                    padding: '6px 12px', border: 'none', cursor: 'pointer',
+                    backgroundColor: typeFilter === opt.value ? '#3b82f6' : 'transparent',
+                    color: typeFilter === opt.value ? '#fff' : '#6b7280',
+                    fontSize: 12, fontWeight: 700,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2.5">

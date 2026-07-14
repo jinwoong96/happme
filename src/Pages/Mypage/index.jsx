@@ -20,7 +20,7 @@ export default function MypagePage() {
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
       <div className="bg-white" style={{ padding: '20px 20px 16px' }}>
-        <p className="text-[22px] font-extrabold text-gray-900">마이</p>
+        <p className="text-[22px] font-extrabold text-gray-900">마이페이지</p>
       </div>
 
       {/* 프로필 카드 */}

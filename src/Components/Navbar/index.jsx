@@ -5,7 +5,7 @@ const tabs = [
   { to: '/', label: '홈', Icon: Home },
   { to: '/category', label: '전체보기', Icon: Grid2x2 },
   { to: '/bookmark', label: '즐겨찾기', Icon: Bookmark },
-  { to: '/mypage', label: '마이', Icon: User },
+  { to: '/mypage', label: '마이페이지', Icon: User },
 ];
 
 export default function Navbar() {
