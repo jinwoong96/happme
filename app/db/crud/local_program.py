@@ -21,3 +21,10 @@ class LocalProgramCrud:
         )
         result = await db.execute(stmt)
         return list(result.scalars().all())
+
+    @staticmethod
+    async def get_by_id(db: AsyncSession, local_program_id: int) -> LocalProgram | None:
+        result = await db.execute(
+            select(LocalProgram).where(LocalProgram.local_program_id == local_program_id)
+        )
+        return result.scalar_one_or_none()
