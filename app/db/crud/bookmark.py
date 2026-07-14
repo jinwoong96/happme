@@ -55,3 +55,24 @@ class BookmarkCrud:
     async def delete_bookmark(db: AsyncSession, bookmark: Bookmark) -> None:
         await db.delete(bookmark)
         await db.flush()
+
+    @staticmethod
+    async def get_by_user_local_program(db: AsyncSession, user_id: int, local_program_id: int) -> Bookmark | None:
+        result = await db.execute(
+            select(Bookmark).where(Bookmark.user_id == user_id, Bookmark.local_program_id == local_program_id)
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_by_user_with_targets(db: AsyncSession, user_id: int) -> list[Bookmark]:
+        """정책+지역 프로그램 즐겨찾기를 한 번에 eager load."""
+        result = await db.execute(
+            select(Bookmark)
+            .options(
+                selectinload(Bookmark.policy).selectinload(Policy.schedule_events),
+                selectinload(Bookmark.policy).selectinload(Policy.ai_tip),
+                selectinload(Bookmark.local_program),
+            )
+            .where(Bookmark.user_id == user_id)
+        )
+        return list(result.scalars().all())
