@@ -122,4 +122,5 @@ class OcrResultService:
             "extracted_text": extracted_text,
             "matches": ai_matches,
             "summary_text": summary_text,
+            "message": ai_result.get("message"),
         }
