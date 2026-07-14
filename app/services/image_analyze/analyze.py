@@ -84,7 +84,7 @@ class ImageAnalyzeService:
               "matches": [
                 {
                   "policy_id": int, "plcyNo": str, "plcyNm": str, "score": float,
-                  "plcyExplnCn": str,
+                  "plcyExplnCn": str, "plcyExplnSummary": str,
                   "sprtTrgtMinAge": int | None, "sprtTrgtMaxAge": int | None,
                   "plcySprtCn": str, "aplyYmd": str,
                   "plcyAplyMthdCn": str, "sbmsnDcmntCn": str,
@@ -144,6 +144,7 @@ class ImageAnalyzeService:
 
         t6 = time.perf_counter()
         summary_text = self.llm_service.summarize_svc(extracted_text, matches)
+        one_liners = self.llm_service.summarize_one_liners_svc(matches)
         t7 = time.perf_counter()
 
         print(
@@ -161,6 +162,7 @@ class ImageAnalyzeService:
                     "plcyNm": m["plcyNm"],
                     "score": m["score"],
                     "plcyExplnCn": m["policy_raw"].get("plcyExplnCn") or "",
+                    "plcyExplnSummary": one_liners.get(m["policy_id"]) or "",
                     "sprtTrgtMinAge": m["policy_raw"].get("sprtTrgtMinAge"),
                     "sprtTrgtMaxAge": m["policy_raw"].get("sprtTrgtMaxAge"),
                     "plcySprtCn": m["policy_raw"].get("plcySprtCn") or "",

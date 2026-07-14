@@ -1,3 +1,5 @@
+import json
+import re
 from collections import OrderedDict
 
 from app.core.settings import settings
@@ -6,6 +8,13 @@ from app.core.settings import settings
 # 않고 이전 요약을 재사용한다. 지원대상/지원내용/신청기간/신청방법 등 요약 내용은
 # 정책 자체의 정보라 사진이 바뀐다고 달라지지 않기 때문.
 _SUMMARY_CACHE_MAX_SIZE = 500
+
+# 정책설명 한 줄 요약은 "이 사진에 어떤 정책들이 같이 매칭됐는지"와 무관하게
+# 정책 자체(plcyExplnCn)에서만 나오는 값이므로, 조합이 아니라 policy_id 단위로
+# 캐시한다. 전체 정책 수(약 2,869건, common_policies.json 기준)가 유한하므로
+# 서비스가 운영되면서 점점 캐시가 채워지고, 이후엔 거의 LLM 재호출 없이 재사용된다.
+_ONE_LINER_CACHE_MAX_SIZE = 3000
+_ONE_LINER_MAX_CHARS = 40
 
 
 class LlmService:
@@ -16,6 +25,7 @@ class LlmService:
 
     def __init__(self):
         self._summary_cache: "OrderedDict[tuple, str]" = OrderedDict()
+        self._one_liner_cache: "OrderedDict[int, str]" = OrderedDict()
 
         self.enabled = bool(settings.enable_llm_summary) and bool(settings.watsonx_api_key) and bool(settings.watsonx_project_id)
         if not self.enabled:
@@ -89,3 +99,102 @@ class LlmService:
                 self._summary_cache.popitem(last=False)
 
         return summary
+
+    @staticmethod
+    def _fallback_one_liner(text: str) -> str:
+        """LLM 호출/파싱에 실패했을 때 plcyExplnCn 원문 앞부분으로 대체."""
+        cleaned = re.sub(r"\s+", " ", (text or "").strip())
+        if not cleaned:
+            return ""
+        if len(cleaned) <= _ONE_LINER_MAX_CHARS:
+            return cleaned
+        return cleaned[:_ONE_LINER_MAX_CHARS].rstrip() + "..."
+
+    @staticmethod
+    def _build_one_liner_prompt(policies: list[dict]) -> str:
+        policies_text = ""
+        for p in policies:
+            policies_text += f'\n{{"policy_id": {p["policy_id"]}, "plcyNm": "{p["plcyNm"]}", "plcyExplnCn": "{p["plcyExplnCn"]}"}}'
+        return f"""아래는 청년 정책 {len(policies)}개의 policy_id와 정책설명(plcyExplnCn) 원문입니다.
+각 정책마다 정책설명을 {_ONE_LINER_MAX_CHARS}자 이내의 한 문장으로 핵심만 요약해주세요.
+반드시 아래 JSON 배열 형식으로만 응답하고, 그 외 설명이나 마크다운은 절대 포함하지 마세요.
+
+[{{"policy_id": 123, "summary": "한 줄 요약"}}, ...]
+
+정책 목록:
+{policies_text}
+"""
+
+    def summarize_one_liners_svc(self, matches: list[dict]) -> dict[int, str]:
+        """
+        각 match(match['policy_raw']에 policy_id/plcyNm/plcyExplnCn 포함)에 대해
+        정책설명 한 줄 요약을 policy_id -> summary 형태로 반환한다.
+        policy_id 단위로 캐시하므로, 이미 요약된 정책은 다른 사진/다른 매칭 조합에서도
+        재사용되고 LLM은 캐시에 없는 정책만 모아 한 번에 호출한다.
+        """
+        result: dict[int, str] = {}
+        uncached: list[dict] = []
+
+        for m in matches:
+            policy_id = m.get("policy_id")
+            raw = m.get("policy_raw", {})
+            explain_text = raw.get("plcyExplnCn") or ""
+
+            if policy_id is None:
+                continue
+            if policy_id in self._one_liner_cache:
+                self._one_liner_cache.move_to_end(policy_id)
+                result[policy_id] = self._one_liner_cache[policy_id]
+                continue
+            if not explain_text.strip():
+                result[policy_id] = ""
+                continue
+
+            uncached.append({
+                "policy_id": policy_id,
+                "plcyNm": raw.get("plcyNm", ""),
+                "plcyExplnCn": explain_text,
+            })
+
+        if not uncached:
+            return result
+
+        fallback_map = {p["policy_id"]: self._fallback_one_liner(p["plcyExplnCn"]) for p in uncached}
+
+        if not self.enabled:
+            result.update(fallback_map)
+            return result
+
+        prompt = self._build_one_liner_prompt(uncached)
+        messages = [
+            {"role": "system", "content": "당신은 청년 정책 설명을 짧고 이해하기 쉬운 한 문장으로 요약해주는 도우미입니다. JSON으로만 응답하세요."},
+            {"role": "user", "content": prompt},
+        ]
+        params = {"temperature": 0, "max_tokens": 800}
+
+        try:
+            response = self.model.chat(messages=messages, params=params)
+            content = response["choices"][0]["message"]["content"]
+            # 모델이 ```json ... ``` 코드블록으로 감싸는 경우 제거
+            content = re.sub(r"^```(?:json)?|```$", "", content.strip(), flags=re.MULTILINE).strip()
+            parsed = json.loads(content)
+            new_summaries = {
+                int(item["policy_id"]): str(item.get("summary", "")).strip()
+                for item in parsed
+                if "policy_id" in item
+            }
+        except Exception as e:
+            print(f"[LlmService] 한 줄 요약 생성/파싱 실패, fallback 사용: {e}")
+            new_summaries = {}
+
+        for p in uncached:
+            pid = p["policy_id"]
+            summary = new_summaries.get(pid) or fallback_map[pid]
+            self._one_liner_cache[pid] = summary
+            self._one_liner_cache.move_to_end(pid)
+            result[pid] = summary
+
+        while len(self._one_liner_cache) > _ONE_LINER_CACHE_MAX_SIZE:
+            self._one_liner_cache.popitem(last=False)
+
+        return result
