@@ -30,6 +30,21 @@ class Settings(BaseSettings):
     # 정책 파일 경로(임시)
     policy_json_path: str = Field("./data/ontongAPI.json", alias="POLICY_JSON_PATH")
 
+    # 사전 계산된 임베딩/정책 원본 파일 S3 자동 다운로드 (git에는 올리지 않고, 서버 시작 시
+    # 없으면 내려받음). DATA_S3_BUCKET이 비어있으면 다운로드를 건너뛰고 로컬 파일을 그대로
+    # 사용합니다. policy_embedding_cache/policy_summary_embed_cache는 원본(DB/JSON)이 더
+    # 최신이라 로컬에서 재계산되면, 그 결과를 다시 S3에 업로드해 다음 배포부터 최신 캐시를
+    # 받아가도록 합니다. 나머지(정책 원본 JSON, 유사도 검색용 정적 임베딩 등)는 앱 안에
+    # 재계산 로직이 없는 정적 자산이라 다운로드만 합니다.
+    data_s3_bucket: str = Field("", alias="DATA_S3_BUCKET")
+    data_s3_public: bool = Field(False, alias="DATA_S3_PUBLIC")
+    policy_json_s3_key: str = Field("", alias="POLICY_JSON_S3_KEY")
+    zipcd_mapping_s3_key: str = Field("", alias="ZIPCD_MAPPING_S3_KEY")
+    similarity_docs_s3_key: str = Field("", alias="SIMILARITY_DOCS_S3_KEY")
+    similarity_embeddings_s3_key: str = Field("", alias="SIMILARITY_EMBEDDINGS_S3_KEY")
+    policy_embedding_cache_s3_key: str = Field("", alias="POLICY_EMBEDDING_CACHE_S3_KEY")
+    policy_summary_embed_cache_s3_key: str = Field("", alias="POLICY_SUMMARY_EMBED_CACHE_S3_KEY")
+
     # 정책 검색 (Sentence-BERT)
     # 정책 데이터는 bene_backend와 동일한 RDS MySQL(policy 테이블)에서 읽어옵니다.
     db_host: str = Field(..., alias="DB_HOST")
