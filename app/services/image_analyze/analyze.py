@@ -1,3 +1,5 @@
+import time
+
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
 from app.services.image_analyze.search import SearchService
@@ -5,6 +7,21 @@ from app.services.image_analyze.llm import LlmService
 from app.core.settings import settings
 
 TARGET_REGION_CLASSES = ("title", "text_area")
+
+# 정책 공고문에는 거의 항상 등장하는 행정 용어.
+# 의미 유사도(임베딩)만으로는 무관한 텍스트도 우연히 일정 점수를 넘길 수 있어서(모델의
+# anisotropy로 인한 유사도 하한선 문제), 이 키워드가 하나도 없으면 매칭을 무효화하는
+# 2차 게이트로 사용한다.
+POLICY_KEYWORDS = (
+    "청년", "지원", "신청", "모집", "사업", "정책", "대상자", "대상",
+    "지원금", "선발", "접수", "공고", "안내문", "혜택", "바우처", "장려금",
+    "지원사업", "신청기간", "신청방법", "지원대상", "모집공고",
+)
+
+
+def _has_policy_keyword(text: str) -> bool:
+    return any(keyword in text for keyword in POLICY_KEYWORDS)
+
 
 MSG_NO_NOTICE_DETECTED = (
     "공고문(배너·포스터·카드뉴스) 형태의 이미지가 아닌 것 같아요. "
@@ -78,11 +95,14 @@ class ImageAnalyzeService:
               "message": str | None,
             }
         """
+        t0 = time.perf_counter()
         detection_result = self.detection_service.detect_svc(image_path)
+        t1 = time.perf_counter()
         objects = detection_result["objects"]
 
         # 1) 공고물류 자체를 하나도 못 찾음 -> 공고문 이미지가 아닐 가능성이 높음
         if not objects:
+            print(f"[timing] detection={t1 - t0:.2f}s (공고물 없음, 종료)")
             return self._empty_result(0, MSG_NO_NOTICE_DETECTED)
 
         crop_images = [
@@ -94,22 +114,42 @@ class ImageAnalyzeService:
 
         # 2) 공고물은 찾았지만 제목/본문 텍스트 영역이 없음
         if not crop_images:
+            print(f"[timing] detection={t1 - t0:.2f}s (텍스트 영역 없음, 종료)")
             return self._empty_result(len(objects), MSG_NO_TEXT_REGION)
 
+        t2 = time.perf_counter()
         extracted_text = self.ocr_service.extract_combined_text_svc(crop_images)
+        t3 = time.perf_counter()
 
         # 3) 텍스트 영역은 있었지만 OCR로 의미 있는 글자를 거의 읽어내지 못함
         if len(extracted_text.strip()) < settings.ocr_min_text_length:
+            print(f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s (텍스트 부족, 종료)")
             return self._empty_result(len(objects), MSG_OCR_TOO_SHORT, extracted_text)
 
+        t4 = time.perf_counter()
         matches = self.search_service.search_policy_svc(extracted_text)
+        t5 = time.perf_counter()
 
-        # 4) 정책 후보는 나왔지만 유사도가 전부 임계값 미만 -> 무관한 이미지로 판단
+        # 4) 정책 후보는 나왔지만 (a) 유사도가 임계값 미만이거나
+        #    (b) 정책 공고문에 흔한 키워드가 텍스트에 전혀 없으면 -> 무관한 이미지로 판단
         matches = [m for m in matches if m["score"] >= settings.match_min_score]
+        if matches and not _has_policy_keyword(extracted_text):
+            matches = []
         if not matches:
+            print(
+                f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s "
+                f"search={t5 - t4:.2f}s (매칭 없음, 종료)"
+            )
             return self._empty_result(len(objects), MSG_NO_MATCH, extracted_text)
 
+        t6 = time.perf_counter()
         summary_text = self.llm_service.summarize_svc(extracted_text, matches)
+        t7 = time.perf_counter()
+
+        print(
+            f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s "
+            f"search={t5 - t4:.2f}s llm={t7 - t6:.2f}s total={t7 - t0:.2f}s"
+        )
 
         return {
             "extracted_text": extracted_text,
@@ -128,6 +168,8 @@ class ImageAnalyzeService:
                     "plcyAplyMthdCn": m["policy_raw"].get("plcyAplyMthdCn") or "",
                     "sbmsnDcmntCn": m["policy_raw"].get("sbmsnDcmntCn") or "",
                     "aplyUrlAddr": m["policy_raw"].get("aplyUrlAddr") or "",
+                    "refUrlAddr1": m["policy_raw"].get("refUrlAddr1") or "",
+                    "refUrlAddr2": m["policy_raw"].get("refUrlAddr2") or "",
                 }
                 for m in matches
             ],

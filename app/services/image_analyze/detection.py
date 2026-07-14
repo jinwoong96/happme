@@ -3,12 +3,13 @@ import os
 
 import torch
 import torchvision
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from torchvision import transforms as T
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from ultralytics import YOLO
 
 from app.core.settings import settings
+from app.core.exceptions import InvalidImageError
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -71,9 +72,34 @@ class DetectionService:
         y2 = min(H, y2 + bh * padding)
         return img_pil.crop((x1, y1, x2, y2)), (x1, y1, x2, y2)
 
+    @staticmethod
+    def _load_image_safely(image_path: str):
+        """
+        업로드된 파일을 이미지로 안전하게 엽니다.
+        - 열 수 없는 파일(이미지가 아니거나 손상된 파일)은 InvalidImageError로 변환
+        - 픽셀 수가 지나치게 큰 이미지는 비율을 유지하며 축소 (메모리/추론 시간 보호)
+        """
+        try:
+            img_pil = Image.open(image_path)
+            img_pil.load()  # 실제 픽셀 데이터까지 읽어서 손상 여부를 여기서 확인
+            img_pil = img_pil.convert("RGB")
+        except (UnidentifiedImageError, OSError, ValueError) as e:
+            raise InvalidImageError(f"이미지를 열 수 없습니다: {e}") from e
+
+        w, h = img_pil.size
+        if w * h > settings.max_image_pixels:
+            scale = (settings.max_image_pixels / (w * h)) ** 0.5
+            new_size = (max(1, int(w * scale)), max(1, int(h * scale)))
+            img_pil = img_pil.resize(new_size)
+
+        return img_pil
+
     def detect_svc(self, image_path: str) -> dict:
         """
         이미지 한 장을 탐지 파이프라인에 통과시켜 결과 반환.
+
+        Raises:
+            InvalidImageError: 파일을 이미지로 열 수 없는 경우 (깨진 파일, 이미지가 아닌 파일 등)
 
         Returns:
             {
@@ -88,7 +114,7 @@ class DetectionService:
                 ]
             }
         """
-        img_pil = Image.open(image_path).convert("RGB")
+        img_pil = self._load_image_safely(image_path)
 
         img_tensor = self.transform(img_pil).to(DEVICE)
         with torch.no_grad():

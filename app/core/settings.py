@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     watsonx_url: str = Field("https://us-south.ml.cloud.ibm.com", alias="WATSONX_URL")
     watsonx_api_key: str = Field("", alias="WATSONX_API_KEY")
     watsonx_project_id: str = Field("", alias="WATSONX_PROJECT_ID")
-    watsonx_model_id: str = Field("meta-llama/llama-3-3-70b-instruct", alias="WATSONX_MODEL_ID")
+    watsonx_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="WATSONX_MODEL_ID")
     enable_llm_summary: bool = Field(True, alias="ENABLE_LLM_SUMMARY")
 
     # 정책 일정 추출 (rule-engine + LLM)
