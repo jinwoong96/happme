@@ -115,7 +115,10 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
 
         policy_detail = pdf_service.get_policy_detail_svc(matched_name)
         summary = pdf_service.summarize_policy_svc(policy_detail) if policy_detail else None
-        return {"filename": filename, "matched": True, "policy_name": matched_name, "method": method, "summary": summary}
+        return {
+            "filename": filename, "matched": True, "policy_name": matched_name, "method": method, "summary": summary,
+            "apply_url": policy_detail.get("aplyUrlAddr", "") if policy_detail else "",
+        }
 
     results = await asyncio.gather(*[
         asyncio.to_thread(process_one, filename, pdf_bytes) for filename, pdf_bytes in payloads
@@ -248,7 +251,10 @@ async def analyze_url(request: Request, payload: UrlRequest):
 
         policy_detail = match_result.get("policy_detail") or pdf_service.get_policy_detail_svc(matched_name)
         summary = pdf_service.summarize_policy_svc(policy_detail) if policy_detail else None
-        return {"filename": None, "matched": True, "policy_name": matched_name, "method": method, "summary": summary}
+        return {
+            "filename": None, "matched": True, "policy_name": matched_name, "method": method, "summary": summary,
+            "apply_url": policy_detail.get("aplyUrlAddr", "") if policy_detail else "",
+        }
 
     result = await asyncio.to_thread(process)
     return {"mode": "summary", "results": [result]}
