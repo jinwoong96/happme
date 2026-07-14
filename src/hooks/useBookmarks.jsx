@@ -3,6 +3,7 @@ import { api } from '../utils/api';
 
 export default function useBookmarks() {
   const [bookmarkMap, setBookmarkMap] = useState({}); // policy_id -> bookmark_id
+  const [localProgramMap, setLocalProgramMap] = useState({}); // local_program_id -> bookmark_id
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,8 +16,13 @@ export default function useBookmarks() {
     ]).then(([bookmarks, me]) => {
       if (ignore) return;
       const map = {};
-      (bookmarks || []).forEach((b) => { map[b.policy_id] = b.bookmark_id; });
+      const lpMap = {};
+      (bookmarks || []).forEach((b) => {
+        if (b.policy_id) map[b.policy_id] = b.bookmark_id;
+        if (b.local_program_id) lpMap[b.local_program_id] = b.bookmark_id;
+      });
       setBookmarkMap(map);
+      setLocalProgramMap(lpMap);
       setUserId(me?.user_id ?? null);
     }).finally(() => {
       if (!ignore) setLoading(false);
@@ -55,5 +61,33 @@ export default function useBookmarks() {
     }
   }, [bookmarkMap, userId]);
 
-  return { isBookmarked, toggleBookmark, loading };
+  const isLocalProgramBookmarked = useCallback((localProgramId, fallback = false) => {
+    if (localProgramMap[localProgramId] !== undefined) return true;
+    if (loading) return Boolean(fallback);
+    return false;
+  }, [localProgramMap, loading]);
+
+  const toggleLocalProgramBookmark = useCallback(async (localProgramId) => {
+    if (localProgramId == null) return;
+
+    const bookmarkId = localProgramMap[localProgramId];
+    try {
+      if (bookmarkId) {
+        await api.delete(`/bookmarks/${bookmarkId}`);
+        setLocalProgramMap((prev) => {
+          const next = { ...prev };
+          delete next[localProgramId];
+          return next;
+        });
+      } else {
+        if (!userId) return;
+        const created = await api.post('/bookmarks/', { user_id: userId, local_program_id: localProgramId });
+        setLocalProgramMap((prev) => ({ ...prev, [localProgramId]: created.bookmark_id }));
+      }
+    } catch {
+      // 실패 시 조용히 무시
+    }
+  }, [localProgramMap, userId]);
+
+  return { isBookmarked, toggleBookmark, isLocalProgramBookmarked, toggleLocalProgramBookmark, loading };
 }

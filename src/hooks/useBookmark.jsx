@@ -79,6 +79,7 @@ export default function useBookmark() {
     };
 
     items.forEach((item) => {
+      if (!item.policy_id) return; // 지역 프로그램 즐겨찾기는 달력에 표시하지 않음
       if (item.aplyEnd) {
         addDot(item.aplyEnd, {
           color: item.color, policyId: item.policy_id, policyName: item.plcyNm,
@@ -97,7 +98,9 @@ export default function useBookmark() {
   }, [items]);
 
   const legend = useMemo(
-    () => items.map((item) => ({ policyId: item.policy_id, color: item.color, name: item.plcyNm })),
+    () => items
+      .filter((item) => item.policy_id)
+      .map((item) => ({ policyId: item.policy_id, color: item.color, name: item.plcyNm })),
     [items]
   );
 

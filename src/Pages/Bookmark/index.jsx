@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink } from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
 import Modal from '../../Components/Modal';
 
@@ -56,6 +56,17 @@ function BookmarkItemCard({ item, onRemove }) {
           <p className="text-[11px] text-blue-500 font-medium">AI 준비: {item.prep_tip}</p>
         </div>
       )}
+      {item.applyUrl && (
+        <a
+          href={item.applyUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1"
+          style={{ marginTop: 8, marginLeft: 16, fontSize: 12, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}
+        >
+          신청 페이지로 이동 <ExternalLink size={12} />
+        </a>
+      )}
     </div>
   );
 }
@@ -82,7 +93,7 @@ export default function BookmarkPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[18px] font-bold text-gray-900">내 지원금 캘린더</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">내 지원금 캘린더</p>
         <button onClick={() => setSearchOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Search size={20} color="#555" />
         </button>

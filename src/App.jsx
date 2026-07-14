@@ -69,7 +69,7 @@ export default function App() {
           path="/category"
           element={
             <PrivateRoute>
-              <Layout><CategoryPage /></Layout>
+              <CategoryPage />
             </PrivateRoute>
           }
         />
@@ -125,7 +125,7 @@ export default function App() {
           path="/region"
           element={
             <PrivateRoute>
-              <Layout><RegionPage /></Layout>
+              <RegionPage />
             </PrivateRoute>
           }
         />

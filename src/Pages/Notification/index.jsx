@@ -12,7 +12,7 @@ export default function NotificationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="text-[18px] font-bold text-gray-900">지원금 알림</p>
+        <p className="text-[20px] font-bold text-gray-900">지원금 알림</p>
       </div>
 
       <div className="bg-white border-b border-gray-100" style={{ padding: '12px 20px' }}>

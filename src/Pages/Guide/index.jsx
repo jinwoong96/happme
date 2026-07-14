@@ -29,7 +29,7 @@ export default function GuidePage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={22} color="#333" />
         </button>
-        <p className="flex-1 text-[16px] font-bold text-gray-900">이용 가이드</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">이용 가이드</p>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, padding: '12px 16px 14px', display: 'flex', flexDirection: 'column' }}>
@@ -37,8 +37,8 @@ export default function GuidePage() {
           flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
           backgroundColor: '#fff', borderRadius: 18, padding: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
         }}>
-          <p className="text-[13px] font-bold text-gray-900" style={{ flexShrink: 0 }}>{current.title}</p>
-          <p className="mt-0.5 text-[11px] text-gray-500" style={{ flexShrink: 0 }}>{current.desc}</p>
+          <p className="text-[15px] font-bold text-gray-900" style={{ flexShrink: 0 }}>{current.title}</p>
+          <p className="mt-0.5 text-[13px] text-gray-500" style={{ flexShrink: 0 }}>{current.desc}</p>
 
           <div style={{
             flex: 1, minHeight: 0, marginTop: 10, borderRadius: 12, overflow: 'hidden', backgroundColor: '#fff',

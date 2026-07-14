@@ -114,14 +114,21 @@ export default function useSummary() {
     const first = aiResult?.results?.[0];
 
     if (!first?.matched) {
-      const topCandidate = first.candidates?.[0];
-      setPolicyName(null);
-      setPolicyId(null);
-      setResults({
-          title: "비슷한 정책을 찾았어요",
-          subtitle: "입력하신 내용과 관련된 정책들이에요",
-          candidates: first.candidates || [],
-      });
+        setPolicyName(null);
+        setPolicyId(null);
+
+        // ✅ 텍스트 추출 실패 처리
+        if (first?.method === "텍스트추출실패") {
+            setError("이미지 기반 PDF라 분석할 수 없어요. \n텍스트가 포함된 PDF를 업로드해주세요.");
+            setResults(null);
+            return;
+        }
+
+        setResults({
+            title: "비슷한 정책을 찾았어요",
+            subtitle: "입력하신 내용과 관련된 정책들이에요",
+            candidates: first.candidates || [],
+        });
 
       setError(
         first?.method === "크롤링차단"
