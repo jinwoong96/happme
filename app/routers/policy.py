@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.scheme.policy import (
@@ -7,6 +7,7 @@ from app.db.scheme.policy import (
     PolicySimilaritySearchRequest, PolicySimilarityMatch,
 )
 from app.services.policy import PolicyService as policy_svc
+from app.services import external_sync
 from app.db.models.user import User
 from app.core.admin import get_current_admin
 
@@ -55,6 +56,25 @@ async def get_all_policies(
 @router.get("/categories", response_model=list[str])
 async def get_categories(db: AsyncSession = Depends(get_db)):
     return await policy_svc.get_category_list_svc(db)
+
+
+# 외부 데이터(온통청년/복지로) 최신화 - 관리자 사이트 "최신화" 버튼용.
+# 백그라운드에서 기존 import 스크립트들을 순서대로 실행한다 (수동 트리거, 자동 스케줄은 아직 없음).
+@router.post("/refresh")
+async def refresh_external_policies(
+    background_tasks: BackgroundTasks,
+    current_admin: User = Depends(get_current_admin),
+):
+    status = external_sync.get_status()
+    if status["running"]:
+        return {"message": "이미 최신화가 진행 중입니다.", "status": status}
+    background_tasks.add_task(external_sync.run_refresh_all)
+    return {"message": "최신화를 시작했습니다."}
+
+
+@router.get("/refresh/status")
+async def get_refresh_status(current_admin: User = Depends(get_current_admin)):
+    return external_sync.get_status()
 
 
 # R 단일 조회
