@@ -11,6 +11,8 @@ class PolicyCreate(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    rgtrInstCdNm: Optional[str] = None
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -48,6 +50,8 @@ class PolicyUpdate(BaseModel):
     lclsfNm: Optional[str] = None
     mclsfNm: Optional[str] = None
     plcySprtCn: Optional[str] = None
+    rgtrInstCdNm: Optional[str] = None
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -94,6 +98,8 @@ class PolicyRead(BaseModel):
     lclsfNm: str
     mclsfNm: str
     plcySprtCn: str
+    rgtrInstCdNm: Optional[str] = None
+    maxSprtAmt: Optional[int] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -132,6 +138,19 @@ class PolicyRead(BaseModel):
         from_attributes = True
 
 
+class PolicySimilaritySearchRequest(BaseModel):
+    query_text: str
+    top_k: int = 5
+
+
+class PolicySimilarityMatch(BaseModel):
+    policy: PolicyRead
+    score: float
+
+    class Config:
+        from_attributes = True
+
+
 class PolicyListRead(BaseModel):
     policy_id: int
     plcyNo: Optional[str] = None
@@ -139,12 +158,14 @@ class PolicyListRead(BaseModel):
     plcyKywdNm: str
     lclsfNm: str
     mclsfNm: str
+    rgtrInstCdNm: Optional[str] = None
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int
     aplyYmd: str
     aplyEndDt: Optional[date] = None
     inqCnt: int
     bookmarkCnt: int
+    maxSprtAmt: Optional[int] = None
     createdAt: Optional[datetime] = None
 
     # 카드 표시용(policy_cards.json 기반). 매칭되는 카드가 없으면 None.
