@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ImageIcon, Bot, ChevronDown, ExternalLink, CheckCircle2, Loader2, X, Bookmark } from 'lucide-react';
+import { ChevronLeft, ImageIcon, Bot, ChevronDown, ExternalLink, CheckCircle2, Loader2, X, Bookmark, Home } from 'lucide-react';
 import useOCR from '../../hooks/useOCR';
 import useBookmarks from '../../hooks/useBookmarks';
 
@@ -61,11 +61,11 @@ function Field({ label, value, asList = false }) {
       ) : asList ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {items.map((item, i) => (
-            <p key={i} style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>{item}</p>
+            <p key={i} style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', margin: 0, lineHeight: 1.5, wordBreak: 'keep-all', overflowWrap: 'break-word' }}>{item}</p>
           ))}
         </div>
       ) : (
-        <p style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>{value}</p>
+        <p style={{ fontSize: 13, fontWeight: 400, color: '#6b7280', margin: 0, lineHeight: 1.5, wordBreak: 'keep-all', overflowWrap: 'break-word' }}>{value}</p>
       )}
     </div>
   );
@@ -178,31 +178,37 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
 }
 
 export default function OCRPage() {
-  const { files, loading, results, error, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
+  const { files, loading, results, error, previewDataUrl, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const navigate = useNavigate();
   const can = !loading && files.length > 0;
   const [openIndex, setOpenIndex] = useState(0);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(previewDataUrl ?? null);
 
   // 선택한 이미지 미리보기 URL 생성/해제
+  // files가 비어있으면(예: 즐겨찾기 페이지 갔다가 뒤로가기) 저장해둔 previewDataUrl로 복원
   useEffect(() => {
     if (files.length === 0) {
-      setPreviewUrl(null);
+      setPreviewUrl(previewDataUrl ?? null);
       return;
     }
     const url = URL.createObjectURL(files[0]);
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [files]);
+  }, [files, previewDataUrl]);
 
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
-        <button onClick={() => { clearOcrSession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-          <ChevronLeft size={24} color="#333" />
+      <div className="flex items-center justify-between bg-white" style={{ padding: '20px 20px 16px' }}>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { clearOcrSession(); navigate(-1); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+            <ChevronLeft size={24} color="#333" />
+          </button>
+          <p className="text-[18px] font-bold text-gray-900">공고문 사진 분석</p>
+        </div>
+        <button onClick={() => { clearOcrSession(); navigate('/'); }} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
+          <Home size={22} color="#333" />
         </button>
-        <p className="text-[18px] font-bold text-gray-900">공고문 사진 분석</p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
@@ -210,7 +216,7 @@ export default function OCRPage() {
           <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <Bot size={18} color="#fff" />
           </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed">현수막·포스터 사진을 올리면 AI가 관련 정책을 찾아드려요.</p>
+          <p className="text-[13px] text-gray-600 leading-relaxed" style={{ wordBreak: 'keep-all', overflowWrap: 'break-word' }}>현수막·포스터 사진을 올리면 AI가 관련 정책을 찾아드려요.</p>
         </div>
 
         <label style={{ display: 'block', position: 'relative', cursor: loading ? 'default' : 'pointer' }}>
@@ -227,14 +233,15 @@ export default function OCRPage() {
                 <ImageIcon size={28} color="#3b82f6" strokeWidth={1.5} />
               </div>
             )}
-            {files.length === 0
-              ? <p className="text-[13px] text-gray-400">이미지를 선택하세요</p>
-              : <p className="text-[14px] font-semibold text-gray-800">{files[0].name}</p>
-            }
+            {files.length > 0 ? (
+              <p className="text-[14px] font-semibold text-gray-800">{files[0].name}</p>
+            ) : !previewUrl ? (
+              <p className="text-[13px] text-gray-400">이미지를 선택하세요</p>
+            ) : null}
           </div>
 
           {/* 업로드한 파일을 취소할 수 있는 X 버튼 */}
-          {files.length > 0 && !loading && (
+          {previewUrl && !loading && (
             <button
               type="button"
               onClick={(e) => {
@@ -285,19 +292,19 @@ export default function OCRPage() {
         </button>
 
         {loading && (
-          <p style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
+          <p style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af', wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
             이미지 분석에는 최대 30초 정도 걸릴 수 있어요. 잠시만 기다려주세요.
           </p>
         )}
 
         {error && (
-          <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 12, backgroundColor: '#fef2f2', color: '#dc2626', fontSize: 13 }}>
+          <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 12, backgroundColor: '#fef2f2', color: '#dc2626', fontSize: 13, wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
             {error}
           </div>
         )}
 
         {results && results.message && (
-          <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 12, backgroundColor: '#fffbeb', color: '#b45309', fontSize: 13 }}>
+          <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 12, backgroundColor: '#fffbeb', color: '#b45309', fontSize: 13, wordBreak: 'keep-all', overflowWrap: 'break-word' }}>
             {results.message}
           </div>
         )}
