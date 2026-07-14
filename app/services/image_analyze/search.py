@@ -5,6 +5,7 @@ import pymysql
 from sentence_transformers import SentenceTransformer
 
 from app.core.settings import settings
+from app.core.s3_utils import get_s3_client, upload_file
 
 
 class SearchService:
@@ -67,6 +68,14 @@ class SearchService:
         texts = [self._make_search_text(p) for p in self.policies]
         self.policy_embeddings = self.embedding_model.encode(texts, show_progress_bar=True, convert_to_numpy=True)
         np.save(settings.policy_embedding_cache, self.policy_embeddings)
+
+        # DB(원본)가 더 최신이라 방금 로컬에서 다시 계산했으므로, S3에 있는 캐시도 최신으로 갱신한다.
+        if settings.data_s3_bucket and settings.policy_embedding_cache_s3_key:
+            client = get_s3_client(settings.data_s3_public)
+            upload_file(
+                settings.policy_embedding_cache, settings.data_s3_bucket,
+                settings.policy_embedding_cache_s3_key, client, label="SearchService",
+            )
 
     def search_policy_svc(self, query_text: str, top_k: int = None) -> list[dict]:
         if not query_text.strip() or not self.policies:
