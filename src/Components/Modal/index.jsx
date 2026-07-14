@@ -1,4 +1,4 @@
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 290, maxHeight = '70%' }) {
   if (!isOpen) return null;
 
   return (
@@ -6,7 +6,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div
         className="relative bg-white rounded-2xl"
-        style={{ width: '100%', maxWidth: 290, maxHeight: '70%', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
+        style={{ width: '100%', maxWidth, maxHeight, display: 'flex', flexDirection: 'column', boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
       >
         <div style={{ padding: '20px 20px 4px', overflowY: 'auto' }}>
           {title && <h2 className="text-[15px] font-bold text-gray-900 mb-3 text-center">{title}</h2>}

@@ -2,15 +2,26 @@ import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
-const MOCK_FEATURED = {
-  title: '청년 내일저축계좌',
-  description: '최대 1,440만원 지원',
-  deadline: '~2024.12.31',
-};
+function mapPolicy(p) {
+  return {
+    policy_id: p.policy_id,
+    plcyNo: p.plcyNo,
+    policy_name: p.plcyNm,
+    aplyYmd: p.aplyYmd,
+    policy_summary: p.policy_summary,
+    apply_period_type: p.apply_period_type,
+    apply_period: p.apply_period,
+    target: p.target,
+    maxSprtAmt: p.maxSprtAmt,
+    aplyEndDt: p.aplyEndDt,
+    banner_reason: p.banner_reason,
+  };
+}
 
 export default function useHome() {
   const [benefits, setBenefits] = useState([]);
-  const [featured, setFeatured] = useState(null);
+  const [banner, setBanner] = useState([]);
+  const [bannerLoading, setBannerLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
 
@@ -28,17 +39,7 @@ export default function useHome() {
     api.get('/policies/?limit=3&sort=popular')
       .then((data) => {
         if (ignore) return;
-        setBenefits((data || []).map((p) => ({
-          policy_id: p.policy_id,
-          plcyNo: p.plcyNo,
-          policy_name: p.plcyNm,
-          aplyYmd: p.aplyYmd,
-          policy_summary: p.policy_summary,
-          apply_period_type: p.apply_period_type,
-          apply_period: p.apply_period,
-          target: p.target,
-        })));
-        setFeatured(MOCK_FEATURED);
+        setBenefits((data || []).map(mapPolicy));
       })
       .catch(() => {
         if (!ignore) setBenefits([]);
@@ -47,10 +48,25 @@ export default function useHome() {
         if (!ignore) setLoading(false);
       });
 
+    api.get('/policies/home-banner')
+      .then((data) => {
+        if (ignore) return;
+        setBanner((data || []).map(mapPolicy));
+      })
+      .catch(() => {
+        if (!ignore) setBanner([]);
+      })
+      .finally(() => {
+        if (!ignore) setBannerLoading(false);
+      });
+
     return () => { ignore = true; };
   }, []);
 
   const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();
 
-  return { benefits, featured, loading, userName, selectedPolicy, policyLoading, openPolicy, closePolicy };
+  return {
+    benefits, banner, bannerLoading, loading, userName,
+    selectedPolicy, policyLoading, openPolicy, closePolicy,
+  };
 }

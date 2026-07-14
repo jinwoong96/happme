@@ -1,9 +1,44 @@
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, RefreshCw, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
 import useHome from '../../hooks/useHome';
 import useBookmarks from '../../hooks/useBookmarks';
 import PolicyCard from '../../Components/PolicyCard';
 import PolicyDetailModal from '../../Components/PolicyDetailModal';
+
+const BANNER_REASON_LABEL = {
+  amount: '지원금액 높은 정책',
+  deadline: '마감임박',
+  latest: '최근 등록',
+};
+
+function formatWon(amount) {
+  if (amount == null) return null;
+  if (amount >= 100_000_000) {
+    const eok = amount / 100_000_000;
+    return `최대 ${Number.isInteger(eok) ? eok : eok.toFixed(1)}억원 지원`;
+  }
+  if (amount >= 10_000) {
+    return `최대 ${Math.round(amount / 10_000).toLocaleString()}만원 지원`;
+  }
+  return `최대 ${amount.toLocaleString()}원 지원`;
+}
+
+function formatDeadline(aplyEndDt) {
+  if (!aplyEndDt) return null;
+  const end = new Date(aplyEndDt);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+  return diffDays >= 0 ? `D-${diffDays}` : '마감';
+}
+
+// 배너는 지원금액이 있는 정책만 모으므로, 금액을 기본으로 보여주고 마감 여부(상시/D-n)를 덧붙인다.
+function getBannerDetail(item) {
+  const amountText = item.maxSprtAmt != null ? formatWon(item.maxSprtAmt) : null;
+  const deadlineText = item.aplyEndDt ? formatDeadline(item.aplyEndDt) : '상시';
+  return amountText ? `${amountText} · ${deadlineText}` : deadlineText;
+}
 
 const MENU = [
   { label: '전체보기', path: '/category', Icon: List },
@@ -20,9 +55,20 @@ function getBadge(policy) {
 }
 
 export default function HomePage() {
-  const { benefits, featured, loading, userName, selectedPolicy, policyLoading, openPolicy, closePolicy } = useHome();
+  const {
+    benefits, banner, bannerLoading, loading, userName,
+    selectedPolicy, policyLoading, openPolicy, closePolicy,
+  } = useHome();
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
+  const bannerScrollRef = useRef(null);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  const handleBannerScroll = () => {
+    const el = bannerScrollRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setActiveBannerIndex(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>
@@ -42,27 +88,61 @@ export default function HomePage() {
       </div>
 
       <div style={{ padding: '16px 20px 24px' }}>
-        {/* 배너 */}
-        {featured && (
-          <div
-            style={{
-              background: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-              borderRadius: 22,
-              padding: 22,
-              marginBottom: 16,
-              boxShadow: '0 8px 24px rgba(59,130,246,0.30)',
-            }}
-          >
-            <p className="text-[12px] text-white/75 font-medium">이번 달 추천 정책</p>
-            <p className="mt-1.5 mb-1 text-[20px] font-extrabold text-white">{featured.title}</p>
-            <p className="text-[13px] text-white/85">{featured.description} · {featured.deadline}</p>
-            <button
-              onClick={() => navigate('/category')}
-              className="mt-4 flex items-center gap-1 text-white text-[13px] font-semibold cursor-pointer"
-              style={{ padding: '8px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.2)', border: 'none' }}
+        {/* 배너: 지원금액 높은 순 / 마감임박 / 최신 등록 정책을 옆으로 넘겨가며 보여준다 */}
+        {!bannerLoading && banner.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div
+              ref={bannerScrollRef}
+              onScroll={handleBannerScroll}
+              className="flex overflow-x-auto no-scrollbar"
+              style={{ scrollSnapType: 'x mandatory' }}
             >
-              자세히 보기 <ChevronRight size={14} />
-            </button>
+              {banner.map((item) => (
+                <div
+                  key={item.policy_id}
+                  onClick={() => openPolicy(item.policy_id, item.policy_name, isBookmarked(item.policy_id))}
+                  style={{
+                    flex: '0 0 100%',
+                    scrollSnapAlign: 'start',
+                    background: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+                    borderRadius: 22,
+                    padding: 22,
+                    boxShadow: '0 8px 24px rgba(59,130,246,0.30)',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <span
+                    className="text-[11px] font-semibold text-white"
+                    style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.25)' }}
+                  >
+                    {BANNER_REASON_LABEL[item.banner_reason] || '이번 달 추천 정책'}
+                  </span>
+                  <p className="mt-2 mb-1 text-[18px] font-extrabold text-white line-clamp-1">{item.policy_name}</p>
+                  <p className="text-[13px] text-white/85 line-clamp-1">{getBannerDetail(item)}</p>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openPolicy(item.policy_id, item.policy_name, isBookmarked(item.policy_id)); }}
+                    className="mt-4 flex items-center gap-1 text-white text-[13px] font-semibold cursor-pointer"
+                    style={{ padding: '8px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.2)', border: 'none' }}
+                  >
+                    자세히 보기 <ChevronRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center items-center gap-1.5" style={{ marginTop: 10 }}>
+              {banner.map((_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    width: i === activeBannerIndex ? 16 : 6, height: 6, borderRadius: 999,
+                    backgroundColor: i === activeBannerIndex ? '#3b82f6' : '#e5e7eb',
+                    transition: 'all 0.2s',
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
 
