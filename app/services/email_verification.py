@@ -17,9 +17,9 @@ def _generate_code() -> str:
 
 
 def _send_email(to_email: str, code: str) -> None:
-    subject = "[BENE] 이메일 인증번호 안내"
+    subject = "[happ:me] 이메일 인증번호 안내"
     body = (
-        f"안녕하세요, BENE 입니다.\n\n"
+        f"안녕하세요, happ:me 입니다.\n\n"
         f"요청하신 인증번호는 [{code}] 입니다.\n"
         f"인증번호는 발급 후 {settings.email_code_expire_seconds // 60}분간 유효합니다.\n\n"
         f"본인이 요청하지 않았다면 이 메일을 무시해주세요."
