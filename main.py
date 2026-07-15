@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import asynccontextmanager
 from app.core.model_downloader import ensure_models_downloaded
+from app.core.data_downloader import ensure_data_downloaded
 
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
@@ -37,6 +38,7 @@ async def lifespan(app: FastAPI):
     print("[bene_ai] 모델 로드 시작...")
 
     ensure_models_downloaded()  # 로컬에 없으면 S3에서 자동 다운로드
+    ensure_data_downloaded()  # 정책 원본/임베딩 캐시가 로컬에 없으면 S3에서 자동 다운로드
 
     detection_service = DetectionService()
     ocr_service = OcrService()

@@ -1,11 +1,13 @@
 import os
 import re
 import json
+import hashlib
 
 import numpy as np
 import fitz
 
 from app.core.settings import settings
+from app.core.s3_utils import get_s3_client, upload_file
 
 
 class PdfSummaryService:
@@ -77,20 +79,37 @@ class PdfSummaryService:
 
         return names, texts, institutions, by_name
 
+    @staticmethod
+    def _file_content_hash(path: str) -> str:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+
     def _load_or_encode_db(self):
-        json_mtime = os.path.getmtime(settings.policy_summary_json_path)
+        # S3에서 새로 받은 파일은 내용이 같아도 mtime이 "지금 막 받은 시각"으로 바뀌어버려서
+        # mtime 비교로는 캐시가 매번 무효화된다. 내용 해시로 비교하면 다운로드 시점과
+        # 무관하게 원본이 실제로 바뀌었는지만 정확히 판단할 수 있다.
+        content_hash = self._file_content_hash(settings.policy_summary_json_path)
         cache_path = settings.policy_summary_embed_cache
 
         if os.path.exists(cache_path):
             cache = np.load(cache_path)
-            if cache["json_mtime"] == json_mtime and int(cache["count"]) == len(self.policy_texts):
+            if "content_hash" in cache.files and str(cache["content_hash"]) == content_hash \
+                    and int(cache["count"]) == len(self.policy_texts):
                 print("[PdfSummaryService] 캐시된 임베딩 재사용")
                 return cache["embeddings"]
 
         print(f"[PdfSummaryService] 정책 {len(self.policy_texts)}개 벡터화 중...")
         prefixed = [f"passage: {t}" for t in self.policy_texts]
         embeddings = self.embed_model.encode(prefixed, batch_size=64, show_progress_bar=True)
-        np.savez(cache_path, embeddings=embeddings, json_mtime=json_mtime, count=len(self.policy_texts))
+        np.savez(cache_path, embeddings=embeddings, content_hash=content_hash, count=len(self.policy_texts))
+
+        # 원본 JSON이 더 최신이라 방금 로컬에서 다시 계산했으므로, S3에 있는 캐시도 최신으로 갱신한다.
+        if settings.data_s3_bucket and settings.policy_summary_embed_cache_s3_key:
+            client = get_s3_client(settings.data_s3_public)
+            upload_file(
+                cache_path, settings.data_s3_bucket,
+                settings.policy_summary_embed_cache_s3_key, client, label="PdfSummaryService",
+            )
         return embeddings
 
     # ---------- 공용 함수 (WebSummaryService도 재사용) ----------
