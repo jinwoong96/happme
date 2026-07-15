@@ -69,6 +69,7 @@ class Settings(BaseSettings):
 
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
+    ocr_device: str = Field("cpu", alias="OCR_DEVICE")
     ocr_min_score: float = Field(0.5, alias="OCR_MIN_SCORE")
     # 공고문 이미지 판별용 최소 추출 텍스트 길이 (이보다 짧으면 "텍스트 추출 실패"로 처리)
     ocr_min_text_length: int = Field(5, alias="OCR_MIN_TEXT_LENGTH")
