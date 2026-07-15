@@ -100,7 +100,7 @@ export default function PolicyDetailModal({ selectedPolicy, policyLoading, isBoo
                 fill={isBookmarked ? '#3b82f6' : 'none'}
               />
               <span className="text-[13px] font-semibold" style={{ color: isBookmarked ? '#3b82f6' : '#6b7280' }}>
-                {isBookmarked ? '즐겨찾기 됨' : '즐겨찾기 추가'}
+                {isBookmarked ? '즐겨찾기' : '즐겨찾기 추가'}
               </span>
             </button>
             {deadlineBadge && (

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, RefreshCw, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
 import useHome from '../../hooks/useHome';
@@ -46,7 +46,7 @@ const MENU = [
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
   { label: '지원금알림', path: '/notification', Icon: BellRing },
-  { label: '지역혜택', path: '/region', Icon: Bookmark },
+  { label: '지역프로그램', path: '/region', Icon: Bookmark },
 ];
 
 // 홈에서는 신청 가능 여부를 판정하지 않고 정책을 그대로 보여주므로, 상시 여부만 배지로 표시한다.
@@ -69,6 +69,25 @@ export default function HomePage() {
     if (!el || el.clientWidth === 0) return;
     setActiveBannerIndex(Math.round(el.scrollLeft / el.clientWidth));
   };
+
+  // 5초마다 자동으로 다음 배너로 슬라이드하고, 마지막이면 처음으로 돌아간다.
+  // activeBannerIndex가 바뀔 때마다(자동이든, 사용자가 직접 넘기든) 타이머를 새로 시작한다.
+  useEffect(() => {
+    if (banner.length <= 1) return;
+
+    const timer = setInterval(() => {
+      const el = bannerScrollRef.current;
+      if (!el || el.clientWidth === 0) return;
+
+      setActiveBannerIndex((prev) => {
+        const next = (prev + 1) % banner.length;
+        el.scrollTo({ left: next * el.clientWidth, behavior: 'smooth' });
+        return next;
+      });
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [banner.length, activeBannerIndex]);
 
   return (
     <div style={{ backgroundColor: '#f5f6fa' }}>

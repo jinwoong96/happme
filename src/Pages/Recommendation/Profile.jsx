@@ -1,5 +1,6 @@
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, UserPen } from 'lucide-react';
+import { ChevronLeft, ChevronUp, UserPen } from 'lucide-react';
 import useRecommendationProfile from '../../hooks/useRecommendationProfile';
 import { ToggleGroup } from '../../Components/ChoiceButtons';
 import { REGIONS } from '../../data/regions';
@@ -119,6 +120,16 @@ function Textarea({ value, onChange, placeholder }) {
 export default function RecommendationProfilePage() {
   const navigate = useNavigate();
   const { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile } = useRecommendationProfile();
+  const scrollRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleScroll = (e) => {
+    setShowScrollTop(e.target.scrollTop > 200);
+  };
+
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (loading) {
     return (
@@ -131,7 +142,7 @@ export default function RecommendationProfilePage() {
   const set = (field) => (value) => handleChange(field, value);
 
   return (
-    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
@@ -150,7 +161,7 @@ export default function RecommendationProfilePage() {
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
+      <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 24px' }}>
         <div className="flex gap-3 bg-blue-50 rounded-2xl mb-5" style={{ padding: '14px 16px' }}>
           <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <UserPen size={18} color="#fff" />
@@ -276,6 +287,20 @@ export default function RecommendationProfilePage() {
           </button>
         </form>
       </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'absolute', right: 20, bottom: 20, width: 44, height: 44,
+            borderRadius: '50%', border: 'none', backgroundColor: '#3b82f6', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+          }}
+        >
+          <ChevronUp size={22} />
+        </button>
+      )}
     </div>
   );
 }

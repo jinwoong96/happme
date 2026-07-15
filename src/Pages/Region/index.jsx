@@ -1,4 +1,5 @@
-import { ChevronLeft, MapPin, ChevronDown, ChevronRight, ExternalLink, Bookmark } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { ChevronLeft, ChevronUp, MapPin, ChevronDown, ChevronRight, ExternalLink, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useRegion from '../../hooks/useRegion';
 import useBookmarks from '../../hooks/useBookmarks';
@@ -24,11 +25,21 @@ export default function RegionPage() {
   } = useRegion();
   const { isLocalProgramBookmarked, toggleLocalProgramBookmark } = useBookmarks();
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const allStatuses = Object.keys(statusFilter);
 
+  const handleScroll = (e) => {
+    setShowScrollTop(e.target.scrollTop > 200);
+  };
+
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div style={{ backgroundColor: '#f5f6fa' }}>
+    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
@@ -36,6 +47,7 @@ export default function RegionPage() {
         <p className="text-[20px] font-extrabold text-gray-900">근처 프로그램 찾기</p>
       </div>
 
+      <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto' }}>
       <div className="bg-white" style={{ padding: '0 20px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input
           type="text"
@@ -206,6 +218,21 @@ export default function RegionPage() {
           })
         )}
       </div>
+      </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'absolute', right: 20, bottom: 20, width: 44, height: 44,
+            borderRadius: '50%', border: 'none', backgroundColor: '#3b82f6', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+          }}
+        >
+          <ChevronUp size={22} />
+        </button>
+      )}
     </div>
   );
 }

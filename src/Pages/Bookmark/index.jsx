@@ -1,8 +1,25 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink, Scale } from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
+import usePolicyDetail from '../../hooks/usePolicyDetail';
+import { api } from '../../utils/api';
 import Modal from '../../Components/Modal';
+import PolicyDetailModal from '../../Components/PolicyDetailModal';
+
+function getApplyPeriodText(p) {
+  if (p.apply_period_type === '상시') return '상시';
+  if (p.apply_period) return p.apply_period;
+  if (p.aplyYmd) return p.aplyYmd;
+  return null;
+}
+
+const COMPARE_ROWS = [
+  { label: '지원대상', getValue: (p) => p.ptcpPrpTrgtCn },
+  { label: '신청기간', getValue: getApplyPeriodText },
+  { label: '지원내용', getValue: (p) => p.plcySprtCn, clamp: true },
+  { label: '신청방법', getValue: (p) => p.plcyAplyMthdCn },
+];
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -17,12 +34,38 @@ function buildCalendarCells(year, month) {
   return cells;
 }
 
-function BookmarkItemCard({ item, onRemove }) {
+function BookmarkItemCard({ item, onRemove, onOpen, comparisonMode, isChecked, onToggleCheck }) {
+  const isPolicy = !!item.policy_id;
+  const handleCardClick = () => {
+    if (!isPolicy) return;
+    if (comparisonMode) {
+      onToggleCheck(item.policy_id);
+    } else {
+      onOpen(item);
+    }
+  };
+
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+    <div
+      onClick={isPolicy ? handleCardClick : undefined}
+      style={{
+        backgroundColor: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+        cursor: isPolicy ? 'pointer' : 'default',
+      }}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
+          {comparisonMode && isPolicy ? (
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => onToggleCheck(item.policy_id)}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: 15, height: 15, flexShrink: 0, cursor: 'pointer' }}
+            />
+          ) : (
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
+          )}
           <p className="text-[14px] font-bold text-gray-900">{item.plcyNm}</p>
         </div>
         <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
@@ -39,7 +82,7 @@ function BookmarkItemCard({ item, onRemove }) {
             </span>
           )}
           <button
-            onClick={() => onRemove(item.bookmark_id)}
+            onClick={(e) => { e.stopPropagation(); onRemove(item.bookmark_id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
           >
             <Bookmark size={18} color="#3b82f6" fill="#3b82f6" />
@@ -61,6 +104,7 @@ function BookmarkItemCard({ item, onRemove }) {
           href={item.applyUrl}
           target="_blank"
           rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
           className="flex items-center gap-1"
           style={{ marginTop: 8, marginLeft: 16, fontSize: 12, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}
         >
@@ -74,15 +118,79 @@ function BookmarkItemCard({ item, onRemove }) {
 export default function BookmarkPage() {
   const navigate = useNavigate();
   const { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey, removeBookmark } = useBookmark();
+  const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();
   const [searchOpen, setSearchOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedDate, setSelectedDate] = useState(null); // "YYYY-MM-DD" | null
   const [hideExpired, setHideExpired] = useState(false);
   const [expiredOpen, setExpiredOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'policy' | 'local_program'
+  const legendScrollRef = useRef(null);
+  const [activeLegendPage, setActiveLegendPage] = useState(0);
+  const pageScrollRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState([]);
+  const [compareItems, setCompareItems] = useState(null); // 비교 모달에 띄울 정책 상세 배열 | null
+  const [compareLoading, setCompareLoading] = useState(false);
+
+  const MAX_COMPARE = 3;
+
+  const handleToggleComparisonMode = () => {
+    if (comparisonMode) {
+      setComparisonMode(false);
+      setSelectedForCompare([]);
+    } else {
+      setComparisonMode(true);
+      setTypeFilter('policy');
+      setSelectedForCompare([]);
+    }
+  };
+
+  const handleToggleCompareCheck = (policyId) => {
+    setSelectedForCompare((prev) => {
+      if (prev.includes(policyId)) return prev.filter((id) => id !== policyId);
+      if (prev.length >= MAX_COMPARE) return prev;
+      return [...prev, policyId];
+    });
+  };
+
+  const handleStartCompare = async () => {
+    setCompareLoading(true);
+    try {
+      const results = await Promise.all(
+        selectedForCompare.map((id) => api.get(`/policies/${id}`))
+      );
+      setCompareItems(results);
+    } catch {
+      setCompareItems([]);
+    } finally {
+      setCompareLoading(false);
+    }
+  };
+
+  const closeCompareModal = () => setCompareItems(null);
+
+  const handlePageScroll = (e) => {
+    setShowScrollTop(e.target.scrollTop > 200);
+  };
+
+  const scrollToTop = () => {
+    pageScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLegendScroll = () => {
+    const el = legendScrollRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setActiveLegendPage(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
   const cells = buildCalendarCells(cursor.year, cursor.month);
   const selectedDots = selectedDate ? (dotsByDate[selectedDate] || []) : [];
+  const legendPages = [];
+  for (let i = 0; i < legend.length; i += 10) {
+    legendPages.push(legend.slice(i, i + 7));
+  }
   const isExpired = (item) => item.dday !== null && item.dday < 0;
   const matchesType = (item) => {
     if (typeFilter === 'policy') return !!item.policy_id;
@@ -95,17 +203,32 @@ export default function BookmarkPage() {
   const activeItems = searchedItems.filter((item) => !isExpired(item));
   const expiredItems = searchedItems.filter(isExpired);
 
+  const handleOpenPolicy = (item) => openPolicy(item.policy_id, item.plcyNm, true);
+
+  const handleOpenPolicyFromCompare = (p) => {
+    setCompareItems(null);
+    openPolicy(p.policy_id, p.plcyNm, true);
+  };
+
+  const handleUnbookmarkFromModal = () => {
+    const matched = items.find((item) => item.policy_id === selectedPolicy?.policy_id);
+    if (matched) removeBookmark(matched.bookmark_id);
+    closePolicy();
+  };
+
   return (
-    <div style={{ backgroundColor: '#f5f6fa' }}>
+    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">내 지원금 캘린더</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">즐겨찾기</p>
         <button onClick={() => setSearchOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Search size={20} color="#555" />
         </button>
       </div>
+
+      <div ref={pageScrollRef} onScroll={handlePageScroll} style={{ flex: 1, overflowY: 'auto' }}>
 
       {searchOpen && (
         <div className="bg-white" style={{ padding: '0 20px 16px', position: 'relative' }}>
@@ -193,13 +316,43 @@ export default function BookmarkPage() {
           </div>
 
           {legend.length > 0 && (
-            <div className="flex flex-wrap items-center" style={{ gap: '6px 14px', marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
-              {legend.map((l) => (
-                <div key={l.policyId} className="flex items-center gap-1.5">
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: l.color, flexShrink: 0 }} />
-                  <span className="text-[11px] text-gray-500 font-medium">{l.name}</span>
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
+              <div
+                ref={legendScrollRef}
+                onScroll={handleLegendScroll}
+                className="flex overflow-x-auto no-scrollbar"
+                style={{ scrollSnapType: 'x mandatory' }}
+              >
+                {legendPages.map((page, pageIndex) => (
+                  <div
+                    key={pageIndex}
+                    className="flex flex-col"
+                    style={{ flex: '0 0 100%', scrollSnapAlign: 'start', gap: 8, boxSizing: 'border-box' }}
+                  >
+                    {page.map((l) => (
+                      <div key={l.policyId} className="flex items-center gap-1.5">
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: l.color, flexShrink: 0 }} />
+                        <span className="text-[11px] text-gray-500 font-medium">{l.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {legendPages.length > 1 && (
+                <div className="flex justify-center items-center gap-1.5" style={{ marginTop: 10 }}>
+                  {legendPages.map((_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: i === activeLegendPage ? 16 : 6, height: 6, borderRadius: 999,
+                        backgroundColor: i === activeLegendPage ? '#3b82f6' : '#e5e7eb',
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
@@ -242,7 +395,38 @@ export default function BookmarkPage() {
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={handleToggleComparisonMode}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                backgroundColor: comparisonMode ? '#3b82f6' : '#fff',
+                color: comparisonMode ? '#fff' : '#6b7280',
+                fontSize: 12, fontWeight: 700,
+                boxShadow: comparisonMode ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+              }}
+            >
+              <Scale size={13} />
+              {comparisonMode ? '취소' : '비교하기'}
+            </button>
           </div>
+
+          {comparisonMode && (
+            <button
+              onClick={handleStartCompare}
+              disabled={selectedForCompare.length < 2 || compareLoading}
+              style={{
+                marginTop: 8, width: '100%', padding: '10px', borderRadius: 12, border: 'none',
+                backgroundColor: selectedForCompare.length >= 2 ? '#3b82f6' : '#e5e7eb',
+                color: selectedForCompare.length >= 2 ? '#fff' : '#9ca3af',
+                fontSize: 13, fontWeight: 700,
+                cursor: selectedForCompare.length >= 2 ? 'pointer' : 'default',
+              }}
+            >
+              {compareLoading ? '불러오는 중...' : `선택한 ${selectedForCompare.length}개 비교하기`}
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col gap-2.5">
@@ -255,7 +439,15 @@ export default function BookmarkPage() {
           ) : (
             <>
               {activeItems.map((item) => (
-                <BookmarkItemCard key={item.bookmark_id} item={item} onRemove={removeBookmark} />
+                <BookmarkItemCard
+                  key={item.bookmark_id}
+                  item={item}
+                  onRemove={removeBookmark}
+                  onOpen={handleOpenPolicy}
+                  comparisonMode={comparisonMode}
+                  isChecked={selectedForCompare.includes(item.policy_id)}
+                  onToggleCheck={handleToggleCompareCheck}
+                />
               ))}
 
               {!hideExpired && expiredItems.length > 0 && (
@@ -275,7 +467,15 @@ export default function BookmarkPage() {
                   {expiredOpen && (
                     <div className="flex flex-col gap-2.5">
                       {expiredItems.map((item) => (
-                        <BookmarkItemCard key={item.bookmark_id} item={item} onRemove={removeBookmark} />
+                        <BookmarkItemCard
+                  key={item.bookmark_id}
+                  item={item}
+                  onRemove={removeBookmark}
+                  onOpen={handleOpenPolicy}
+                  comparisonMode={comparisonMode}
+                  isChecked={selectedForCompare.includes(item.policy_id)}
+                  onToggleCheck={handleToggleCompareCheck}
+                />
                       ))}
                     </div>
                   )}
@@ -285,6 +485,21 @@ export default function BookmarkPage() {
           )}
         </div>
       </div>
+      </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'absolute', right: 20, bottom: 20, width: 44, height: 44,
+            borderRadius: '50%', border: 'none', backgroundColor: '#3b82f6', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+          }}
+        >
+          <ChevronUp size={22} />
+        </button>
+      )}
 
       <Modal
         isOpen={!!selectedDate}
@@ -308,6 +523,55 @@ export default function BookmarkPage() {
             </div>
           ))}
         </div>
+      </Modal>
+
+      <PolicyDetailModal
+        selectedPolicy={selectedPolicy}
+        policyLoading={policyLoading}
+        isBookmarked={true}
+        onToggleBookmark={handleUnbookmarkFromModal}
+        onClose={closePolicy}
+      />
+
+      <Modal isOpen={!!compareItems} onClose={closeCompareModal} title="정책 비교">
+        {compareItems && compareItems.length > 0 && (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: 12, minWidth: compareItems.length * 220 }}>
+              {compareItems.map((p, i) => (
+                <div
+                  key={p.policy_id}
+                  style={{
+                    flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: 12,
+                    borderLeft: i > 0 ? '1px solid #f3f4f6' : 'none', paddingLeft: i > 0 ? 12 : 0,
+                  }}
+                >
+                  <p className="text-[13px] font-bold text-gray-900" style={{ minHeight: 34, margin: 0 }}>{p.plcyNm}</p>
+                  {COMPARE_ROWS.map((row) => (
+                    <div key={row.label}>
+                      <p className="text-[11px] font-semibold text-blue-500" style={{ margin: '0 0 2px' }}>{row.label}</p>
+                      <p
+                        className="text-[12px] text-gray-600"
+                        style={{
+                          margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line',
+                          ...(row.clamp ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}),
+                        }}
+                      >
+                        {row.getValue(p) || '정보 없음'}
+                      </p>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => handleOpenPolicyFromCompare(p)}
+                    className="flex items-center gap-1"
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#3b82f6' }}
+                  >
+                    자세히 보기 <ExternalLink size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

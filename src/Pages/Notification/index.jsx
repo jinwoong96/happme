@@ -1,13 +1,24 @@
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft, ChevronUp, Search } from 'lucide-react';
 import useNotification from '../../hooks/useNotification';
 
 export default function NotificationPage() {
   const { filtered, search, setSearch, toggle, loading, isEmpty } = useNotification();
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleScroll = (e) => {
+    setShowScrollTop(e.target.scrollTop > 200);
+  };
+
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
@@ -29,7 +40,7 @@ export default function NotificationPage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#fff' }}>
+      <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', backgroundColor: '#fff' }}>
         {loading
           ? <div className="text-center py-10 text-[13px] text-gray-400">불러오는 중...</div>
           : isEmpty
@@ -64,6 +75,20 @@ export default function NotificationPage() {
           ))
         }
       </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'absolute', right: 20, bottom: 20, width: 44, height: 44,
+            borderRadius: '50%', border: 'none', backgroundColor: '#3b82f6', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+          }}
+        >
+          <ChevronUp size={22} />
+        </button>
+      )}
     </div>
   );
 }
