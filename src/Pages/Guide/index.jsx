@@ -15,6 +15,24 @@ const STEPS = [
     title: '2. 조건 입력하고 추천받기',
     desc: '간단한 정보를 입력하면 나에게 맞는 정책을 추천해줘요.',
   },
+  {
+    type: 'image',
+    src: '/메인화면_맞춤추천2.png',
+    title: '3. AI 분석 시작하기',
+    desc: '입력한 내용을 확인하고 AI 분석 시작 버튼을 눌러주세요.',
+  },
+  {
+    type: 'image',
+    src: '/메인화면_맞춤추천3.png',
+    title: '4. 추천 결과 확인하기',
+    desc: '조건에 맞는 정책들을 추천 결과에서 확인할 수 있어요.',
+  },
+  {
+    type: 'video',
+    src: '/이용가이드3.mp4',
+    title: '5. 소득 조건 확인하기',
+    desc: '소득계산 버튼을 누르면 내가 지원 가능한지 바로 확인할 수 있어요.',
+  },
 ];
 
 export default function GuidePage() {
@@ -47,7 +65,15 @@ export default function GuidePage() {
             {current.type === 'image' ? (
               <img src={current.src} alt={current.title} style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
             ) : (
-              <video key={current.src} src={current.src} controls autoPlay style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
+              <video
+                key={current.src}
+                src={current.src}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }}
+              />
             )}
           </div>
 
