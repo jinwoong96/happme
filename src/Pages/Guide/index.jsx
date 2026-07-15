@@ -47,7 +47,15 @@ export default function GuidePage() {
             {current.type === 'image' ? (
               <img src={current.src} alt={current.title} style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
             ) : (
-              <video key={current.src} src={current.src} controls autoPlay style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }} />
+              <video
+                key={current.src}
+                src={current.src}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }}
+              />
             )}
           </div>
 
