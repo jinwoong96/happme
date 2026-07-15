@@ -256,7 +256,7 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
               먼저 훑어보라고 맨 위에 둔다. 정책설명·필요서류·신청방법처럼
               텍스트가 긴 항목은 아래 "자세히 보기" 뒤로 미룬다. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <IconRow icon={<Info size={16} />} label={null} value={explanationLine} singleLine />
+            <IconRow icon={<Info size={16} />} label={null} value={explanationLine} />
             <IconRow icon={<User size={16} />} label="지원 대상" value={formatAge(match.sprtTrgtMinAge, match.sprtTrgtMaxAge)} />
             <IconRow icon={<Calendar size={16} />} label="신청 기간" value={match.aplyYmd} />
             <IconRow icon={<FileText size={16} />} label={null} value={supportPreview} />
@@ -490,5 +490,5 @@ export default function OCRPage() {
         )}
       </div>
     </div>
-  )
-};
+  );
+}
