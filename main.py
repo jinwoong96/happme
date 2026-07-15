@@ -55,6 +55,7 @@ app.add_middleware(
         "http://localhost:4173",
         "https://sub-m2com.com",
         "https://www.sub-m2com.com", 
+        "https://admin.sub-m2com.com",
     ],
     allow_origin_regex=r"https://.*\.ngrok-free\.app",
     allow_credentials=True,
