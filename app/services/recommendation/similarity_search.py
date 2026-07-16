@@ -29,6 +29,16 @@ class PolicySimilarityService:
         with open(Path(path), encoding="utf-8") as f:
             return json.load(f)
 
+    def known_plcynos(self) -> set[str]:
+        return set(self._plcyno_index.keys())
+
+    def refresh(self, docs: list[dict], embeddings: np.ndarray) -> None:
+        """search_docs_builder가 새 정책 문서/임베딩을 운영 파일에 이어붙인 뒤, 서버 재시작 없이
+        바로 검색에 반영되도록 메모리 상태를 갱신할 때 쓴다."""
+        self.policy_docs = docs
+        self.embeddings = embeddings
+        self._plcyno_index = {str(doc.get("policy_id")): idx for idx, doc in enumerate(docs)}
+
     def _encode_query(self, query_text: str) -> np.ndarray:
         return self.model.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)[0]
 

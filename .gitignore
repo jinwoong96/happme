@@ -11,8 +11,7 @@ policy_summary_embeddings_cache.npz
 tmp_uploads
 
 # S3로 이전한 정책 원본/정적 임베딩 (없으면 서버 시작 시 자동 다운로드)
-ontongAPI.json
-data/ontongAPI.json
+data/policy_list.json
 data/policy_search_docs.json
 data/embeddings/search_docs_full_text_embeddings.npy
 data/zipcd_mapping.csv

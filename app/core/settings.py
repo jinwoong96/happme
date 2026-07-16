@@ -27,18 +27,15 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = Field(10, alias="MAX_UPLOAD_SIZE_MB")
     max_image_pixels: int = Field(20_000_000, alias="MAX_IMAGE_PIXELS")  # 약 20MP
 
-    # 정책 파일 경로(임시)
-    policy_json_path: str = Field("./data/ontongAPI.json", alias="POLICY_JSON_PATH")
-
     # 사전 계산된 임베딩/정책 원본 파일 S3 자동 다운로드 (git에는 올리지 않고, 서버 시작 시
     # 없으면 내려받음). DATA_S3_BUCKET이 비어있으면 다운로드를 건너뛰고 로컬 파일을 그대로
     # 사용합니다. policy_embedding_cache/policy_summary_embed_cache는 원본(DB/JSON)이 더
     # 최신이라 로컬에서 재계산되면, 그 결과를 다시 S3에 업로드해 다음 배포부터 최신 캐시를
-    # 받아가도록 합니다. 나머지(정책 원본 JSON, 유사도 검색용 정적 임베딩 등)는 앱 안에
-    # 재계산 로직이 없는 정적 자산이라 다운로드만 합니다.
+    # 받아가도록 합니다. 나머지(유사도 검색용 정적 임베딩 등)는 앱 안에 재계산 로직이 없는
+    # 정적 자산이라 다운로드만 합니다.
+    # (정책 원본 JSON은 PolicyLoaderService가 이제 DB를 직접 조회해서 더 이상 안 씁니다.)
     data_s3_bucket: str = Field("", alias="DATA_S3_BUCKET")
     data_s3_public: bool = Field(False, alias="DATA_S3_PUBLIC")
-    policy_json_s3_key: str = Field("", alias="POLICY_JSON_S3_KEY")
     zipcd_mapping_s3_key: str = Field("", alias="ZIPCD_MAPPING_S3_KEY")
     similarity_docs_s3_key: str = Field("", alias="SIMILARITY_DOCS_S3_KEY")
     similarity_embeddings_s3_key: str = Field("", alias="SIMILARITY_EMBEDDINGS_S3_KEY")
