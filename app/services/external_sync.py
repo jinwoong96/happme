@@ -26,6 +26,7 @@
 """
 
 import asyncio
+import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -67,26 +68,32 @@ def _steps_by_chain() -> dict:
     return chains
 
 
-async def _run_script(script: str, timeout: int) -> tuple[bool, str]:
+def _run_script_blocking(script: str, timeout: int) -> tuple[bool, str]:
+    """
+    asyncio.create_subprocess_exec는 Windows에서 uvicorn이 기본으로 쓰는
+    이벤트 루프(SelectorEventLoop)와 맞지 않아 NotImplementedError를 던진다
+    (asyncio 서브프로세스는 ProactorEventLoop가 필요함). 리눅스/윈도우 어디서든
+    안전하게 동작하도록 일반 subprocess.run을 스레드에서 돌리는 방식으로 우회한다.
+    """
     try:
-        proc = await asyncio.create_subprocess_exec(
-            sys.executable, script,
+        result = subprocess.run(
+            [sys.executable, script],
             cwd=str(BACKEND_DIR),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
         )
+        text = result.stdout.decode("utf-8", errors="replace")
+        return result.returncode == 0, text[-_OUTPUT_TAIL_CHARS:]
+    except subprocess.TimeoutExpired as e:
+        partial = (e.stdout or b"").decode("utf-8", errors="replace")
+        return False, f"{script} 실행이 {timeout}초를 넘겨 중단했습니다.\n{partial[-_OUTPUT_TAIL_CHARS:]}"
     except OSError as e:
         return False, f"{script} 실행 실패: {e}"
 
-    try:
-        out, _ = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-    except asyncio.TimeoutError:
-        proc.kill()
-        await proc.wait()
-        return False, f"{script} 실행이 {timeout}초를 넘겨 중단했습니다."
 
-    text = out.decode("utf-8", errors="replace")
-    return proc.returncode == 0, text[-_OUTPUT_TAIL_CHARS:]
+async def _run_script(script: str, timeout: int) -> tuple[bool, str]:
+    return await asyncio.to_thread(_run_script_blocking, script, timeout)
 
 
 async def run_refresh_all():
@@ -107,7 +114,10 @@ async def run_refresh_all():
                     step["status"] = "skipped"
                     continue
                 step["status"] = "running"
-                ok, out = await _run_script(s["script"], s["timeout"])
+                try:
+                    ok, out = await _run_script(s["script"], s["timeout"])
+                except Exception as e:
+                    ok, out = False, f"예상하지 못한 오류: {e}"
                 step["status"] = "success" if ok else "failed"
                 step["output"] = out
                 if not ok:
