@@ -7,6 +7,7 @@ from app.db.scheme.policy import (
     PolicySimilaritySearchRequest, PolicySimilarityMatch,
 )
 from app.services.policy import PolicyService as policy_svc
+from app.services.ai_client import AiClient
 from app.db.models.user import User
 from app.core.admin import get_current_admin
 
@@ -62,6 +63,19 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
 @router.get("/home-banner", response_model=list[PolicyListRead])
 async def get_home_banner(db: AsyncSession = Depends(get_db)):
     return await policy_svc.get_home_banner_svc(db)
+
+
+# 채팅 추천/중복탐지에 쓰는 정책 검색문서(policy_search_docs.json)를, DB에 새로 추가된 정책만
+# 골라 생성해서 이어붙이는 백그라운드 작업을 bene_ai에 트리거한다 (관리자용).
+# "/{policy_id}"보다 먼저 선언해야 "search-docs"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.post("/search-docs/rebuild")
+async def rebuild_search_docs(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.trigger_search_docs_rebuild()
+
+
+@router.get("/search-docs/rebuild/status")
+async def get_search_docs_rebuild_status(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.get_search_docs_rebuild_status()
 
 
 # R 단일 조회

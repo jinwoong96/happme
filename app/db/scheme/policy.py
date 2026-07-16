@@ -14,6 +14,7 @@ class PolicyCreate(BaseModel):
     source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
+    summary: Optional[str] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -33,10 +34,16 @@ class PolicyCreate(BaseModel):
     sprtSclCnt: Optional[int] = None
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int
+    sprtTrgtAgeLmtYn: Optional[str] = None
     earnMinAmt: Optional[int] = None
     earnMaxAmt: Optional[int] = None
     earnEtcCn: str
     earnCndSeCd: Optional[str] = None
+    aplyPrdSeCd: Optional[str] = None
+    schoolCd: Optional[str] = None
+    plcyMajorCd: Optional[str] = None
+    sbizCd: Optional[str] = None
+    jobCd: Optional[str] = None
     addAplyQlfcCndCn: str
     ptcpPrpTrgtCn: str
     mrgSttsCd: Optional[str] = None
@@ -54,6 +61,7 @@ class PolicyUpdate(BaseModel):
     plcySprtCn: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
+    summary: Optional[str] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -73,10 +81,16 @@ class PolicyUpdate(BaseModel):
     sprtSclCnt: Optional[int] = None
     sprtTrgtMinAge: Optional[int] = None
     sprtTrgtMaxAge: Optional[int] = None
+    sprtTrgtAgeLmtYn: Optional[str] = None
     earnMinAmt: Optional[int] = None
     earnMaxAmt: Optional[int] = None
     earnEtcCn: Optional[str] = None
     earnCndSeCd: Optional[str] = None
+    aplyPrdSeCd: Optional[str] = None
+    schoolCd: Optional[str] = None
+    plcyMajorCd: Optional[str] = None
+    sbizCd: Optional[str] = None
+    jobCd: Optional[str] = None
     addAplyQlfcCndCn: Optional[str] = None
     ptcpPrpTrgtCn: Optional[str] = None
     mrgSttsCd: Optional[str] = None
@@ -103,6 +117,7 @@ class PolicyRead(BaseModel):
     source: Optional[str] = None
     rgtrInstCdNm: Optional[str] = None
     maxSprtAmt: Optional[int] = None
+    summary: Optional[str] = None
     sprvsnInstCdNm: Optional[str] = None
     sprvsnInstPicNm: Optional[str] = None
     operInstCdNm: Optional[str] = None
@@ -122,10 +137,16 @@ class PolicyRead(BaseModel):
     sprtSclCnt: Optional[int] = None
     sprtTrgtMinAge: int
     sprtTrgtMaxAge: int
+    sprtTrgtAgeLmtYn: Optional[str] = None
     earnMinAmt: Optional[int] = None
     earnMaxAmt: Optional[int] = None
     earnEtcCn: str
     earnCndSeCd: Optional[str] = None
+    aplyPrdSeCd: Optional[str] = None
+    schoolCd: Optional[str] = None
+    plcyMajorCd: Optional[str] = None
+    sbizCd: Optional[str] = None
+    jobCd: Optional[str] = None
     addAplyQlfcCndCn: str
     ptcpPrpTrgtCn: str
     mrgSttsCd: Optional[str] = None

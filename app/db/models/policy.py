@@ -30,6 +30,7 @@ class Policy(Base):
     source:          Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)  # ONTONG / BOKJIRO / MANUAL
     rgtrInstCdNm:    Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 등록기관
     maxSprtAmt:      Mapped[Optional[int]]  = mapped_column(BigInteger, nullable=True)  # plcySprtCn에서 뽑아낸 "최대 지원 금액"(원). 명시적 마커(최대/한도) 없으면 NULL
+    summary:         Mapped[Optional[str]]  = mapped_column(Text, nullable=True)  # watsonx로 생성한 지원내용 요약(1~2문장). 없으면 NULL
     sprvsnInstCdNm:  Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)
     sprvsnInstPicNm: Mapped[Optional[str]]  = mapped_column(String(50), nullable=True)
     operInstCdNm:    Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)
@@ -49,10 +50,16 @@ class Policy(Base):
     sprtSclCnt:      Mapped[Optional[int]]  = mapped_column(Integer, nullable=True)
     sprtTrgtMinAge:  Mapped[int]            = mapped_column(Integer, nullable=False)
     sprtTrgtMaxAge:  Mapped[int]            = mapped_column(Integer, nullable=False)
+    sprtTrgtAgeLmtYn: Mapped[Optional[str]] = mapped_column(String(1), nullable=True)  # "Y"면 연령 제한 없음
     earnMinAmt:      Mapped[Optional[int]]  = mapped_column(BigInteger, nullable=True)
     earnMaxAmt:      Mapped[Optional[int]]  = mapped_column(BigInteger, nullable=True)
     earnEtcCn:       Mapped[str]            = mapped_column(Text, nullable=False)
     earnCndSeCd:     Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)
+    aplyPrdSeCd:     Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)  # 0057001=특정기간/0057002=상시/0057003=마감
+    schoolCd:        Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 쉼표로 여러 코드 나열 가능
+    plcyMajorCd:     Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 쉼표로 여러 코드 나열 가능
+    sbizCd:          Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 쉼표로 여러 코드 나열 가능
+    jobCd:           Mapped[Optional[str]]  = mapped_column(String(100), nullable=True)  # 쉼표로 여러 코드 나열 가능
     addAplyQlfcCndCn: Mapped[str]           = mapped_column(Text, nullable=False)
     ptcpPrpTrgtCn:   Mapped[str]           = mapped_column(Text, nullable=False)
     mrgSttsCd:       Mapped[Optional[str]]  = mapped_column(String(20), nullable=True)

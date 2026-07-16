@@ -11,7 +11,6 @@ from app.services.ai_client import AiClient
 
 # 정책 카드 표시용 텍스트 길이 제한 (policy_cards.json 원본에 지나치게 긴 값이 섞여있음)
 CARD_TITLE_MAX_LENGTH = 60
-CARD_SUMMARY_MAX_LENGTH = 150
 CARD_TARGET_MAX_LENGTH = 70
 
 _policy_cards_cache: dict[str, dict] | None = None
@@ -115,11 +114,11 @@ class PolicyService:
         await db.refresh(policy)
 
         item = PolicyRead.model_validate(policy).model_dump()
+        item["policy_summary"] = policy.summary
         if policy.plcyNo:
             cards = await PolicyService.get_policy_cards_svc(db, [policy.plcyNo])
             card = cards.get(policy.plcyNo)
             if card:
-                item["policy_summary"] = card.get("policy_summary")
                 item["apply_period_type"] = card.get("apply_period_type")
                 item["apply_period"] = card.get("apply_period")
                 item["target"] = card.get("target")
@@ -153,9 +152,9 @@ class PolicyService:
         results = []
         for p in policies:
             item = PolicyListRead.model_validate(p).model_dump()
+            item["policy_summary"] = p.summary
             card = cards.get(p.plcyNo) if p.plcyNo else None
             if card:
-                item["policy_summary"] = card.get("policy_summary")
                 item["apply_period_type"] = card.get("apply_period_type")
                 item["apply_period"] = card.get("apply_period")
                 item["target"] = card.get("target")
@@ -243,9 +242,9 @@ class PolicyService:
         results = []
         for reason, p in selected:
             item = PolicyListRead.model_validate(p).model_dump()
+            item["policy_summary"] = p.summary
             card = cards.get(p.plcyNo) if p.plcyNo else None
             if card:
-                item["policy_summary"] = card.get("policy_summary")
                 item["apply_period_type"] = card.get("apply_period_type")
                 item["apply_period"] = card.get("apply_period")
                 item["target"] = card.get("target")
@@ -438,9 +437,10 @@ class PolicyService:
     @staticmethod
     async def get_policy_cards_svc(db: AsyncSession, plcy_nos: list[str]) -> dict[str, dict]:
         """
-        plcyNo -> 정책 카드 표시용 필드(policy_name/policy_summary/apply_period_type/apply_period/target/link).
-        지금은 policy_cards.json(임시 파일)에서 읽지만, 추후 policy 테이블에 컬럼이 추가되면
-        이 함수 내부만 DB 조회로 바꾸면 됩니다(호출부는 변경 없음).
+        plcyNo -> 정책 카드 표시용 필드(policy_name/apply_period_type/apply_period/target/link).
+        policy_summary는 더 이상 이 카드(policy_cards.json)가 아니라 policy.summary DB 컬럼에서
+        가져온다(호출부에서 별도 조회). 지금 이 카드 필드들은 policy_cards.json(임시 파일)에서
+        읽지만, 추후 policy 테이블에 컬럼이 추가되면 이 함수 내부만 DB 조회로 바꾸면 됩니다.
         """
         cards = PolicyService._load_policy_cards()
         return {
@@ -480,7 +480,6 @@ class PolicyService:
     def _to_display_card(card: dict) -> dict:
         return {
             "policy_name": PolicyService._truncate(card.get("title"), CARD_TITLE_MAX_LENGTH),
-            "policy_summary": PolicyService._truncate(card.get("support_summary"), CARD_SUMMARY_MAX_LENGTH),
             "apply_period_type": card.get("apply_period_type"),
             "apply_period": card.get("apply_period"),
             "target": PolicyService._truncate(PolicyService._clean_target(card.get("target")), CARD_TARGET_MAX_LENGTH),

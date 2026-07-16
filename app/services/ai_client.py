@@ -39,6 +39,18 @@ class AiClient:
         return await AiClient._post("/policy-dedup/search", {"query_text": query_text, "top_k": top_k})
 
     @staticmethod
+    async def trigger_search_docs_rebuild() -> dict:
+        """bene_ai의 POST /search-docs/rebuild 호출. 새로 추가된 정책만 골라 검색문서/임베딩을
+        생성해 운영 파일에 이어붙이는 백그라운드 작업을 시작시킨다.
+        Returns: {status: "started"|"up_to_date"|"already_running", new_count?}"""
+        return await AiClient._post("/search-docs/rebuild", {})
+
+    @staticmethod
+    async def get_search_docs_rebuild_status() -> dict:
+        """bene_ai의 GET /search-docs/rebuild/status 호출. Returns: {running, last_run}"""
+        return await AiClient._get("/search-docs/rebuild/status")
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
@@ -47,6 +59,18 @@ class AiClient:
                 return response.json()
         except httpx.HTTPStatusError:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI 서버 추천 요청에 실패했습니다.")
+        except httpx.RequestError:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 서버에 연결할 수 없습니다.")
+
+    @staticmethod
+    async def _get(path: str):
+        try:
+            async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
+                response = await client.get(path)
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPStatusError:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI 서버 요청에 실패했습니다.")
         except httpx.RequestError:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 서버에 연결할 수 없습니다.")
         
