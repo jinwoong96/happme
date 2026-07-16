@@ -13,14 +13,18 @@ import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처
     plcyExplnCn    = wlfareInfoOutlCn (없으면 목록의 servDgst)
     plcySprtCn     = alwServCn
     rgtrInstCdNm   = jurMnofNm (부처+담당부서가 이미 합쳐진 문자열, 예: "국토교통부 주택공급정책과")
+    sprvsnInstCdNm = jurOrgNm (담당부서명만, 예: "주택공급정책과" - summary에만 있고 detail엔 없음)
     plcyAplyMthdCn = applmetList 중 "신청기관연락처목록" 단계의 안내 텍스트
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = tgtrDtlCn (지원대상 상세 - 지자체 API에 없던 필드라 여기선
                                      sprtTrgtCn 대신 이걸 씀. 소득 조건이 이 텍스트 안에 섞여
                                      있는 경우가 많아 earnEtcCn에도 재사용)
     sprtTrgtMinAge/MaxAge = 19/39 고정값 (WELFARE2.py가 lifeArray=004 청년으로 필터링해서 받음)
-    지역(policy_region) = 매핑 안 함. 중앙부처 사업은 시도명(ctpvNm) 자체가 응답에 없고
-    전국 단위이므로, 지자체 임포트처럼 지역 매핑을 걸 근거 데이터가 없음.
+    지역(policy_region) = 전국 매핑. 중앙부처 사업은 시도명(ctpvNm) 자체가 응답에 없어서 지자체
+    임포트처럼 시도명 기준으로 매핑할 근거 데이터는 없지만, 중앙부처 사업은 성격상 전국 대상인
+    경우가 대부분이고 온통청년 데이터의 기존 "전국 단위 정책"도 zipcd_mapping.csv의 모든
+    시군구코드를 policy_region에 연결하는 방식으로 처리돼 있어서, 같은 방식을 따른다
+    (어떤 지역으로 필터링해도 노출됨). zipcd_mapping.csv를 못 찾으면 지역 매핑은 건너뛴다.
 
 사전 준비:
     pip install pymysql python-dotenv
@@ -33,15 +37,20 @@ import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처
         # 1건만 변환해서 어떤 값이 들어가는지 미리보기 (DB 저장 안 함)
 
     python import_national_welfare_policies.py
-        # National_welfare_data_detail.json 전체를 policy 테이블에 적재
+        # National_welfare_data_detail.json 전체를 policy 테이블에 적재 + 전국 지역 매핑까지
+
+    python import_national_welfare_policies.py --skip-region
+        # policy_region 매핑 없이 policy 테이블만 적재하고 싶을 때
 """
 
 import os
 import sys
 import re
+import csv
 import json
 import argparse
 from datetime import datetime
+from pathlib import Path
 
 import pymysql
 from dotenv import load_dotenv
@@ -58,6 +67,7 @@ DB_CONFIG = {
 }
 
 DETAIL_FILE = "National_welfare_data_detail.json"
+ZIPCD_CSV = Path(__file__).resolve().parent.parent / "bene_ai" / "data" / "zipcd_mapping.csv"
 PLCYNO_PREFIX = "BOKJIRO-NATL-"
 
 # policy 테이블 컬럼 순서 (auto_increment인 policy_id, createdAt/updatedAt DEFAULT 제외)
@@ -230,7 +240,7 @@ def transform_record(record: dict) -> tuple:
         "plcySprtCn": clean(detail.get("alwServCn")) or "-",
         "source": "BOKJIRO",
         "rgtrInstCdNm": clean(detail.get("jurMnofNm")) or clean(summary.get("jurMnofNm")),
-        "sprvsnInstCdNm": None,
+        "sprvsnInstCdNm": clean(summary.get("jurOrgNm")) or clean(detail.get("jurOrgNm")),
         "sprvsnInstPicNm": None,
         "operInstCdNm": None,
         "operInstPicNm": None,
@@ -290,9 +300,71 @@ def insert_batch(conn, rows: list):
     conn.commit()
 
 
+def load_zipcd_mapping() -> list:
+    """전국 매핑용 - [(시군구코드, 지역명), ...] 전체를 그대로 반환."""
+    if not ZIPCD_CSV.exists():
+        print(f"[경고] {ZIPCD_CSV} 를 찾지 못해 지역 매핑을 건너뜁니다.")
+        return []
+    rows = []
+    with open(ZIPCD_CSV, encoding="utf-8-sig") as f:  # 파일에 UTF-8 BOM이 있어 utf-8-sig로 읽어야 함
+        reader = csv.DictReader(f)
+        for row in reader:
+            code = (row.get("시군구코드") or "").strip()
+            name = (row.get("지역명") or "").strip()
+            if code and name:
+                rows.append((code, name))
+    return rows
+
+
+def build_plcyno_to_id_map(conn) -> dict:
+    with conn.cursor() as cur:
+        cur.execute("SELECT policy_id, plcyNo FROM policy WHERE plcyNo LIKE %s", (f"{PLCYNO_PREFIX}%",))
+        rows = cur.fetchall()
+    return {plcy_no: policy_id for policy_id, plcy_no in rows}
+
+
+def insert_region_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
+    if not pairs:
+        return 0
+    sql = "INSERT IGNORE INTO policy_region (policy_id, zip_code) VALUES (%s, %s)"
+    total = 0
+    with conn.cursor() as cur:
+        for i in range(0, len(pairs), batch_size):
+            chunk = pairs[i:i + batch_size]
+            cur.executemany(sql, chunk)
+            total += len(chunk)
+    conn.commit()
+    return total
+
+
+def run_region_mapping(conn, records: list):
+    """중앙부처 사업은 시도명(ctpvNm)이 없어 개별 매칭이 불가능하므로, 전국 정책 취급으로
+    zipcd_mapping.csv의 모든 시군구코드를 각 정책에 연결한다(온통청년 기존 전국 단위 정책과
+    동일한 방식). 어떤 지역으로 필터링해도 노출된다."""
+    mapping = load_zipcd_mapping()
+    if not mapping:
+        return
+    all_codes = [code for code, _ in mapping]
+
+    plcyno_map = build_plcyno_to_id_map(conn)
+
+    pairs = []
+    for record in records:
+        serv_id = record["servId"]
+        plcy_no = PLCYNO_PREFIX + serv_id
+        policy_id = plcyno_map.get(plcy_no)
+        if policy_id is None:
+            continue
+        pairs.extend((policy_id, code) for code in all_codes)
+
+    inserted = insert_region_pairs(conn, pairs)
+    print(f"policy_region: {inserted}건 적재 시도 (전국 매핑, 시군구코드 {len(all_codes)}개 x 정책 {len(plcyno_map)}건)")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--peek", action="store_true", help="1건만 변환 결과 미리보기 (DB 저장 안 함)")
+    parser.add_argument("--skip-region", action="store_true", help="policy_region 매핑 생략")
     args = parser.parse_args()
 
     records = load_records()
@@ -311,7 +383,9 @@ def main():
         rows = [transform_record(r) for r in records]
         insert_batch(conn, rows)
         print(f"policy 테이블 적재/업데이트 완료: {len(rows)}건")
-        print("참고: 중앙부처 사업은 지역 정보가 없어 policy_region 매핑은 하지 않았습니다.")
+
+        if not args.skip_region:
+            run_region_mapping(conn, records)
     finally:
         conn.close()
 
