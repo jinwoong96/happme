@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
@@ -143,8 +144,11 @@ class ImageAnalyzeService:
             return self._empty_result(len(objects), MSG_NO_MATCH, extracted_text)
 
         t6 = time.perf_counter()
-        summary_text = self.llm_service.summarize_svc(extracted_text, matches)
-        one_liners = self.llm_service.summarize_one_liners_svc(matches)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            summary_future = executor.submit(self.llm_service.summarize_svc, extracted_text, matches)
+            one_liner_future = executor.submit(self.llm_service.summarize_one_liners_svc, matches)
+            summary_text = summary_future.result()
+            one_liners = one_liner_future.result()
         t7 = time.perf_counter()
 
         print(
