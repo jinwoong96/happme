@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.scheme.policy import (
     PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead,
-    PolicySimilaritySearchRequest, PolicySimilarityMatch,
+    PolicySimilaritySearchRequest, PolicySimilarityMatch, PolicyCompareRequest,
 )
 from app.services.policy import PolicyService as policy_svc
 from app.services import external_sync
@@ -82,6 +82,13 @@ async def refresh_external_policies(
 @router.get("/refresh/status")
 async def get_refresh_status(current_admin: User = Depends(get_current_admin)):
     return external_sync.get_status()
+
+
+# 즐겨찾기 비교(AI 요약): 2~3개 policy_id를 넘기면 각각 짧은 요약 + 비교 코멘트를 반환.
+# "/{policy_id}"보다 먼저 선언해야 "compare"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.post("/compare")
+async def compare_policies(data: PolicyCompareRequest, db: AsyncSession = Depends(get_db)):
+    return await policy_svc.compare_policies_svc(db, data.policy_ids)
 
 
 # R 단일 조회

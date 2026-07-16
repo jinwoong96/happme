@@ -147,6 +147,10 @@ class PolicyRead(BaseModel):
         from_attributes = True
 
 
+class PolicyCompareRequest(BaseModel):
+    policy_ids: List[int]
+
+
 class PolicySimilaritySearchRequest(BaseModel):
     query_text: str
     top_k: int = 5

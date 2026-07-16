@@ -39,6 +39,20 @@ class AiClient:
         return await AiClient._post("/policy-dedup/search", {"query_text": query_text, "top_k": top_k})
 
     @staticmethod
+    async def summarize_policies(policies: list[dict]) -> dict:
+        """bene_ai의 POST /policy-summary/summarize-policies 호출.
+        이미 알고 있는 정책들(예: 즐겨찾기)의 원본 필드를 그대로 넘겨서 매칭 없이 바로 요약만 한다(1개 이상 가능).
+        Returns: {results: [{policy_name, summary, fields}]}"""
+        return await AiClient._post("/policy-summary/summarize-policies", {"policies": policies})
+
+    @staticmethod
+    async def recommend_policies(summaries: list[dict]) -> dict:
+        """bene_ai의 POST /policy-summary/recommend 호출.
+        이미 만들어진 {policy_name, summary} 목록(2개 이상)으로 비교 추천 문장만 생성한다.
+        Returns: {recommendation: str|None}"""
+        return await AiClient._post("/policy-summary/recommend", {"summaries": summaries})
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
