@@ -1,25 +1,21 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink, Scale } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Sparkles, ChevronDown, ChevronUp, Bookmark, ExternalLink} from 'lucide-react';
 import useBookmark from '../../hooks/useBookmark';
 import usePolicyDetail from '../../hooks/usePolicyDetail';
 import { api } from '../../utils/api';
 import Modal from '../../Components/Modal';
 import PolicyDetailModal from '../../Components/PolicyDetailModal';
 
-function getApplyPeriodText(p) {
-  if (p.apply_period_type === '상시') return '상시';
-  if (p.apply_period) return p.apply_period;
-  if (p.aplyYmd) return p.aplyYmd;
-  return null;
-}
-
 const COMPARE_ROWS = [
-  { label: '지원대상', getValue: (p) => p.ptcpPrpTrgtCn },
-  { label: '신청기간', getValue: getApplyPeriodText },
-  { label: '지원내용', getValue: (p) => p.plcySprtCn, clamp: true },
-  { label: '신청방법', getValue: (p) => p.plcyAplyMthdCn },
+  { label: '한줄요약', getValue: (p) => p.ai?.fields?.['한줄요약'] },
+  { label: '지원대상', getValue: (p) => p.ai?.fields?.['지원대상'] },
+  { label: '지원내용', getValue: (p) => p.ai?.fields?.['지원내용'] },
+  { label: '신청방법', getValue: (p) => p.ai?.fields?.['신청방법'] },
+  { label: '신청기간', getValue: (p) => p.ai?.fields?.['신청기간'] },
 ];
+
+const COMPARE_COLORS = ['#3b82f6', '#16a34a', '#f59e0b'];
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -133,6 +129,7 @@ export default function BookmarkPage() {
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [compareItems, setCompareItems] = useState(null); // 비교 모달에 띄울 정책 상세 배열 | null
   const [compareLoading, setCompareLoading] = useState(false);
+  const [compareComment, setCompareComment] = useState(null); // AI 비교 코멘트(추천) | null
 
   const MAX_COMPARE = 3;
 
@@ -158,18 +155,27 @@ export default function BookmarkPage() {
   const handleStartCompare = async () => {
     setCompareLoading(true);
     try {
-      const results = await Promise.all(
-        selectedForCompare.map((id) => api.get(`/policies/${id}`))
-      );
-      setCompareItems(results);
+      const { results, recommendation } = await api.post('/policies/compare', { policy_ids: selectedForCompare });
+      const merged = selectedForCompare.map((id, i) => {
+        const item = items.find((it) => it.policy_id === id);
+        return { policy_id: id, plcyNm: item?.plcyNm, ai: results[i] };
+      });
+      setCompareItems(merged);
+      setCompareComment(recommendation);
     } catch {
       setCompareItems([]);
+      setCompareComment(null);
     } finally {
       setCompareLoading(false);
     }
   };
 
-  const closeCompareModal = () => setCompareItems(null);
+  const closeCompareModal = () => {
+    setCompareItems(null);
+    setCompareComment(null);
+    setComparisonMode(false);
+    setSelectedForCompare([]);
+  };
 
   const handlePageScroll = (e) => {
     setShowScrollTop(e.target.scrollTop > 200);
@@ -223,34 +229,22 @@ export default function BookmarkPage() {
           <ChevronLeft size={24} color="#333" />
         </button>
         <p className="flex-1 text-[20px] font-bold text-gray-900">즐겨찾기</p>
-        <button onClick={() => setSearchOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
-          <Search size={20} color="#555" />
+        <button
+          onClick={handleToggleComparisonMode}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            backgroundColor: comparisonMode ? '#3b82f6' : '#fff',
+            color: comparisonMode ? '#fff' : '#6b7280',
+            fontSize: 12, fontWeight: 700,
+            boxShadow: comparisonMode ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+          }}
+        >
+          {comparisonMode ? '취소' : '비교하기'}
         </button>
       </div>
 
       <div ref={pageScrollRef} onScroll={handlePageScroll} style={{ flex: 1, overflowY: 'auto' }}>
-
-      {searchOpen && (
-        <div className="bg-white" style={{ padding: '0 20px 16px', position: 'relative' }}>
-          <input
-            autoFocus
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="즐겨찾기한 정책 검색"
-            style={{
-              width: '100%', padding: '10px 34px 10px 14px', borderRadius: 12,
-              border: '1px solid #e5e7eb', fontSize: 13, backgroundColor: '#f9fafb',
-              boxSizing: 'border-box',
-            }}
-          />
-          {keyword && (
-            <button onClick={() => setKeyword('')} className="bg-transparent border-none cursor-pointer p-0"
-              style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)' }}>
-              <X size={16} color="#9ca3af" />
-            </button>
-          )}
-        </div>
-      )}
 
       <div style={{ padding: '18px 20px 24px' }}>
         {/* 캘린더 카드 */}
@@ -361,20 +355,6 @@ export default function BookmarkPage() {
         <div style={{ margin: '20px 0 12px' }}>
           <p className="text-[15px] font-bold text-gray-900">즐겨찾기 일정 {items.length}</p>
           <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 8 }}>
-            <button
-              onClick={() => setHideExpired((v) => !v)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                backgroundColor: hideExpired ? '#3b82f6' : '#fff',
-                color: hideExpired ? '#fff' : '#6b7280',
-                fontSize: 12, fontWeight: 700,
-                boxShadow: hideExpired ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
-              }}
-            >
-              마감공고 제외
-            </button>
-
             <div style={{ display: 'flex', borderRadius: 999, backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
               {[
                 { value: 'all', label: '전체' },
@@ -397,20 +377,53 @@ export default function BookmarkPage() {
             </div>
 
             <button
-              onClick={handleToggleComparisonMode}
+              onClick={() => setHideExpired((v) => !v)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                backgroundColor: comparisonMode ? '#3b82f6' : '#fff',
-                color: comparisonMode ? '#fff' : '#6b7280',
+                backgroundColor: hideExpired ? '#3b82f6' : '#fff',
+                color: hideExpired ? '#fff' : '#6b7280',
                 fontSize: 12, fontWeight: 700,
-                boxShadow: comparisonMode ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+                boxShadow: hideExpired ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
               }}
             >
-              <Scale size={13} />
-              {comparisonMode ? '취소' : '비교하기'}
+              마감공고 제외
+            </button>
+
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                marginLeft: 'auto',
+              }}
+            >
+              <Search size={14} color="#6b7280" />
             </button>
           </div>
+
+          {searchOpen && (
+            <div style={{ position: 'relative', marginTop: 8 }}>
+              <input
+                autoFocus
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="즐겨찾기한 정책 검색"
+                style={{
+                  width: '100%', padding: '10px 34px 10px 14px', borderRadius: 12,
+                  border: '1px solid #e5e7eb', fontSize: 13, backgroundColor: '#f9fafb',
+                  boxSizing: 'border-box',
+                }}
+              />
+              {keyword && (
+                <button onClick={() => setKeyword('')} className="bg-transparent border-none cursor-pointer p-0"
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
+                  <X size={16} color="#9ca3af" />
+                </button>
+              )}
+            </div>
+          )}
 
           {comparisonMode && (
             <button
@@ -535,39 +548,56 @@ export default function BookmarkPage() {
 
       <Modal isOpen={!!compareItems} onClose={closeCompareModal} title="정책 비교">
         {compareItems && compareItems.length > 0 && (
-          <div style={{ overflowX: 'auto' }}>
-            <div style={{ display: 'flex', gap: 12, minWidth: compareItems.length * 220 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="flex flex-wrap" style={{ gap: 8 }}>
               {compareItems.map((p, i) => (
                 <div
                   key={p.policy_id}
-                  style={{
-                    flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: 12,
-                    borderLeft: i > 0 ? '1px solid #f3f4f6' : 'none', paddingLeft: i > 0 ? 12 : 0,
-                  }}
+                  className="flex items-center gap-1.5"
+                  style={{ flex: '1 1 45%', backgroundColor: '#f8f9fb', borderRadius: 8, padding: '6px 8px' }}
                 >
-                  <p className="text-[13px] font-bold text-gray-900" style={{ minHeight: 34, margin: 0 }}>{p.plcyNm}</p>
-                  {COMPARE_ROWS.map((row) => (
-                    <div key={row.label}>
-                      <p className="text-[11px] font-semibold text-blue-500" style={{ margin: '0 0 2px' }}>{row.label}</p>
-                      <p
-                        className="text-[12px] text-gray-600"
-                        style={{
-                          margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line',
-                          ...(row.clamp ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}),
-                        }}
-                      >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: COMPARE_COLORS[i], flexShrink: 0 }} />
+                  <span className="text-[12px] font-semibold text-gray-800">{p.plcyNm}</span>
+                </div>
+              ))}
+            </div>
+
+            {COMPARE_ROWS.map((row, rowIndex) => (
+              <div key={row.label}>
+                <p className="text-[12px] font-semibold text-blue-500" style={{ margin: '0 0 6px' }}>{row.label}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {compareItems.map((p, i) => (
+                    <div key={p.policy_id} className="flex items-start gap-1.5">
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: COMPARE_COLORS[i], flexShrink: 0, marginTop: 5 }} />
+                      <p className="text-[13px] text-gray-800" style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                         {row.getValue(p) || '정보 없음'}
                       </p>
                     </div>
                   ))}
-                  <button
-                    onClick={() => handleOpenPolicyFromCompare(p)}
-                    className="flex items-center gap-1"
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#3b82f6' }}
-                  >
-                    자세히 보기 <ExternalLink size={11} />
-                  </button>
                 </div>
+                {rowIndex < COMPARE_ROWS.length - 1 && (
+                  <div style={{ borderTop: '1px solid #f3f4f6', marginTop: 14 }} />
+                )}
+              </div>
+            ))}
+
+            {compareComment && (
+              <div style={{ padding: '10px 12px', borderRadius: 10, backgroundColor: '#f8f9ff' }}>
+                <p className="text-[12px] text-blue-500 font-medium" style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                  {compareComment}
+                </p>
+              </div>
+            )}
+
+            <div className="flex" style={{ gap: 12, marginTop: 4, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
+              {compareItems.map((p) => (
+                <button
+                  key={p.policy_id}
+                  onClick={() => handleOpenPolicyFromCompare(p)}
+                  style={{ flex: 1, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#3b82f6', textAlign: 'center' }}
+                >
+                  {p.plcyNm.length > 10 ? `${p.plcyNm.slice(0, 10)}...` : p.plcyNm} 자세히 보기
+                </button>
               ))}
             </div>
           </div>

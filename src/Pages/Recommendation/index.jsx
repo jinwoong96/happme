@@ -78,7 +78,7 @@ export default function RecommendationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">맞춤형 지원금 추천</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">맞춤형 정책 추천</p>
         <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Home size={22} color="#333" />
         </button>
