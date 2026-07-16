@@ -23,6 +23,70 @@ class QuestionRequest(BaseModel):
     question: str
 
 
+class PolicyDetailInput(BaseModel):
+    plcyNm: str
+    plcyExplnCn: str = ""
+    plcySprtCn: str = ""
+    plcyAplyMthdCn: str = ""
+    aplyYmd: str = ""
+    bizPrdBgngYmd: str = ""
+    bizPrdEndYmd: str = ""
+    ptcpPrpTrgtCn: str = ""
+    earnEtcCn: str = ""
+    sprtTrgtMinAge: str = ""
+    sprtTrgtMaxAge: str = ""
+    aplyUrlAddr: str = ""
+    sprtSclCnt: str = ""
+
+
+class SummarizeRequest(BaseModel):
+    policies: list[PolicyDetailInput]
+
+
+class SummaryInput(BaseModel):
+    policy_name: str
+    summary: str
+
+
+class RecommendRequest(BaseModel):
+    summaries: list[SummaryInput]
+
+
+def _extract_recommendation(comparison: str) -> str | None:
+    """compare_policies_svc가 만드는 추천 텍스트에서 마크다운 문법(**)을 제거하고
+    '- ' 항목마다 줄바꿈해 순수 텍스트로 정리한다. '💡 추천' 표시가 있으면 그 뒤만 쓰고,
+    없으면(모델이 표시 없이 바로 답했을 때) 전체 텍스트를 그대로 쓴다."""
+    import re
+
+    match = re.search(r"\*{0,2}💡\s*추천\*{0,2}\s*:?\s*(.*)", comparison, re.S)
+    text = (match.group(1) if match else comparison).strip().replace("**", "")
+    text = re.sub(r"(다\.|요\.)\s+", r"\1\n", text)       # 문장이 끝날 때마다 줄바꿈
+    text = re.sub(r"(- [^:\n]+:)\s*", r"\1\n", text)     # 제목 뒤 콜론 다음 바로 줄바꿈
+    text = re.sub(r"\s+-\s+", "\n\n- ", text)            # 항목("- 제목")마다 빈 줄로 구분
+    text = re.sub(r"\n{3,}", "\n\n", text)               # 과도한 빈 줄 정리
+    text = text.strip()
+
+    # 모델이 안내 문구를 앞에 붙이거나 항목을 3개 이상 만드는 경우가 있어서,
+    # 첫 "-" 항목 앞은 잘라내고 최대 2개까지만 남긴다.
+    first_dash = text.find("- ")
+    if first_dash > 0:
+        text = text[first_dash:]
+    items = text.split("\n\n- ")
+    items = [item if i == 0 else f"- {item}" for i, item in enumerate(items)]
+    return "\n\n".join(items[:2]).strip()
+
+
+def _parse_summary_fields(summary: str) -> dict:
+    import re
+
+    labels = ["한줄요약", "지원대상", "지원내용", "신청방법", "신청기간", "사업기간", "신청URL", "지원규모"]
+    pattern = re.compile(
+        rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
+        re.S,
+    )
+    return {label: value.strip() for label, value in pattern.findall(summary)}
+
+
 def get_pdf_service(request: Request) -> PdfSummaryService:
     return request.app.state.pdf_summary_service
 
@@ -131,6 +195,45 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
     comparison = pdf_service.compare_policies_svc(matched_results) if len(matched_results) >= 2 else None
 
     return {"mode": "compare", "results": results, "comparison": comparison}
+
+
+# 이미 정책이 확정된 상태(예: 즐겨찾기 비교)에서 여러 정책을 짧게 요약 + 비교, 매칭 불필요
+# 정책 dict 리스트(1개 이상)를 받아 각각 짧게 요약만 한다. 매칭/비교 없음 - 캐시 미스분만 여기로 보내면 됨.
+@router.post("/summarize-policies")
+async def summarize_policies(request: Request, payload: SummarizeRequest):
+    if len(payload.policies) == 0:
+        raise HTTPException(status_code=400, detail="요약할 정책이 1개 이상 필요합니다")
+
+    pdf_service = get_pdf_service(request)
+
+    def process_one(detail: dict):
+        summary = pdf_service.summarize_policy_svc(detail)
+        return {
+            "policy_name": detail.get("plcyNm"),
+            "summary": summary,
+            "fields": _parse_summary_fields(summary) if summary else {},
+        }
+
+    results = await asyncio.gather(*[
+        asyncio.to_thread(process_one, p.model_dump()) for p in payload.policies
+    ])
+
+    return {"results": results}
+
+
+# 이미 요약이 있는 정책들(캐시 hit + 방금 요약한 것 합친 전체)을 받아 비교 추천 문장만 만든다.
+@router.post("/recommend")
+async def recommend(request: Request, payload: RecommendRequest):
+    if len(payload.summaries) < 2:
+        raise HTTPException(status_code=400, detail="비교할 정책이 2개 이상 필요합니다")
+
+    pdf_service = get_pdf_service(request)
+    summaries = [s.model_dump() for s in payload.summaries]
+
+    comparison = await asyncio.to_thread(pdf_service.compare_policies_svc, summaries)
+    recommendation = _extract_recommendation(comparison) if comparison else None
+
+    return {"recommendation": recommendation}
 
 
 # 공고문 텍스트 직접 입력 → 매칭 + 요약
