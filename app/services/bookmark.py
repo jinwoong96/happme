@@ -109,6 +109,7 @@ class BookmarkService:
                     aplyYmd=policy.aplyYmd,
                     alarm_yn=bookmark.alarm_yn,
                     events=events,
+                    applyUrl=policy.aplyUrlAddr,
                     prep_tip=policy.ai_tip.tip if policy.ai_tip else None,
                 ))
             else:
