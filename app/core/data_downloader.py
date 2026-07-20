@@ -15,6 +15,7 @@ def ensure_data_downloaded() -> None:
     bucket = settings.data_s3_bucket
 
     for local_path, s3_key in (
+        (settings.policy_list_path, settings.policy_list_s3_key),
         (settings.zipcd_mapping_path, settings.zipcd_mapping_s3_key),
         (settings.similarity_docs_path, settings.similarity_docs_s3_key),
         (settings.similarity_embeddings_path, settings.similarity_embeddings_s3_key),

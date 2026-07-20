@@ -33,9 +33,13 @@ class Settings(BaseSettings):
     # 최신이라 로컬에서 재계산되면, 그 결과를 다시 S3에 업로드해 다음 배포부터 최신 캐시를
     # 받아가도록 합니다. 나머지(유사도 검색용 정적 임베딩 등)는 앱 안에 재계산 로직이 없는
     # 정적 자산이라 다운로드만 합니다.
-    # (정책 원본 JSON은 PolicyLoaderService가 이제 DB를 직접 조회해서 더 이상 안 씁니다.)
+    # (정책 원본 JSON은 서버 런타임에서는 PolicyLoaderService가 DB를 직접 조회하므로 쓰이지
+    # 않지만, run_create_policy_cards.py 등 오프라인 배치 스크립트가 입력으로 사용하므로
+    # policy_list.json도 여기서 함께 내려받습니다.)
     data_s3_bucket: str = Field("", alias="DATA_S3_BUCKET")
     data_s3_public: bool = Field(False, alias="DATA_S3_PUBLIC")
+    policy_list_path: str = Field("./data/policy_list.json", alias="POLICY_LIST_PATH")
+    policy_list_s3_key: str = Field("", alias="POLICY_LIST_S3_KEY")
     zipcd_mapping_s3_key: str = Field("", alias="ZIPCD_MAPPING_S3_KEY")
     similarity_docs_s3_key: str = Field("", alias="SIMILARITY_DOCS_S3_KEY")
     similarity_embeddings_s3_key: str = Field("", alias="SIMILARITY_EMBEDDINGS_S3_KEY")
@@ -86,8 +90,8 @@ class Settings(BaseSettings):
     # 서비스
     temp_upload_dir: str = Field("./tmp_uploads", alias="TEMP_UPLOAD_DIR")
 
-    # 청년정책 PDF/텍스트/URL 요약 (policy_summary)
-    policy_summary_json_path: str = Field(..., alias="POLICY_SUMMARY_JSON_PATH")
+    # 청년정책 PDF/텍스트/URL 요약 (policy_summary). 정책 원본은 PdfSummaryService가
+    # SearchService/PolicyLoaderService처럼 DB를 직접 조회하므로 별도 JSON 경로가 없다.
     policy_summary_embed_model: str = Field("intfloat/multilingual-e5-large", alias="POLICY_SUMMARY_EMBED_MODEL")
     policy_summary_embed_cache: str = Field("./policy_summary_embeddings_cache.npz", alias="POLICY_SUMMARY_EMBED_CACHE")
     policy_summary_llm_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="POLICY_SUMMARY_LLM_MODEL_ID")
