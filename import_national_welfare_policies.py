@@ -213,10 +213,11 @@ def build_keyword(detail: dict) -> str:
 
 
 def build_mclsf(detail: dict) -> str:
-    kw = clean(detail.get("intrsThemaArray"))
-    if kw:
-        return kw.split(",")[0].strip()
-    return "기타"
+    """관심주제(intrsThemaArray)를 원본 그대로 저장한다(여러 개면 콤마 그대로 유지).
+    ONTONG도 mclsfNm에 콤마로 여러 값을 넣는 경우가 있어 같은 규칙이고, 화면에 보여줄 대표
+    카테고리를 뽑는 건 recommendation_service.py가 이 원본 값을 보고 별도로 판단한다
+    (여기서 첫 값만 남기고 잘라버리면 DB에 원문 분류가 안 남아서 복원이 안 됨)."""
+    return clean(detail.get("intrsThemaArray")) or "기타"
 
 
 def transform_record(record: dict) -> tuple:
