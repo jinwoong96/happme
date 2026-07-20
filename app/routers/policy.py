@@ -1,12 +1,13 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.db.scheme.policy import (
     PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead,
-    PolicySimilaritySearchRequest, PolicySimilarityMatch,
+    PolicySimilaritySearchRequest, PolicySimilarityMatch, PolicyCompareRequest,
 )
 from app.services.policy import PolicyService as policy_svc
+from app.services import external_sync
 from app.services.ai_client import AiClient
 from app.db.models.user import User
 from app.core.admin import get_current_admin
@@ -63,6 +64,32 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
 @router.get("/home-banner", response_model=list[PolicyListRead])
 async def get_home_banner(db: AsyncSession = Depends(get_db)):
     return await policy_svc.get_home_banner_svc(db)
+
+
+# 외부 데이터(온통청년/복지로) 최신화 - 관리자 사이트 "최신화" 버튼용.
+# 백그라운드에서 기존 import 스크립트들을 순서대로 실행한다 (수동 트리거, 자동 스케줄은 아직 없음).
+@router.post("/refresh")
+async def refresh_external_policies(
+    background_tasks: BackgroundTasks,
+    current_admin: User = Depends(get_current_admin),
+):
+    status = external_sync.get_status()
+    if status["running"]:
+        return {"message": "이미 최신화가 진행 중입니다.", "status": status}
+    background_tasks.add_task(external_sync.run_refresh_all)
+    return {"message": "최신화를 시작했습니다."}
+
+
+@router.get("/refresh/status")
+async def get_refresh_status(current_admin: User = Depends(get_current_admin)):
+    return external_sync.get_status()
+
+
+# 즐겨찾기 비교(AI 요약): 2~3개 policy_id를 넘기면 각각 짧은 요약 + 비교 코멘트를 반환.
+# "/{policy_id}"보다 먼저 선언해야 "compare"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.post("/compare")
+async def compare_policies(data: PolicyCompareRequest, db: AsyncSession = Depends(get_db)):
+    return await policy_svc.compare_policies_svc(db, data.policy_ids)
 
 
 # 채팅 추천/중복탐지에 쓰는 정책 검색문서(policy_search_docs.json)를, DB에 새로 추가된 정책만

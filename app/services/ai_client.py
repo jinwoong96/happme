@@ -39,6 +39,20 @@ class AiClient:
         return await AiClient._post("/policy-dedup/search", {"query_text": query_text, "top_k": top_k})
 
     @staticmethod
+    async def summarize_policies(policies: list[dict]) -> dict:
+        """bene_ai의 POST /policy-summary/summarize-policies 호출.
+        이미 알고 있는 정책들(예: 즐겨찾기)의 원본 필드를 그대로 넘겨서 매칭 없이 바로 요약만 한다(1개 이상 가능).
+        Returns: {results: [{policy_name, summary, fields}]}"""
+        return await AiClient._post("/policy-summary/summarize-policies", {"policies": policies})
+
+    @staticmethod
+    async def recommend_policies(summaries: list[dict]) -> dict:
+        """bene_ai의 POST /policy-summary/recommend 호출.
+        이미 만들어진 {policy_name, summary} 목록(2개 이상)으로 비교 추천 문장만 생성한다.
+        Returns: {recommendation: str|None}"""
+        return await AiClient._post("/policy-summary/recommend", {"summaries": summaries})
+
+    @staticmethod
     async def trigger_search_docs_rebuild() -> dict:
         """bene_ai의 POST /search-docs/rebuild 호출. 새로 추가된 정책만 골라 검색문서/임베딩을
         생성해 운영 파일에 이어붙이는 백그라운드 작업을 시작시킨다.

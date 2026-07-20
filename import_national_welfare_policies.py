@@ -1,46 +1,51 @@
 """
-welfare_data_detail.json(복지로 지자체 복지서비스, servId별 목록+상세 병합)을
+National_welfare_data_detail.json(복지로 중앙부처 복지서비스, servId별 목록+상세 병합)을
 온통청년 policy 테이블 컬럼 형식으로 매핑해서 DB에 적재하는 스크립트.
 
-welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
-각 항목은 {"servId": ..., "summary": {...목록 API 필드...}, "detail": {...상세 API(wantedDtl) 필드...}} 형태.
+import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처 상세조회 API는 지자체와
+필드 이름/구조가 달라서(예: wlfareInfoDtlCd -> servSeCode, wlfareInfoReldCn -> servSeDetailLink
+등) 매핑 로직을 따로 뒀다.
 
-매핑 원칙 (자세한 값은 transform_record 참고):
-    plcyNo         = "BOKJIRO-" + servId  (온통청년 plcyNo와 충돌 방지)
-    source         = "BOKJIRO"
+매핑 원칙(자세한 값은 transform_record 참고):
+    plcyNo         = "BOKJIRO-NATL-" + servId  (지자체 import와 접두어를 다르게 해서 충돌 방지)
+    source         = "BOKJIRO"  (지자체와 동일 - 관리자 화면엔 어차피 "복지로"로만 구분하면 충분)
     plcyNm         = servNm
-    plcyExplnCn    = servDgst
+    plcyExplnCn    = wlfareInfoOutlCn (없으면 목록의 servDgst)
     plcySprtCn     = alwServCn
-    rgtrInstCdNm   = bizChrDeptNm (전체 문자열, 예: "경기도 파주시 복지정책국 여성가족과")
-    sprvsnInstCdNm = bizChrDeptNm에서 "{ctpvNm} {sggNm}" 지역 접두어를 뗀 부서명만
-                     (예: "복지정책국 여성가족과". 접두어가 안 맞는 소수 케이스는 원문 그대로 사용)
-    plcyAplyMthdCn = aplyMtdCn (없으면 aplyMtdNm)
+    rgtrInstCdNm   = jurMnofNm (부처+담당부서가 이미 합쳐진 문자열, 예: "국토교통부 주택공급정책과")
+    sprvsnInstCdNm = jurOrgNm (담당부서명만, 예: "주택공급정책과" - summary에만 있고 detail엔 없음)
+    plcyAplyMthdCn = applmetList 중 "신청기관연락처목록" 단계의 안내 텍스트
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
-    ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
-    sprtTrgtMinAge/MaxAge = 19/39 고정값 (복지로 API 자체를 lifeArray=004 청년으로만 조회했으므로)
-    지역(ctpvNm, 시도명) -> policy_region.zip_code는 bene_ai/data/zipcd_mapping.csv로 접두 매칭
-    (예: ctpvNm="대전광역시" -> 지역명이 "대전광역시"로 시작하는 시군구코드 전부 매핑)
+    ptcpPrpTrgtCn / earnEtcCn     = tgtrDtlCn (지원대상 상세 - 지자체 API에 없던 필드라 여기선
+                                     sprtTrgtCn 대신 이걸 씀. 소득 조건이 이 텍스트 안에 섞여
+                                     있는 경우가 많아 earnEtcCn에도 재사용)
+    sprtTrgtMinAge/MaxAge = 19/39 고정값 (WELFARE2.py가 lifeArray=004 청년으로 필터링해서 받음)
+    지역(policy_region) = 전국 매핑. 중앙부처 사업은 시도명(ctpvNm) 자체가 응답에 없어서 지자체
+    임포트처럼 시도명 기준으로 매핑할 근거 데이터는 없지만, 중앙부처 사업은 성격상 전국 대상인
+    경우가 대부분이고 온통청년 데이터의 기존 "전국 단위 정책"도 zipcd_mapping.csv의 모든
+    시군구코드를 policy_region에 연결하는 방식으로 처리돼 있어서, 같은 방식을 따른다
+    (어떤 지역으로 필터링해도 노출됨). zipcd_mapping.csv를 못 찾으면 지역 매핑은 건너뛴다.
 
 사전 준비:
     pip install pymysql python-dotenv
-    (.env는 기존 import_policies.py와 동일한 DB_* 값 사용)
-
-    source 컬럼이 DB에 아직 없다면 먼저 추가:
+    (.env는 기존 스크립트들과 동일한 DB_* 값 사용)
+    source 컬럼이 DB에 아직 없다면 먼저 추가(지자체 import 때 이미 추가했다면 생략):
         ALTER TABLE policy ADD COLUMN source VARCHAR(20) NULL AFTER plcySprtCn;
 
 사용법:
-    python import_welfare_policies.py --peek
+    python import_national_welfare_policies.py --peek
         # 1건만 변환해서 어떤 값이 들어가는지 미리보기 (DB 저장 안 함)
 
-    python import_welfare_policies.py
-        # welfare_data_detail.json 전체를 policy 테이블에 적재 + policy_region 매핑까지
+    python import_national_welfare_policies.py
+        # National_welfare_data_detail.json 전체를 policy 테이블에 적재 + 전국 지역 매핑까지
 
-    python import_welfare_policies.py --skip-region
+    python import_national_welfare_policies.py --skip-region
         # policy_region 매핑 없이 policy 테이블만 적재하고 싶을 때
 """
 
 import os
 import sys
+import re
 import csv
 import json
 import argparse
@@ -61,9 +66,9 @@ DB_CONFIG = {
     "charset": "utf8mb4",
 }
 
-DETAIL_FILE = "welfare_data_detail.json"
+DETAIL_FILE = "National_welfare_data_detail.json"
 ZIPCD_CSV = Path(__file__).resolve().parent.parent / "bene_ai" / "data" / "zipcd_mapping.csv"
-PLCYNO_PREFIX = "BOKJIRO-"
+PLCYNO_PREFIX = "BOKJIRO-NATL-"
 
 # policy 테이블 컬럼 순서 (auto_increment인 policy_id, createdAt/updatedAt DEFAULT 제외)
 COLUMNS = [
@@ -75,6 +80,8 @@ COLUMNS = [
     "earnEtcCn", "earnCndSeCd", "addAplyQlfcCndCn", "ptcpPrpTrgtCn", "mrgSttsCd",
     "inqCnt", "frstRegDt", "lastMdfcnDt",
 ]
+
+_PHONE_RE = re.compile(r"^[0-9][0-9\-]*$")
 
 
 def as_list(val):
@@ -110,6 +117,22 @@ def parse_ymd(val):
         return None
 
 
+def looks_like_url(text: str) -> bool:
+    if not text or " " in text:
+        return False
+    if text.startswith("http://") or text.startswith("https://"):
+        return True
+    if _PHONE_RE.match(text):
+        return False
+    return "." in text
+
+
+def normalize_url(text: str) -> str:
+    if text.startswith("http://") or text.startswith("https://"):
+        return text
+    return "https://" + text
+
+
 def build_apply_period(detail: dict) -> str:
     cyc = clean(detail.get("sprtCycNm"))
     bgn = clean(detail.get("enfcBgngYmd"))
@@ -121,15 +144,43 @@ def build_apply_period(detail: dict) -> str:
     return cyc or "상시"
 
 
+def build_apply_method(detail: dict):
+    items = [i for i in as_list(detail.get("applmetList")) if isinstance(i, dict)]
+    apply_stage = []
+    for i in items:
+        nm = clean(i.get("servSeDetailNm"))
+        link = clean(i.get("servSeDetailLink"))
+        if nm and "신청" in nm and link:
+            apply_stage.append(link)
+    if apply_stage:
+        return "\n".join(dict.fromkeys(apply_stage))  # 순서 유지하며 중복 제거
+
+    lines = []
+    for i in items:
+        nm = clean(i.get("servSeDetailNm"))
+        link = clean(i.get("servSeDetailLink"))
+        if nm or link:
+            lines.append(f"[{nm or ''}] {link or ''}".strip())
+    return "\n".join(lines) if lines else None
+
+
+def build_apply_url(detail: dict):
+    for item in as_list(detail.get("inqplHmpgReldList")):
+        if not isinstance(item, dict):
+            continue
+        link = clean(item.get("servSeDetailLink"))
+        if link and looks_like_url(link):
+            return normalize_url(link)
+    return None
+
+
 def build_submission_docs(detail: dict) -> str:
     lines = []
     for item in as_list(detail.get("basfrmList")):
         if not isinstance(item, dict):
             continue
-        name = clean(item.get("wlfareInfoReldNm"))
-        url = clean(item.get("wlfareInfoReldCn"))
-        if name and "첨부파일없음" in name and not url:
-            continue
+        name = clean(item.get("servSeDetailNm"))
+        url = clean(item.get("servSeDetailLink"))
         if name or url:
             lines.append(f"- {name or ''} {url or ''}".strip())
     return "\n".join(lines) if lines else "제출 서류 없음 (복지로 원문 확인 필요)"
@@ -137,7 +188,7 @@ def build_submission_docs(detail: dict) -> str:
 
 def build_etc_matter(detail: dict):
     lines = []
-    laws = [clean(i.get("wlfareInfoReldNm")) for i in as_list(detail.get("baslawList")) if isinstance(i, dict)]
+    laws = [clean(i.get("servSeDetailNm")) for i in as_list(detail.get("baslawList")) if isinstance(i, dict)]
     laws = [l for l in laws if l]
     if laws:
         lines.append("[근거법령] " + ", ".join(laws))
@@ -146,49 +197,26 @@ def build_etc_matter(detail: dict):
     for item in as_list(detail.get("inqplCtadrList")):
         if not isinstance(item, dict):
             continue
-        nm = clean(item.get("wlfareInfoReldNm"))
-        cn = clean(item.get("wlfareInfoReldCn"))
+        nm = clean(item.get("servSeDetailNm"))
+        cn = clean(item.get("servSeDetailLink"))
         if nm or cn:
             contacts.append(f"{nm or ''} {cn or ''}".strip())
     if contacts:
         lines.append("[문의처] " + " / ".join(contacts))
 
+    crtr_yr = clean(detail.get("crtrYr"))
+    if crtr_yr:
+        lines.append(f"[기준연도] {crtr_yr}")
+
     return "\n".join(lines) if lines else None
 
 
-def build_apply_url(detail: dict):
-    for item in as_list(detail.get("inqplHmpgReldList")):
-        if not isinstance(item, dict):
-            continue
-        url = clean(item.get("wlfareInfoReldCn"))
-        if url and url.startswith("http"):
-            return url
-    return None
-
-
-def build_sprvsn_dept(detail: dict) -> str:
-    """bizChrDeptNm은 "{시도} {시군구} {부서명}" 형태로 지역명이 앞에 붙어있어서(예: "경기도
-    파주시 복지정책국 여성가족과"), rgtrInstCdNm에 쓰는 전체 문자열과 별개로 부서명만 뽑아
-    sprvsnInstCdNm에 쓴다. 접두어가 어긋나는 소수 케이스(도 이름 개편 등)는 통째로 반환한다."""
-    dept = clean(detail.get("bizChrDeptNm"))
-    if not dept:
-        return None
-    ctpv = clean(detail.get("ctpvNm")) or ""
-    sgg = clean(detail.get("sggNm")) or ""
-    for prefix in (f"{ctpv} {sgg}".strip(), ctpv):
-        if prefix and dept.startswith(prefix):
-            rest = dept[len(prefix):].strip()
-            if rest:
-                return rest
-    return dept
-
-
 def build_keyword(detail: dict) -> str:
-    return clean(detail.get("intrsThemaNmArray")) or clean(detail.get("lifeNmArray")) or "청년"
+    return clean(detail.get("intrsThemaArray")) or clean(detail.get("lifeArray")) or "청년"
 
 
 def build_mclsf(detail: dict) -> str:
-    kw = clean(detail.get("intrsThemaNmArray"))
+    kw = clean(detail.get("intrsThemaArray"))
     if kw:
         return kw.split(",")[0].strip()
     return "기타"
@@ -199,33 +227,32 @@ def transform_record(record: dict) -> tuple:
     summary = record.get("summary") or {}
     detail = record.get("detail") or {}
 
-    trgt_cn = clean(detail.get("sprtTrgtCn"))
+    tgtr_cn = clean(detail.get("tgtrDtlCn"))
     slct_cn = clean(detail.get("slctCritCn"))
-    apply_url = build_apply_url(detail)
 
     values = {
         "plcyNo": PLCYNO_PREFIX + serv_id,
         "plcyNm": clean(detail.get("servNm")) or clean(summary.get("servNm")) or "(제목 없음)",
         "plcyKywdNm": build_keyword(detail),
-        "plcyExplnCn": clean(detail.get("servDgst")) or clean(summary.get("servDgst")) or "-",
+        "plcyExplnCn": clean(detail.get("wlfareInfoOutlCn")) or clean(summary.get("servDgst")) or "-",
         "lclsfNm": "복지",
         "mclsfNm": build_mclsf(detail),
         "plcySprtCn": clean(detail.get("alwServCn")) or "-",
         "source": "BOKJIRO",
-        "rgtrInstCdNm": clean(detail.get("bizChrDeptNm")) or clean(summary.get("bizChrDeptNm")),
-        "sprvsnInstCdNm": build_sprvsn_dept(detail),
+        "rgtrInstCdNm": clean(detail.get("jurMnofNm")) or clean(summary.get("jurMnofNm")),
+        "sprvsnInstCdNm": clean(summary.get("jurOrgNm")) or clean(detail.get("jurOrgNm")),
         "sprvsnInstPicNm": None,
         "operInstCdNm": None,
         "operInstPicNm": None,
-        "bizPrdBgngYmd": clean(detail.get("enfcBgngYmd")),
-        "bizPrdEndYmd": clean(detail.get("enfcEndYmd")),
+        "bizPrdBgngYmd": None,
+        "bizPrdEndYmd": None,
         "bizPrdEtcCn": clean(detail.get("sprtCycNm")),
-        "plcyAplyMthdCn": clean(detail.get("aplyMtdCn")) or clean(detail.get("aplyMtdNm")),
+        "plcyAplyMthdCn": build_apply_method(detail),
         "srngMthdCn": slct_cn,
-        "aplyUrlAddr": apply_url,
+        "aplyUrlAddr": build_apply_url(detail),
         "sbmsnDcmntCn": build_submission_docs(detail),
         "aplyYmd": build_apply_period(detail),
-        "refUrlAddr1": clean(summary.get("servDtlLink")) or apply_url,
+        "refUrlAddr1": clean(summary.get("servDtlLink")),
         "refUrlAddr2": None,
         "etcMttrCn": build_etc_matter(detail),
         "sprtSclCnt": None,
@@ -233,14 +260,14 @@ def transform_record(record: dict) -> tuple:
         "sprtTrgtMaxAge": 39,
         "earnMinAmt": None,
         "earnMaxAmt": None,
-        "earnEtcCn": trgt_cn or "-",
+        "earnEtcCn": tgtr_cn or "-",
         "earnCndSeCd": None,
         "addAplyQlfcCndCn": slct_cn or "-",
-        "ptcpPrpTrgtCn": trgt_cn or "-",
+        "ptcpPrpTrgtCn": tgtr_cn or "-",
         "mrgSttsCd": None,
-        "inqCnt": parse_int(detail.get("inqNum")) or 0,
-        "frstRegDt": None,
-        "lastMdfcnDt": parse_ymd(detail.get("lastModYmd")),
+        "inqCnt": parse_int(summary.get("inqNum")) or 0,
+        "frstRegDt": parse_ymd(summary.get("svcfrstRegTs")),
+        "lastMdfcnDt": None,
     }
     return tuple(values[c] for c in COLUMNS)
 
@@ -274,7 +301,7 @@ def insert_batch(conn, rows: list):
 
 
 def load_zipcd_mapping() -> list:
-    """[(시군구코드, 지역명), ...]"""
+    """전국 매핑용 - [(시군구코드, 지역명), ...] 전체를 그대로 반환."""
     if not ZIPCD_CSV.exists():
         print(f"[경고] {ZIPCD_CSV} 를 찾지 못해 지역 매핑을 건너뜁니다.")
         return []
@@ -287,13 +314,6 @@ def load_zipcd_mapping() -> list:
             if code and name:
                 rows.append((code, name))
     return rows
-
-
-def zip_codes_for_ctpv(ctpv_nm: str, mapping: list) -> list:
-    ctpv_nm = (ctpv_nm or "").strip()
-    if not ctpv_nm:
-        return []
-    return [code for code, name in mapping if name.startswith(ctpv_nm)]
 
 
 def build_plcyno_to_id_map(conn) -> dict:
@@ -318,32 +338,27 @@ def insert_region_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
 
 
 def run_region_mapping(conn, records: list):
+    """중앙부처 사업은 시도명(ctpvNm)이 없어 개별 매칭이 불가능하므로, 전국 정책 취급으로
+    zipcd_mapping.csv의 모든 시군구코드를 각 정책에 연결한다(온통청년 기존 전국 단위 정책과
+    동일한 방식). 어떤 지역으로 필터링해도 노출된다."""
     mapping = load_zipcd_mapping()
     if not mapping:
         return
+    all_codes = [code for code, _ in mapping]
+
     plcyno_map = build_plcyno_to_id_map(conn)
 
     pairs = []
-    no_match = 0
     for record in records:
         serv_id = record["servId"]
-        detail = record.get("detail") or {}
-        summary = record.get("summary") or {}
-        ctpv_nm = clean(detail.get("ctpvNm")) or clean(summary.get("ctpvNm"))
-
         plcy_no = PLCYNO_PREFIX + serv_id
         policy_id = plcyno_map.get(plcy_no)
-        if policy_id is None or not ctpv_nm:
+        if policy_id is None:
             continue
-
-        codes = zip_codes_for_ctpv(ctpv_nm, mapping)
-        if not codes:
-            no_match += 1
-            continue
-        pairs.extend((policy_id, code) for code in codes)
+        pairs.extend((policy_id, code) for code in all_codes)
 
     inserted = insert_region_pairs(conn, pairs)
-    print(f"policy_region: {inserted}건 적재 시도 (매칭 안 된 시도명 {no_match}건)")
+    print(f"policy_region: {inserted}건 적재 시도 (전국 매핑, 시군구코드 {len(all_codes)}개 x 정책 {len(plcyno_map)}건)")
 
 
 def main():

@@ -172,14 +172,19 @@ CREATE TABLE policy_region (
 );
 
 CREATE TABLE bookmark (
-    bookmark_id BIGINT   PRIMARY KEY AUTO_INCREMENT,
-    user_id     BIGINT   NOT NULL,
-    policy_id   BIGINT   NOT NULL,
-    alarm_yn    BOOLEAN  DEFAULT FALSE,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id)   REFERENCES user(user_id),
-    FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
-    UNIQUE (user_id, policy_id)
+    bookmark_id      INT      PRIMARY KEY AUTO_INCREMENT,
+    user_id          INT      NOT NULL,
+    policy_id        INT,
+    local_program_id INT,
+    alarm_yn         BOOLEAN  DEFAULT FALSE,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)          REFERENCES user(user_id),
+    FOREIGN KEY (policy_id)        REFERENCES policy(policy_id),
+    FOREIGN KEY (local_program_id) REFERENCES local_program(local_program_id),
+    UNIQUE (user_id, policy_id),
+    UNIQUE (user_id, local_program_id),
+    CONSTRAINT ck_bookmark_target_required
+        CHECK (policy_id IS NOT NULL OR local_program_id IS NOT NULL)
 );
 
 CREATE TABLE notification (

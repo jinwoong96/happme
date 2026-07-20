@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.core.settings import settings
 from app.db.crud.policy import PolicyCrud
+from app.db.crud.policy_summary_cache import PolicySummaryCacheCrud
 from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead
 from app.db.models.policy import Policy
 from app.services.ai_client import AiClient
@@ -84,6 +85,26 @@ _SPRT_BIZ_SUBJECT_RE = re.compile(r"(?:기업|업체|사업체)(?:은|는|이|�
 # 확인해서(마침표 "다."/줄바꿈이 경계) 다른 문장의 무관한 "소득공제" 언급까지 걸리지
 # 않게 한다.
 _SPRT_INCOME_DEDUCTION_WORD = "소득공제"
+
+# 정책 비교(AI 요약) 요청 시 bene_ai로 그대로 넘기는 원본 필드 목록.
+# bene_ai의 summarize_policy_svc가 기대하는 키와 동일해야 한다.
+_COMPARE_POLICY_FIELDS = [
+    "plcyNm", "plcyExplnCn", "plcySprtCn", "plcyAplyMthdCn", "aplyYmd",
+    "bizPrdBgngYmd", "bizPrdEndYmd", "ptcpPrpTrgtCn", "earnEtcCn",
+    "sprtTrgtMinAge", "sprtTrgtMaxAge", "aplyUrlAddr", "sprtSclCnt",
+]
+
+# bene_ai의 summarize_policy_svc가 만드는 "**라벨**: 내용" 형식 텍스트에서 라벨별 값을 뽑아내는 패턴.
+# bene_ai 라우터의 _parse_summary_fields와 동일 로직(캐시 hit일 때 bene_ai를 안 거치고 backend에서 직접 파싱하기 위해 복제).
+_SUMMARY_FIELD_LABELS = ["한줄요약", "지원대상", "지원내용", "신청방법", "신청기간", "사업기간", "신청URL", "지원규모"]
+_SUMMARY_FIELD_PATTERN = re.compile(
+    rf"\*{{0,2}}({'|'.join(_SUMMARY_FIELD_LABELS)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(_SUMMARY_FIELD_LABELS)})\*{{0,2}}\s*:|$)",
+    re.S,
+)
+
+
+def _parse_summary_fields(summary: str) -> dict:
+    return {label: value.strip() for label, value in _SUMMARY_FIELD_PATTERN.findall(summary)}
 
 
 class PolicyService:
@@ -418,6 +439,55 @@ class PolicyService:
             if policy:
                 results.append({"policy": policy, "score": m["score"]})
         return results
+
+    @staticmethod
+    async def compare_policies_svc(db: AsyncSession, policy_ids: list[int]) -> dict:
+        """즐겨찾기 비교용. 정책별 짧은 요약은 policy_summary_cache에서 재사용하고,
+        캐시에 없는 것만 bene_ai로 새로 요약시킨 뒤 캐시에 저장한다. 비교 추천 문장은
+        조합에 종속적이라 캐싱하지 않고 선택된 전체 조합으로 항상 새로 생성한다."""
+        policies = await PolicyCrud.get_policies_by_ids(db, policy_ids)
+        by_id = {p.policy_id: p for p in policies}
+        ordered = [by_id[pid] for pid in policy_ids if pid in by_id]
+        if len(ordered) < 2:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="비교할 정책을 찾을 수 없습니다.")
+
+        results: list[Optional[dict]] = [None] * len(ordered)
+        to_fetch: list[tuple[int, Policy]] = []
+
+        for i, policy in enumerate(ordered):
+            cached = await PolicySummaryCacheCrud.get_cache(db, policy.plcyNm)
+            if cached:
+                results[i] = {
+                    "policy_name": policy.plcyNm,
+                    "summary": cached.summary_text,
+                    "fields": _parse_summary_fields(cached.summary_text),
+                }
+            else:
+                to_fetch.append((i, policy))
+
+        if to_fetch:
+            payload = [
+                {field: ("" if getattr(p, field) is None else str(getattr(p, field))) for field in _COMPARE_POLICY_FIELDS}
+                for _, p in to_fetch
+            ]
+            ai_result = await AiClient.summarize_policies(payload)
+            for (i, policy), fetched in zip(to_fetch, ai_result.get("results", [])):
+                results[i] = fetched
+                if fetched.get("summary"):
+                    await PolicySummaryCacheCrud.set_cache(db, policy.plcyNm, fetched["summary"])
+
+        for policy, result in zip(ordered, results):
+            result["policy_id"] = policy.policy_id
+
+        summaries_for_recommend = [
+            {"policy_name": r["policy_name"], "summary": r["summary"]} for r in results if r.get("summary")
+        ]
+        recommendation = None
+        if len(summaries_for_recommend) >= 2:
+            recommend_result = await AiClient.recommend_policies(summaries_for_recommend)
+            recommendation = recommend_result.get("recommendation")
+
+        return {"results": results, "recommendation": recommendation}
 
     @staticmethod
     async def get_category_list_svc(db: AsyncSession) -> list[str]:

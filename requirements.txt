@@ -41,6 +41,8 @@ pymysql
 sqlalchemy
 python-dotenv
 matplotlib
+requests
+xmltodict
 
 python-multipart
 
