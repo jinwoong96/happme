@@ -11,7 +11,9 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
     plcyNm         = servNm
     plcyExplnCn    = servDgst
     plcySprtCn     = alwServCn
-    rgtrInstCdNm   = bizChrDeptNm
+    rgtrInstCdNm   = bizChrDeptNm (전체 문자열, 예: "경기도 파주시 복지정책국 여성가족과")
+    sprvsnInstCdNm = bizChrDeptNm에서 "{ctpvNm} {sggNm}" 지역 접두어를 뗀 부서명만
+                     (예: "복지정책국 여성가족과". 접두어가 안 맞는 소수 케이스는 원문 그대로 사용)
     plcyAplyMthdCn = aplyMtdCn (없으면 aplyMtdNm)
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
@@ -164,6 +166,23 @@ def build_apply_url(detail: dict):
     return None
 
 
+def build_sprvsn_dept(detail: dict) -> str:
+    """bizChrDeptNm은 "{시도} {시군구} {부서명}" 형태로 지역명이 앞에 붙어있어서(예: "경기도
+    파주시 복지정책국 여성가족과"), rgtrInstCdNm에 쓰는 전체 문자열과 별개로 부서명만 뽑아
+    sprvsnInstCdNm에 쓴다. 접두어가 어긋나는 소수 케이스(도 이름 개편 등)는 통째로 반환한다."""
+    dept = clean(detail.get("bizChrDeptNm"))
+    if not dept:
+        return None
+    ctpv = clean(detail.get("ctpvNm")) or ""
+    sgg = clean(detail.get("sggNm")) or ""
+    for prefix in (f"{ctpv} {sgg}".strip(), ctpv):
+        if prefix and dept.startswith(prefix):
+            rest = dept[len(prefix):].strip()
+            if rest:
+                return rest
+    return dept
+
+
 def build_keyword(detail: dict) -> str:
     return clean(detail.get("intrsThemaNmArray")) or clean(detail.get("lifeNmArray")) or "청년"
 
@@ -194,7 +213,7 @@ def transform_record(record: dict) -> tuple:
         "plcySprtCn": clean(detail.get("alwServCn")) or "-",
         "source": "BOKJIRO",
         "rgtrInstCdNm": clean(detail.get("bizChrDeptNm")) or clean(summary.get("bizChrDeptNm")),
-        "sprvsnInstCdNm": None,
+        "sprvsnInstCdNm": build_sprvsn_dept(detail),
         "sprvsnInstPicNm": None,
         "operInstCdNm": None,
         "operInstPicNm": None,

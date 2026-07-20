@@ -93,17 +93,21 @@ class RecommendationService:
         }
 
         cards = await PolicyService.get_policy_cards_svc(db, list(plcy_nos))
+        summaries = await PolicyCrud.get_summaries_by_plcyno(db, list(plcy_nos))
 
         for policies in result.values():
             for policy in policies:
-                card = cards.get(str(policy.get("plcyNo")))
+                plcy_no = str(policy.get("plcyNo"))
+                summary = summaries.get(plcy_no)
+                if summary:
+                    policy["policy_summary"] = summary
+
+                card = cards.get(plcy_no)
                 if not card:
                     continue
 
                 if card.get("policy_name"):
                     policy["policy_name"] = card["policy_name"]
-                if card.get("policy_summary"):
-                    policy["policy_summary"] = card["policy_summary"]
                 policy["apply_period_type"] = card.get("apply_period_type")
                 policy["apply_period"] = card.get("apply_period")
                 policy["target"] = card.get("target")
