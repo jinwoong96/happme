@@ -65,6 +65,30 @@ class AiClient:
         return await AiClient._get("/search-docs/rebuild/status")
 
     @staticmethod
+    async def trigger_policy_summary_rebuild() -> dict:
+        """bene_ai의 POST /policy-summary/rebuild 호출. DB에 summary가 비어있는 정책만 골라
+        policy.summary를 채우는 백그라운드 작업을 시작시킨다.
+        Returns: {status: "started"|"up_to_date"|"already_running", new_count?}"""
+        return await AiClient._post("/policy-summary/rebuild", {})
+
+    @staticmethod
+    async def get_policy_summary_rebuild_status() -> dict:
+        """bene_ai의 GET /policy-summary/rebuild/status 호출. Returns: {running, last_run}"""
+        return await AiClient._get("/policy-summary/rebuild/status")
+
+    @staticmethod
+    async def trigger_pdf_cache_rebuild() -> dict:
+        """bene_ai의 POST /policy-summary/pdf-cache/rebuild 호출. 공고문 PDF/텍스트/URL 매칭용
+        정책/임베딩 캐시(PdfSummaryService)를 DB 최신 상태로 갱신하는 백그라운드 작업을 시작시킨다.
+        Returns: {status: "started"|"already_running"}"""
+        return await AiClient._post("/policy-summary/pdf-cache/rebuild", {})
+
+    @staticmethod
+    async def get_pdf_cache_rebuild_status() -> dict:
+        """bene_ai의 GET /policy-summary/pdf-cache/rebuild/status 호출. Returns: {running, last_run}"""
+        return await AiClient._get("/policy-summary/pdf-cache/rebuild/status")
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:

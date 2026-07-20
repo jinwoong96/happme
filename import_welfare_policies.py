@@ -18,8 +18,8 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
     sprtTrgtMinAge/MaxAge = 19/39 고정값 (복지로 API 자체를 lifeArray=004 청년으로만 조회했으므로)
-    지역(ctpvNm, 시도명) -> policy_region.zip_code는 bene_ai/data/zipcd_mapping.csv로 접두 매칭
-    (예: ctpvNm="대전광역시" -> 지역명이 "대전광역시"로 시작하는 시군구코드 전부 매핑)
+    지역(ctpvNm, 시도명) -> policy_region.zip_code는 zipcd 테이블(load_zipcd_mapping.py로 적재)로 접두 매칭
+    (예: ctpvNm="대전광역시" -> full_name이 "대전광역시"로 시작하는 시군구코드 전부 매핑)
 
 사전 준비:
     pip install pymysql python-dotenv
@@ -41,11 +41,9 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
 
 import os
 import sys
-import csv
 import json
 import argparse
 from datetime import datetime
-from pathlib import Path
 
 import pymysql
 from dotenv import load_dotenv
@@ -62,7 +60,6 @@ DB_CONFIG = {
 }
 
 DETAIL_FILE = "welfare_data_detail.json"
-ZIPCD_CSV = Path(__file__).resolve().parent.parent / "bene_ai" / "data" / "zipcd_mapping.csv"
 PLCYNO_PREFIX = "BOKJIRO-"
 
 # policy 테이블 컬럼 순서 (auto_increment인 policy_id, createdAt/updatedAt DEFAULT 제외)
@@ -273,20 +270,16 @@ def insert_batch(conn, rows: list):
     conn.commit()
 
 
-def load_zipcd_mapping() -> list:
-    """[(시군구코드, 지역명), ...]"""
-    if not ZIPCD_CSV.exists():
-        print(f"[경고] {ZIPCD_CSV} 를 찾지 못해 지역 매핑을 건너뜁니다.")
-        return []
-    rows = []
-    with open(ZIPCD_CSV, encoding="utf-8-sig") as f:  # 파일에 UTF-8 BOM이 있어 utf-8-sig로 읽어야 함
-        reader = csv.DictReader(f)
-        for row in reader:
-            code = (row.get("시군구코드") or "").strip()
-            name = (row.get("지역명") or "").strip()
-            if code and name:
-                rows.append((code, name))
-    return rows
+def load_zipcd_mapping(conn) -> list:
+    """[(시군구코드, 지역명), ...] - zipcd 테이블(load_zipcd_mapping.py로 zipcd_mapping.csv를
+    적재해둔 것)에서 조회한다. 예전엔 ai/data/zipcd_mapping.csv를 상대경로로 읽었는데, 그
+    경로가 디렉터리 구조가 바뀌면 깨지는 데다 서비스 간 파일 의존이라 DB로 옮겼다."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT sigungu_code, full_name FROM zipcd")
+        rows = cur.fetchall()
+    if not rows:
+        print("[경고] zipcd 테이블이 비어있어 지역 매핑을 건너뜁니다 (load_zipcd_mapping.py 먼저 실행 필요).")
+    return [(code, name) for code, name in rows]
 
 
 def zip_codes_for_ctpv(ctpv_nm: str, mapping: list) -> list:
@@ -318,7 +311,7 @@ def insert_region_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
 
 
 def run_region_mapping(conn, records: list):
-    mapping = load_zipcd_mapping()
+    mapping = load_zipcd_mapping(conn)
     if not mapping:
         return
     plcyno_map = build_plcyno_to_id_map(conn)
@@ -354,6 +347,7 @@ def main():
 
     records = load_records()
     print(f"{DETAIL_FILE}에서 상세정보 있는 {len(records)}건 로드")
+    print(f"TOTAL_COUNT:{len(records)}")  # external_sync.py가 파싱해 관리자 화면에 작업량으로 표시
 
     if args.peek:
         row = transform_record(records[0])

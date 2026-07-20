@@ -69588,5 +69588,1059 @@
         }
       ]
     }
+  },
+  {
+    "servId": "WLF00006619",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "경기도 성남시 교육문화체육국 청년청소년과",
+      "ctpvNm": "경기도",
+      "inqNum": "167",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "구직 및 이직 희망 청년 중 취업에 어려움을 겪는 청년에게 취업준비 컨설팅을 지원하여 취업준비 청년 독려 및 고립 방지",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006619&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006619",
+      "servNm": "성남시 청년 취업준비 컨설팅 지원사업",
+      "sggNm": "성남시",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "프로그램/서비스(서비스)"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006619",
+      "servNm": "성남시 청년 취업준비 컨설팅 지원사업",
+      "enfcBgngYmd": "20240102",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 성남시 교육문화체육국 청년청소년과",
+      "ctpvNm": "경기도",
+      "sggNm": "성남시",
+      "servDgst": "구직 및 이직 희망 청년 중 취업에 어려움을 겪는 청년에게 취업준비 컨설팅을 지원하여 취업준비 청년 독려 및 고립 방지",
+      "lifeNmArray": "청년",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "프로그램/서비스(서비스)",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "성남시 거주 미취업 청년 19~39세",
+      "slctCritCn": "성남시 거주 19~39세 구직 희망 미취업 청년(생애 1회 지원 가능)",
+      "alwServCn": "취업컨설팅 제공",
+      "aplyMtdCn": "성남청년다해 신청 접수 https://dept.seongnam.go.kr/youth/",
+      "inqNum": "167",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-729-8764",
+        "wlfareInfoReldNm": "성남시 청년청소년과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "성남시 청년 일자리 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006618",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "경기도 성남시 교육문화체육국 청년청소년과",
+      "ctpvNm": "경기도",
+      "inqNum": "154",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "면접비용 부담으로 인해 면접을 포기하는 구직 청년들이 많음, 면접불참으로 인해 기업의 채용비용 증가, 구인난 심화 등의 피해 발생",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006618&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006618",
+      "servNm": "성남시 청년 면접준비 지원사업",
+      "sggNm": "성남시",
+      "sprtCycNm": "기타",
+      "srvPvsnNm": "현물지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006618",
+      "servNm": "성남시 청년 면접준비 지원사업",
+      "enfcBgngYmd": "20240101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 성남시 교육문화체육국 청년청소년과",
+      "ctpvNm": "경기도",
+      "sggNm": "성남시",
+      "servDgst": "면접비용 부담으로 인해 면접을 포기하는 구직 청년들이 많음, 면접불참으로 인해 기업의 채용비용 증가, 구인난 심화 등의 피해 발생",
+      "lifeNmArray": "청년",
+      "sprtCycNm": "기타",
+      "srvPvsnNm": "현물지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "성남시 거주 19~39세 취업준비 청년",
+      "slctCritCn": "ㅇ 성남시 거주 19~ 39세 취업 준비중인 청년(생애1회 신청 가능)ㅇ 취업준비중인 청년 청년(고용24 구직 등록 되어 있어야 함)ㅇ 취업면접 일정이 확정된 청년",
+      "alwServCn": "면접사진촬영 서비스 및 면접준비노트",
+      "aplyMtdCn": "성남청년다해 사이트 접속하여 신청: https://dept.seongnam.go.kr/youth/",
+      "inqNum": "154",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-729-8764",
+        "wlfareInfoReldNm": "성남시 청년청소년과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "성남시 청년일자리 창출 촉진에 관한 조례 6조"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006616",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 공주시 교육복지국 청년인구정책과",
+      "ctpvNm": "충청남도",
+      "inqNum": "151",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년, 아동, 청소년, 영유아",
+      "servDgst": "공주시에 거주하는 무주택 다자녀가구를 대상으로 주택구입 및 전세자금 대출이자 일부를 지원하여 지역정착 및 출산장려를 유도하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006616&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006616",
+      "servNm": "공주시 다자녀가구 주택구입 및 전세자금 대출이자 지원사업",
+      "sggNm": "공주시",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "trgterIndvdlNmArray": "다자녀"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006616",
+      "servNm": "공주시 다자녀가구 주택구입 및 전세자금 대출이자 지원사업",
+      "enfcBgngYmd": "20251001",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 공주시 교육복지국 청년인구정책과",
+      "ctpvNm": "충청남도",
+      "sggNm": "공주시",
+      "servDgst": "공주시에 거주하는 무주택 다자녀가구를 대상으로 주택구입 및 전세자금 대출이자 일부를 지원하여 지역정착 및 출산장려를 유도하고자 함",
+      "lifeNmArray": "영유아, 아동, 청소년, 청년",
+      "trgterIndvdlNmArray": "다자녀",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "- 주소기준 : 공주시에 동일한 주소로 주민등록(부모, 자녀)을 둔 다자녀가구   - 다자녀기준 : 18세 이하 자녀가 3명 이상인 부 또는 모   - 소득기준 : 기준 중위소득 180% 이하인 가구   - 주택기준 : 금융기관에서 주택 구입(전세)으로 대출을 받은 자    (전세) 세대주를 포함한 세대원 모두 무주택자여야 함      (구입) 세대주를 포함한 세대원 모두 대출 대상주택 외 추가 주택(분양권 포함)이 없어야 함",
+      "slctCritCn": "⦁18세 이하 자녀가 3명 이상인 가구(시행 첫 해, 실효성 등을 파악하기 위하여 3자녀 이상으로 방침결정)  ⦁신청일 현재 세대원 모두 공주시에 주소 등재 및 거주하는 다자녀가구 세대주(또는 배우자)  ⦁기준 중위소득 180% 이하인 가구  ⦁금융기관으로부터 주택구입 또는 전세로 인하여 대출을 받은 자    (대출 시 ‘주택구입’, ‘주택전세’용도로 명기된 경우에 한함)",
+      "alwServCn": "❍ 지원내용 : 대출잔액의 2% 범위 내 이자 지원   - 연 1회 최대 200만원 / 최대 2년 지원",
+      "aplyMtdCn": "❍ 신 청 자 : 본인 또는 배우자  ❍ 신청방법 : 방문 신청(배우자 동의를 거쳐 부부 중 1인 신청가능)  ❍ 신청장소 : 주민등록지 읍·면·동 행정복지센터",
+      "inqNum": "151",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-840-8754",
+        "wlfareInfoReldNm": "공주시 청년인구정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "공주시 다자녀가구 주택구입 및 전세자금 대출이자 지원 조례"
+      },
+      "basfrmList": [
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260716UUWBM1135300201441767&atcflSn=1",
+          "wlfareInfoReldNm": "[별지 제1호서식] 다자녀가구 주택구입 및 전세 자금 대출이자 지원 신청서.hwp"
+        },
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260716UUWBM1103350201431453&atcflSn=1",
+          "wlfareInfoReldNm": "공주시 다자녀가구 주택구입 및 전세 자금 대출이자 지원 조례.pdf"
+        }
+      ]
+    }
+  },
+  {
+    "servId": "WLF00006613",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 논산시 인구복지국 인구청년교육과",
+      "ctpvNm": "충청남도",
+      "inqNum": "177",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "청년의 주거안정 및 정주여건을 향상시키고, 청년이 정착하여 살기 좋은 도시환경 조성을 위한 청년주택자금 대출이자 지원사업을 추진하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006613&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006613",
+      "servNm": "청년주택자금 대출이자 지원사업",
+      "sggNm": "논산시",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006613",
+      "servNm": "청년주택자금 대출이자 지원사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99990909",
+      "bizChrDeptNm": "충청남도 논산시 인구복지국 인구청년교육과",
+      "ctpvNm": "충청남도",
+      "sggNm": "논산시",
+      "servDgst": "청년의 주거안정 및 정주여건을 향상시키고, 청년이 정착하여 살기 좋은 도시환경 조성을 위한 청년주택자금 대출이자 지원사업을 추진하고자 함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "논산시에 주소를 두고 전세자금 대출을 이용 중인 청년 중 아래의 조건을 모두 만족하는 만19세 이상 ~ 45세 이하 자 1. 무주택 세대주이면서 세대원(배우자 및 자녀) 전원 무주택자 2. 가구소득인정액이 기준중위소득 180%* 이하인 청년",
+      "slctCritCn": "❍ (선정방법) 자격요건에 부합하는 경우 선착순 선정   - 경쟁이 발생하는 경우 아래 우선순위에 따름 (1순위) 차상위·자립준비청년(2순위) 신혼·육아 청년 가구 (3순위) 논산시 내 거주기간이 긴 순(전입신고일 기준)",
+      "alwServCn": "2026년 1월 이후 본인이 납입한 대출이자의 50% 지원   - 신혼부부 및 육아가구 : 年 최대 2,000천원   - 그 외 청년 : 年 최대 1,500천원",
+      "aplyMtdCn": "방문신청(논산시 인구청년교육과)",
+      "inqNum": "177",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-746-5764",
+        "wlfareInfoReldNm": "논산시청 인구청년교육과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "논산시 청년지원 기본 조례 제19조의 4"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260714UUWBM1949170201195881&atcflSn=1",
+        "wlfareInfoReldNm": "논산시 청년지원 기본 조례.pdf"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006611",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 예산군 보건소 건강증진과",
+      "ctpvNm": "충청남도",
+      "inqNum": "51",
+      "intrsThemaNmArray": "서민금융, 신체건강",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "노년, 청년, 중장년",
+      "servDgst": "저소득층 암환자의 경제적 부담 완화 및 삶의 질 향상\n- 항암치료 과정에서 탈모증세로 신체적, 정신적 고통을 겪고 있는 암환자분들의 자존감 회복 및 경제적 부담 완화를 위한 사업입니다.",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006611&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006611",
+      "servNm": "예산군 암환자 가발구입비 지원 사업",
+      "sggNm": "예산군",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "trgterIndvdlNmArray": "저소득"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006611",
+      "servNm": "예산군 암환자 가발구입비 지원 사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 예산군 보건소 건강증진과",
+      "ctpvNm": "충청남도",
+      "sggNm": "예산군",
+      "servDgst": "저소득층 암환자의 경제적 부담 완화 및 삶의 질 향상\n- 항암치료 과정에서 탈모증세로 신체적, 정신적 고통을 겪고 있는 암환자분들의 자존감 회복 및 경제적 부담 완화를 위한 사업입니다.",
+      "lifeNmArray": "청년, 중장년, 노년",
+      "trgterIndvdlNmArray": "저소득",
+      "intrsThemaNmArray": "신체건강, 서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "아래 3가지 조건을 모두 충족하는 경우 지원합니다.① 만18세 이상 의료급여수급권자, 차상위본인부담경감대상자② 신청일 기준 1년 이상 예산군에 주민등록상 주소를 두고 실제 거주하는 암환자③ 항암치료 중 탈모가 심하여 가발이 필요하다는 의사 소견서를 제출한 자(발급일 기준 6개월 이내)",
+      "slctCritCn": "아래 3가지 조건을 모두 충족하는 경우 지원합니다.① 만18세 이상 의료급여수급권자, 차상위본인부담경감대상자② 신청일 기준 1년 이상 예산군에 주민등록상 주소를 두고 실제 거주하는 암환자③ 항암치료 중 탈모가 심하여 가발이 필요하다는 의사 소견서를 제출한 자(발급일 기준 6개월 이내)",
+      "alwServCn": "1인당 최대 70만원 이하 가발 구입비 지원(1회 한정)",
+      "aplyMtdCn": "예산군보건소 방문재활팀 방문 신청- 구비서류 제출: 지원신청서, 항암치료 중 탈모가 심하여 가발이 필요하다는 내용이 기재된 의사소견서(발급일 기준 6개월 이내), 가발 구입 영수증(조례('25.9.30.) 이후 발생 영수증), 통장 사본(대상자 명의)",
+      "inqNum": "51",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-339-6095",
+        "wlfareInfoReldNm": "예산군보건소 건강증진과 방문재활팀"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "「예산군 암환자 가발구입비 지원 조례」"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260714UUWBM1837050201183599&atcflSn=1",
+        "wlfareInfoReldNm": "암환자 가발구입비 지원신청서.hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006604",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 보령시 에너지환경국 신산업전략과",
+      "ctpvNm": "충청남도",
+      "inqNum": "47",
+      "intrsThemaNmArray": "서민금융, 임신·출산",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "임신 · 출산, 청년",
+      "servDgst": "남성 근로자의 육아휴직을 장려하고 양육에 따른 경제적 부담을 완화하여 일과 가정생활의 양립 및 가족 친화적인 사회환경 조성을 목적으로 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006604&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006604",
+      "servNm": "보령시 아빠 육아휴직 장려금 지원",
+      "sggNm": "보령시",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006604",
+      "servNm": "보령시 아빠 육아휴직 장려금 지원",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 보령시 에너지환경국 신산업전략과",
+      "ctpvNm": "충청남도",
+      "sggNm": "보령시",
+      "servDgst": "남성 근로자의 육아휴직을 장려하고 양육에 따른 경제적 부담을 완화하여 일과 가정생활의 양립 및 가족 친화적인 사회환경 조성을 목적으로 함",
+      "lifeNmArray": "청년, 임신 · 출산",
+      "intrsThemaNmArray": "임신·출산, 서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "❍ 다음 조건을 모두 충족하는 남성 육아휴직자 - 신청일 기준 1년 이상 계속하여 보령시에 주민등록이 되어있는 경우 - 육아휴직 대상 아동이 신청일 기준 보령시에 주민등록이 되어있는 경우 - 「고용보험법」 제70조(육아휴직 급여)에 따른 육아휴직 급여 지급 대상인 경우❍ 제외대상: 「고용보험법」 제10조 해당하는 공무원, 교사, 자영업자 등 고용보험 적용제외자",
+      "slctCritCn": "❍ 지원대상: 다음 조건을 모두 충족하는 남성 육아휴직자 - 신청일 기준 1년 이상 계속하여 보령시에 주민등록이 등재된 남성 근로자 - 육아휴직 대상 아동이 신청일 기준 보령시에 주민등록이 된 자 - 「고용보험법」제70조 규정에 따른 육아휴직 급여 지급 대상인 자 ※ 「고용보험법 시행령」 제95조의2 및 제95조의3에 따른 육아휴직 급여 특례적용 대상자는 특례 적용 기간이 지난 달부터 적용",
+      "alwServCn": "월 최대 30만 원(육아휴직자 본인 계좌입금) / 최대 6개월 ※ 지급월 지급대상 기간이 1개월 미만일 경우 해당월 휴직일수 만큼 일할 계산",
+      "aplyMtdCn": "보령시청 신산업전략과 방문 접수",
+      "inqNum": "47",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-930-2293",
+        "wlfareInfoReldNm": "보령시청 신산업전략과"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "보령시청 누리집",
+        "wlfareInfoReldNm": "보령시청 신산업전략과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "보령시 아빠 육아휴직 장려금 지원조례 제4조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260615UUWBM2104140197089942&atcflSn=1",
+        "wlfareInfoReldNm": "2026년 보령시 아빠 육아휴직 장려금 지원사업 신청 공고(수정).hwpx"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006603",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 예산군 보건소 건강증진과",
+      "ctpvNm": "충청남도",
+      "inqNum": "66",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년, 청소년",
+      "servDgst": "산후조리 비용 지원을 통한 양육 가정의 경제적 부담 경감, 산모·신생아의 건강 증진 및 출산 장려 분위기 확산",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006603&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006603",
+      "servNm": "산후조리 비용 지원",
+      "sggNm": "예산군",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006603",
+      "servNm": "산후조리 비용 지원",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 예산군 보건소 건강증진과",
+      "ctpvNm": "충청남도",
+      "sggNm": "예산군",
+      "servDgst": "산후조리 비용 지원을 통한 양육 가정의 경제적 부담 경감, 산모·신생아의 건강 증진 및 출산 장려 분위기 확산",
+      "lifeNmArray": "청소년, 청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "신청일 기준 6개월 전부터 현재까지 예산군에 주민등록을 두고 출생아를 예산군에 출생신고한 산모",
+      "slctCritCn": "신청일 기준 6개월 전부터 현재까지 예산군에 주민등록을 두고 출생아를 예산군에 출생신고한 산모",
+      "alwServCn": "산후조리 비용 100만원 지급",
+      "aplyMtdCn": "예산군보건소 또는 내포보건지소 방문 신청(출산일로부터 6개월 이내)",
+      "inqNum": "66",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-339-6041",
+        "wlfareInfoReldNm": "예산군보건소 건강증진과 모자보건팀"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "예산군 인구증가 시책추진 지원에 관한 조례"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260715UUWBM1019090201242097&atcflSn=1",
+        "wlfareInfoReldNm": "[별표 1] 인구증가 시책관련 지원 내용(제3조제2항 관련).hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006601",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 보건복지국 장애인복지과",
+      "ctpvNm": "충청남도",
+      "inqNum": "57",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "중증장애인의 탈 빈곤 및 빈곤 대물림 예방과 보호자 사후 원활한 자립",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006601&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006601",
+      "servNm": "중증장애인 자산형성 지원",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "trgterIndvdlNmArray": "장애인"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006601",
+      "servNm": "중증장애인 자산형성 지원",
+      "enfcBgngYmd": "20220101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 보건복지국 장애인복지과",
+      "ctpvNm": "충청남도",
+      "servDgst": "중증장애인의 탈 빈곤 및 빈곤 대물림 예방과 보호자 사후 원활한 자립",
+      "lifeNmArray": "청년",
+      "trgterIndvdlNmArray": "장애인",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "신청자격① 사업 공고일 기준 현재 충남거주 만 15세 이상 ~ 만 39세 이하② 「장애인복지법」에 의한 장애의 정도가 심한 장애인③ 소득인정액이 기준중위소득 100% 이하인 가구신청제외대상① 신청자 본인이 생계･의료급여 수급자 (주거･교육급여 수급자는 신청 가능)② 신청자 본인이 신용유의자인 경우 ③ 신청자 본인의 통장 개설이 불가능한 자④ 본인이 유사자산형성지원사업 참여한 경우  ∙ 신청자 본인이 고용노동부 청년내일채움공제, 청년재직자 내일채움공제, 통일부 미래 행복통장, 타 지자체 유사 자산형성사업 등에 참여한지 만 5년이 넘지 않은 기존 참여자⑤ 본인 및 가족이 유사자산형성지원사업 참여한 경우     ∙ 보건복지부 희망키움통장(Ⅰ,Ⅱ), 내일키움통장, 청년희망키움통장, 청년저축계좌 등 참여한지 만 5년이 넘지 않은 기존 참여자단, ‘디딤씨앗통장(아동발달지원계좌)’ 참여가구는 중복신청 가능※ 중복신청 불가 가구원 범위 : 부모, 배우자, 자녀, 형제, 자매",
+      "slctCritCn": "ㅇ 관내 만 15세 이상 ∼ 만 35세 미만의 중증장애인 중 기준중위소득 100% 이하",
+      "alwServCn": "본인 저축액 매월 10~20만원 납입 시, 보조금 15만원 매칭 지원",
+      "aplyMtdCn": "본인 직접 읍면동 주민센터 방문 접수 원칙∙중증장애 등으로 본인 방문 어려울 시, 동일가구원 및 법정 대리인 접수 가능∙신청자 본인과 대리인 신분증 확인 필수 (신분증 사본 첨부)",
+      "inqNum": "57",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-635-2632",
+        "wlfareInfoReldNm": "충청남도 장애인복지과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "충청남도 중증장애인 자립생활 지원 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006600",
+    "summary": {
+      "aplyMtdNm": "방문, 인터넷",
+      "bizChrDeptNm": "충청북도 충주시 안전행정국 기획예산과",
+      "ctpvNm": "충청북도",
+      "inqNum": "55",
+      "intrsThemaNmArray": "서민금융, 일자리",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "청년의 역량 강화 지원 및 지역 정착 유도",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006600&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006600",
+      "servNm": "충주시 미취업 청년 어학·자격증 취득 지원사업",
+      "sggNm": "충주시",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006600",
+      "servNm": "충주시 미취업 청년 어학·자격증 취득 지원사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청북도 충주시 안전행정국 기획예산과",
+      "ctpvNm": "충청북도",
+      "sggNm": "충주시",
+      "servDgst": "청년의 역량 강화 지원 및 지역 정착 유도",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문, 인터넷",
+      "sprtTrgtCn": "❍ 지원조건 : 아래의 요건을 모두 충족하는 자  - (연령기준) 19~39세 (2026년 기준, 1987. 1. 1. ~ 2007. 12. 31. 출생자)  - (거주기준) 신청일 기준 1년 이상 충주시에 주민등록을 두고 있는 자  - (수강기준) 2026. 1. 1. ~ 11. 30. 기간 내 수강을 시작하여 완료한 자",
+      "slctCritCn": "□ 지원조건 : 아래의 요건을 모두 충족하는 자(연령기준) 19~39세(1987.1.1.~2007.12.31.)(거주기간) 신청일 기준 1년 이상 충주시에 주민등록을 두고 있는 자(수강기준) 2026.1.1.~11.30. 기간 내 수강을 시작하여 완료한 자※ 지원분야 시험을 응시하기 위한 학원* 및 직업능력개발시설**에서 수강한 경우로 한정* 교육청에 등록된 학원(나이스교육정보개방포털>데이터셋>학원교습소정보에서 조회가능한 학원(교습소 제외)** 직업능력개발시설(고용24>기업>직업능력개발>훈련기관·강사>훈련기관평가정보>집체훈련·원격훈련에서 확인(미취업기준) 수강시작일~수강완료일 기준 미취업자*※ 수강완료일 이후에 취업 또는 사업자등록을 한 경우는 신청 가능* 미취업자 : 아래 요건을 모두 충족하는 자① 건강보험 자격득실 확인서 상 직장가입자가 아닌 자※ 단, 1년 이하 비정규직 단기근로자는 신청 가능(근로계약서 등 증빙 필요)② 사실증명(사업자등록사실여부) 상 사업자등록을 하지 않은 자※ 단, 수강시작일 전 휴업 또는 폐업한 자는 신청 가능(휴·폐업증명서 등 증빙 필요)",
+      "alwServCn": "대상자 계좌이체",
+      "aplyMtdCn": "(온라인) 정부24(혜택알리미) (방문) 주소지 읍면동 행정복지센터",
+      "inqNum": "55",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "043-850-5262",
+        "wlfareInfoReldNm": "충주시 기획예산과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "충주시 청년 기본 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006599",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청북도 충주시 안전행정국 기획예산과",
+      "ctpvNm": "충청북도",
+      "inqNum": "55",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "청년 신혼부부의 주거비용 부담완화로 안정적인 주거 환경을 조성하여 출산율 제고 및 저출생 극복에 기여",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006599&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006599",
+      "servNm": "청년 신혼부부 월세 지원사업",
+      "sggNm": "충주시",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006599",
+      "servNm": "청년 신혼부부 월세 지원사업",
+      "enfcBgngYmd": "20251001",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청북도 충주시 안전행정국 기획예산과",
+      "ctpvNm": "충청북도",
+      "sggNm": "충주시",
+      "servDgst": "청년 신혼부부의 주거비용 부담완화로 안정적인 주거 환경을 조성하여 출산율 제고 및 저출생 극복에 기여",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": " 기본요건  - 주민등록상 세대구성원 모두 혼인 신고일로부터 공고일까지    전국기준 주택을 소유한 이력이 없는 가구   ※ 분양권, 입주권이 있는 경우 주택을 소유한 것으로 판정  거주기준  - 신혼부부가 모두 공고일 6개월 이전부터, 임대차계약서(월세)상 대상 주택(충주시 소재)으로 전입이 되어 있는 가구   ※ 유자녀 가구 : 자녀 모두 동일 주소 등재  혼인기준  - 지원공고일 전일까지 혼인신고를 마친 혼인 7년 이내 부부  연령기준  - 부부 중 1명 이상은 청년(19 ~ 39세)이어야 함 ※ 1986년생 ~ 2007년생  소득기준 : 기준 중위소득 180% 이하  주택기준  - 소유권: 세대 구성원 모두 무주택자     ‧ 보증금 1억원 이하 / 월세 80만원 이하 / 전용면적 85㎡ 이하     ‧ 건축법 시행령상 용도 : 단독주택, 다가구주택, 아파트, 연립주택,                                 다세대주택, 주거용 오피스텔*",
+      "slctCritCn": " 기본요건  - 주민등록상 세대구성원 모두 혼인 신고일로부터 공고일까지    전국기준 주택을 소유한 이력이 없는 가구   ※ 분양권, 입주권이 있는 경우 주택을 소유한 것으로 판정  거주기준  - 신혼부부가 모두 공고일 6개월 이전부터, 임대차계약서(월세)상 대상 주택(충주시 소재)으로 전입이 되어 있는 가구   ※ 유자녀 가구 : 자녀 모두 동일 주소 등재  혼인기준  - 지원공고일 전일까지 혼인신고를 마친 혼인 7년 이내 부부  연령기준  - 부부 중 1명 이상은 청년(19 ~ 39세)이어야 함 ※ 1986년생 ~ 2007년생  소득기준 : 기준 중위소득 180% 이하  주택기준  - 소유권: 세대 구성원 모두 무주택자     ‧ 보증금 1억원 이하 / 월세 80만원 이하 / 전용면적 85㎡ 이하     ‧ 건축법 시행령상 용도 : 단독주택, 다가구주택, 아파트, 연립주택,                                 다세대주택, 주거용 오피스텔*",
+      "alwServCn": "대상자 계좌이체",
+      "aplyMtdCn": "신청방법 : 거주지 읍면동 행정복지센터 방문 신청ㆍ접수",
+      "inqNum": "55",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "043-850-5262",
+        "wlfareInfoReldNm": "충주시 기획예산과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "충주시 청년 기본 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00003955",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "울산광역시 울주군 경제산업국 일자리정책과",
+      "ctpvNm": "울산광역시",
+      "inqNum": "242",
+      "lastModYmd": "20260717",
+      "lifeNmArray": "청년",
+      "servDgst": "고금리·고물가 등 경제 위기 상황 속에서 청년 취업난은 심화되고 있으며, 취업 준비 중인 청년들은 경제적으로 어려운 상태에서 구직 준비를 하고 있어 경제적 지원이 절실함. 이에 우리 군은 본 사업을 통해 청년 구직자의 경제적 부담을 완화하며 구직 활동 지원을 강화하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00003955&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00003955",
+      "servNm": "울주군 청년 면접정장 대여사업",
+      "sggNm": "울주군",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "프로그램/서비스(서비스)"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00003955",
+      "servNm": "울주군 청년 면접정장 대여사업",
+      "enfcBgngYmd": "20200501",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "울산광역시 울주군 경제산업국 일자리정책과",
+      "ctpvNm": "울산광역시",
+      "sggNm": "울주군",
+      "servDgst": "고금리·고물가 등 경제 위기 상황 속에서 청년 취업난은 심화되고 있으며, 취업 준비 중인 청년들은 경제적으로 어려운 상태에서 구직 준비를 하고 있어 경제적 지원이 절실함. 이에 우리 군은 본 사업을 통해 청년 구직자의 경제적 부담을 완화하며 구직 활동 지원을 강화하고자 함",
+      "lifeNmArray": "청년",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "프로그램/서비스(서비스)",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "사업대상 : 신청일 현재 울주군에 주민등록을 둔 18~39세 청년 구직자",
+      "slctCritCn": "사업대상 : 신청일 현재 울주군에 주민등록을 둔 18~39세 청년 구직자사업내용 : 면접용 정장 무료 대여 서비스 제공(1회 3박 4일)(1인 연 최대 4회)",
+      "alwServCn": "면접정장 무료대여 서비스 제공(1회 3박 4일) (1인 연 최대 4회)",
+      "aplyMtdCn": "온라인 신청 : 울주군 청년정책 플랫폼 (URL링크 : https://www.ulju.ulsan.kr/dreamwings/)",
+      "inqNum": "242",
+      "lastModYmd": "20260717",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "052-204-1363",
+        "wlfareInfoReldNm": "울산광역시 울주군 일자리지원과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "울산광역시 울주군 청년 지원 조례 제3조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260617UUWBM1401230197403446&atcflSn=1",
+        "wlfareInfoReldNm": "울산광역시 울주군 청년 지원 조례.hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006584",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "서울특별시 미래청년기획관 청년사업담당관",
+      "ctpvNm": "서울특별시",
+      "inqNum": "68",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "학자금대출 상환연체로 인해 신용유의자가 된 청년들에게 한국장학재단과 분할상환약정 체결 시 초입금을 지원하여 신용회복을 지원",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006584&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006584",
+      "servNm": "학자금대출 신용회복지원 사업",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "기타"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006584",
+      "servNm": "학자금대출 신용회복지원 사업",
+      "enfcBgngYmd": "20170810",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 미래청년기획관 청년사업담당관",
+      "ctpvNm": "서울특별시",
+      "servDgst": "학자금대출 상환연체로 인해 신용유의자가 된 청년들에게 한국장학재단과 분할상환약정 체결 시 초입금을 지원하여 신용회복을 지원",
+      "lifeNmArray": "청년",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "기타",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "- 한국장학재단 학자금 대출로 인해 신용유의자로 등록된 자로서 신청일 기준 주민등록상 서울시 거주하는 만19~39세 청년   - 의무복무 제대군인은 군 복무기간에 따라 최대 42세까지 신청 가능",
+      "slctCritCn": "- 한국장학재단 학자금 대출로 인해 신용유의자로 등록된 자로서 신청일 기준 주민등록상 서울시 거주하는 만19~39세 청년   - 의무복무 제대군인은 군 복무기간에 따라 최대 42세까지 신청 가능",
+      "alwServCn": "신용유의자 해제를 위한 초입금(채무액의 5%) 지원",
+      "aplyMtdCn": "서울시 청년몽땅정보통(youth.seoul.go.kr)에서 온라인 신청",
+      "inqNum": "68",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldNm": "서울시 청년몽땅정보통"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "youth.seoul.go.kr",
+        "wlfareInfoReldNm": "서울시 청년몽땅정보통"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울특별시 청년기본조례 제14조(청년의 금융생활 지원 등)"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006578",
+    "summary": {
+      "aplyMtdNm": "인터넷, 우편, 팩스, 방문",
+      "bizChrDeptNm": "서울특별시 민생노동국 노동정책과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "99",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "중장년, 청년, 청소년, 노년",
+      "servDgst": "ㅇ  생계 문제로 치료를 미루는 취약노동자에게 입원 치료 또는 국가 일반건강검진 시 생활임금을 지원하여 질병의 조기 치료와 생활 안정을 돕기 위한 사업입니다.",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006578&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006578",
+      "servNm": "서울형 입원 생활비 지원 사업",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006578",
+      "servNm": "서울형 입원 생활비 지원 사업",
+      "enfcBgngYmd": "20190601",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 민생노동국 노동정책과",
+      "ctpvNm": "서울특별시",
+      "servDgst": "ㅇ  생계 문제로 치료를 미루는 취약노동자에게 입원 치료 또는 국가 일반건강검진 시 생활임금을 지원하여 질병의 조기 치료와 생활 안정을 돕기 위한 사업입니다.",
+      "lifeNmArray": "청소년, 청년, 중장년, 노년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문, 우편, 인터넷, 팩스",
+      "sprtTrgtCn": "ㅇ 최근 입원치료 및 국가 일반건검진을 실시한 근로 및 사업소득자로 다음 조건을 모두 만족하는 서울시민이 대상입니다.  - (근로) [입원,건강검진 전월 포함 이전 3개월간]+[입원, 건강검진 당월 1일부터 입원,건강검진 전날까지] 기간 동안 총 24일 이상 근무 또는 45일 이상 사업장 유지  * 건강검진은 국가(국민건강보험공단) 1차 일반건강검진만 해당(2차 건강검진, 암검진 제외) - (신청기한 미경과)퇴원일 또는 건강검진일로부터 180일 이내 - (건강보험) 입원·입원연계 외래진료·국가 일반건강검진 기간 국민건강보험 지역가입자 - (재산) 본인과 가구원 합산 4억원 이하 - (소득) 본인과 가구원 합산 기준중위소득 100% 이하 - (거주)입원일, 입원연계 외래진료일, 국가 일반건강검진일 기준 30일 전부터 주민등록상 서울시 거주(지원금 수령시점까지 주민등록상 서울시 거주) - (중복수혜 제외) 생계급여(국민기초생활보장,서울형 기초보장,국가형·서울형 긴급복지지원), 실업급여, 산재보험급여 수혜자 - (지원불가) 치료목적이 아닌 미용,성형,출산,요양목적 입원/요양병원,조산원 입원/법인사업자/임대사업자/외국국적자/사망자",
+      "slctCritCn": "ㅇ 재산: 4억 원 이하(재산 시가 표준액 합산액)  - 신청 및 가구원의 토지, 건축물, 주택, 임차보증금 등 일반재산액(금융재산 및 자동차 미포함)ㅇ 소득: 당해 연도 보건복지부에서 고시하는 가구별 기준 중위소득 100%이하(신청자 및 가구원 합산)  - 실제소득(근로소득, 사업소득, 재산소득, 이전소득을 합산한 금액)만 의미  ※ 가구원 기준: 주민등록표상 동일 주소지 신청자의 1.배우자 2.직계혈족(부모,자녀) 3.직계혈족(자녀)의 배우자(며느리,사위) 4.배우자의 직계혈족(시부모, 장인, 장모)                                                                      5.배우자의 자녀",
+      "alwServCn": "ㅇ입원, 입원연계 외래진료, 국가 일반건강검진(1차) 시 연 최대 14일 생활비를 지원합니다. - 연 최대 14일: 입원13일(입원연계 외래진료 3일 포함), 국가 일반건강검진(1차): 1일 - 지원금액: 입원, 입원연계 외래진료, 국가 일반건강검진이 발생한 해당년도 서울시 생활임금 적용               (2026년 기준 1일 96,960원, 연 최대 1,357,440원)",
+      "aplyMtdCn": "ㅇ 서울형 입원 생활비 지원 사업 누리집(sickleave.seoul.go.kr)에서 온라인 및 모바일 신청하거나, 거주지 관할 동주민센터 또는 보건소에 직접 방문하여 신청가능합니다.    (팩스 또는 등기우편도 가능)",
+      "inqNum": "99",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "02-120",
+        "wlfareInfoReldNm": "서울특별시 120다산콜재산"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울특별시 서울형 입원 생활비 지원에 관한 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006576",
+    "summary": {
+      "aplyMtdNm": "E-mail",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "53",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "◾ 심화되는 취업난으로 인한 청년 창업 수요 증가와 경기침체로 인한 창업자 비용 부담 가중 및 비용 지원 요구 증대에 따라 청년 창업자에 대한 신규 지원이 필요\n◾ 사업체 운영 시, 주요 고정 비용인 사업장 임차료를 지원함으로써 청년 창업자의 경제적 부담을 경감하고 안정적인 창업 환경을 조성하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006576&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006576",
+      "servNm": "기장군 청년 창업자 임차료 지원사업",
+      "sggNm": "기장군",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006576",
+      "servNm": "기장군 청년 창업자 임차료 지원사업",
+      "enfcBgngYmd": "20260202",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "sggNm": "기장군",
+      "servDgst": "◾ 심화되는 취업난으로 인한 청년 창업 수요 증가와 경기침체로 인한 창업자 비용 부담 가중 및 비용 지원 요구 증대에 따라 청년 창업자에 대한 신규 지원이 필요\n◾ 사업체 운영 시, 주요 고정 비용인 사업장 임차료를 지원함으로써 청년 창업자의 경제적 부담을 경감하고 안정적인 창업 환경을 조성하고자 함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "E-mail",
+      "sprtTrgtCn": "◾기장군 거주 19~44세 청년 창업자",
+      "slctCritCn": "◾2026년 신청자격 ① (연령조건) 2026년 기준 19~44세 청년(1982~2007년생) ② (거주요건) 사업 공고일 전일 기준 기장군에 주민등록을 둔 자 ③ (사 업 장) 2021. 1. 1. 이후 사업자 등록하여 현재까지 실제 영업 중인 기장군 소재 사업장 ④ (매 출 액) 연 매출액 1억원 이하(2025년 기준) ⑤ (임 차 료) 월 임차료 25만원 이상 납부(관리비 등 제외)",
+      "alwServCn": "◾ 사업장 임차료 월 20만원, 최대 10개월간 지원(1인당 연 최대 200만원 지원)",
+      "aplyMtdCn": "◾온라인 신청: 신청기간 내에 기장군 청년정책 대표메일(gjyoung@korea.kr)로 신청서류 제출 → 최종 20명 선정",
+      "inqNum": "53",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "051-709-4395",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "https://www.gijang.go.kr",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례 제17조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260615UUWBM1504460196986702&atcflSn=1",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례.pdf"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006575",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "51",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "◾ 취업 준비 청년의 면접비용 부담을 완화하고 청년 구직활동을 적극적으로 지원하기 위함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006575&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006575",
+      "servNm": "기장군 청년 면접수당 지원사업",
+      "sggNm": "기장군",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006575",
+      "servNm": "기장군 청년 면접수당 지원사업",
+      "enfcBgngYmd": "20240923",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "sggNm": "기장군",
+      "servDgst": "◾ 취업 준비 청년의 면접비용 부담을 완화하고 청년 구직활동을 적극적으로 지원하기 위함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "◾ 다음 조건을 모두 갖춘 청년(2026년) ① (연    령) 2026년 기준 19세~44세 청년 (1982~2007년생) ② (거    주) 신청일 기준 기장군에 주민등록을 둔 자 ③ (취·창업여부) 채용 면접 응시일 기준 미취업·미창업자   ▸ 공공근로 등 정부직접일자리 사업 참여자 지원 가능(기간제 근로자 지원 불가)   ▸ 근로계약기간 3개월 미만 또는 주 30시간 미만 근로자 지원 가능 ④ (근로조건) 2026년에 실시한 주 30시간 이상, 근무기간 3개월 이상 일자리 면접의 실제 응시자◾ 지원 제외 대상 ① 2026년 국민취업지원제도에 참여 중인 청년(응시일 포함) ② 2026년 정부 및 타 지자체의 동일·유사 사업에 참여한 청년",
+      "slctCritCn": "◾ 신청일 기준 기장군에 주민등록을 둔 19~44세 미취업·미창업 청년 중 기업 채용면접에 응시한 자(합격 여부 불문)",
+      "alwServCn": "◾ 1인당 연 10만원 한도 면접수당 지원(1회당 5만원, 최대 2회)",
+      "aplyMtdCn": "◾ 기장군청 홈페이지(https://www.gijang.go.kr)에서 온라인 신청",
+      "inqNum": "51",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "051-709-4395",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "https://www.gijang.go.kr",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례 제17조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260615UUWBM1444130196978475&atcflSn=1",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례.pdf"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006574",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "58",
+      "intrsThemaNmArray": "서민금융, 일자리",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "◾ 청년의 진로 및 직업능력 강화를 위해 자격증 응시료를 지원하여 경제적 부담 완화 및 고용촉진의 기회를 마련하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006574&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006574",
+      "servNm": "기장군 청년 자격시험 응시료 지원사업",
+      "sggNm": "기장군",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006574",
+      "servNm": "기장군 청년 자격시험 응시료 지원사업",
+      "enfcBgngYmd": "20240923",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 기장군 경제산업국 일자리경제과",
+      "ctpvNm": "부산광역시",
+      "sggNm": "기장군",
+      "servDgst": "◾ 청년의 진로 및 직업능력 강화를 위해 자격증 응시료를 지원하여 경제적 부담 완화 및 고용촉진의 기회를 마련하고자 함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "◾ 기장군 거주 19세~44세 미취업·미창업 청년",
+      "slctCritCn": "◾ 다음 조건을 모두 갖춘 청년(2026년) ① (연    령) 2026년 기준 19세~44세 청년 (1982~2007년생) ② (거    주) 신청일 기준 기장군에 주민등록을 둔 자 ③ (취·창업여부) 자격시험 응시일 기준 미취업·미창업자   ▸ 공공근로 등 정부직접일자리 사업 참여자 지원 가능(기간제 근로자 지원 불가)   ▸ 근로계약기간 3개월 미만 또는 주 30시간 미만 근로자 지원 가능 ④ (시험응시) 2026년에 실시한 자격시험의 실제 응시자   ▸ 어학시험, 국가기술(전문)자격시험, 국가공인민간자격시험, 한국사능력검정시험◾ 지원 제외 대상 ① 2026년 국민취업지원제도에 참여 중인 청년(응시일 포함) ② 2026년 정부 및 타 지자체의 동일·유사 사업에 참여한 청년",
+      "alwServCn": "◾ 1인당 연 10만원 한도 자격시험 응시료 실비 지원(한도 내 신청 횟수 제한 없음)",
+      "aplyMtdCn": "■ 기장군청 홈페이지(https://www.gijang.go.kr)에서 온라인 신청",
+      "inqNum": "58",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "051-709-4395",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "https://www.gijang.go.kr",
+        "wlfareInfoReldNm": "부산광역시 기장군 경제산업국 일자리경제과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례 제17조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260615UUWBM1430540196972354&atcflSn=1",
+        "wlfareInfoReldNm": "부산광역시 기장군 청년 기본 조례.pdf"
+      }
+    }
+  },
+  {
+    "servId": "WLF00001520",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "경기도 안양시 청년정책관",
+      "ctpvNm": "경기도",
+      "inqNum": "2514",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "지속되고 있는 높은 실업률, 소득 대비 임차료 부담 증가로 청년들의 \n주거비 부담을 낮출 수 있도록 월세비용을 지원하여 안정적인 주거복지 환경을 제공하고 정주 여건 조성에 전념할 수 있는 기반 마련",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00001520&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00001520",
+      "servNm": "안양 청년 월세 지원사업",
+      "sggNm": "안양시",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00001520",
+      "servNm": "안양 청년 월세 지원사업",
+      "enfcBgngYmd": "20210311",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 안양시 청년정책관",
+      "ctpvNm": "경기도",
+      "sggNm": "안양시",
+      "servDgst": "지속되고 있는 높은 실업률, 소득 대비 임차료 부담 증가로 청년들의 \n주거비 부담을 낮출 수 있도록 월세비용을 지원하여 안정적인 주거복지 환경을 제공하고 정주 여건 조성에 전념할 수 있는 기반 마련",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "안양시에 주민등록된 19~39세 무주택 청년에 대한 지원입니다.소득기준: 청년가구 기준중위소득 120% 이하재산기준: 청년가구 총재산가액 1억 3천만원 이하",
+      "slctCritCn": "❍ 지원대상 : 안양시에 주민등록을 두고 부모와 별도 거주하는 19~39세 무주택 청년 ❍ 소득·재산기준* : 청년가구 소득․재산 고려    • 소득평가액 : 기준 중위소득 120% 이하    • 재산가액 : 1억 3천만원 이하 ❍ 지원제외    • 국토부 청년월세 지원사업 중복신청자 중 국토부 사업의 소득 및 재산기준 충족한 자(실제 수급 여부 무관)   • 기존 「안양 청년 월세 지원」사업 수혜 이력이 잇는 자   • 지원대상자 및 우선순위 공고일 기준으로 안양시에 거주하지 않는 자   • 국토부 또는 타 지자체에서 청년 월세 지원을 수혜중인 자(수혜 종료 후에는 신청 가능)   • 주택 소유자(분양권, 입주권 포함)   • 직계존속 형재 자매 등 2촌 이내 주택을 임차하는 경우   • 공공주택특별법에 따른 공공임대주택에 거주하는 경우   • 1실(방)에 다수가 거주하는 방식의 전대차인 경우   • 기타 사업취지에 부합하지 않다고 판단되는 경우",
+      "alwServCn": "월임차료 최대 10만원, 최대 10개월간 개인 계좌 입금",
+      "aplyMtdCn": "잡아바 어플라이 통합접수시스템 신청 등록 및 해당 전입 주소지 행정복지센터 방문 접수",
+      "inqNum": "2514",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-8045-5788",
+        "wlfareInfoReldNm": "안양시청 청년정책관"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "안양시 청년 기본 조례"
+      },
+      "basfrmList": [
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260714UUWBM1037030201054862&atcflSn=1",
+          "wlfareInfoReldNm": "신청서 등.pdf"
+        },
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20230518UUWBM1116440035194949&atcflSn=1",
+          "wlfareInfoReldNm": "1-04-00-00-002-20221230 (1).hwp"
+        }
+      ]
+    }
+  },
+  {
+    "servId": "WLF00002729",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "서울특별시 관악구 청년문화국 청년정책과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "5469",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260716",
+      "lifeNmArray": "청년",
+      "servDgst": "청년의 경제적 자립 능력 함양, 근로의욕 고취",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00002729&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00002729",
+      "servNm": "으뜸관악 청년통장",
+      "sggNm": "관악구",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00002729",
+      "servNm": "으뜸관악 청년통장",
+      "enfcBgngYmd": "20191001",
+      "enfcEndYmd": "20301231",
+      "bizChrDeptNm": "서울특별시 관악구 청년문화국 청년정책과",
+      "ctpvNm": "서울특별시",
+      "sggNm": "관악구",
+      "servDgst": "청년의 경제적 자립 능력 함양, 근로의욕 고취",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "<2026년 으뜸관악 청년통장 신청자격>❍ 모집인원: 총 100명 ❍ 신청기간: 2026. 6. 8.(월)~6. 19.(금) 18:00 ※ 신청기간 외 접수 불가❍ 신청방법: 온라인 접수(PC에서만 신청 가능, 모바일 및 방문 신청 안됨)- 서울시 복지재단 자산형성지원사업 홈페이지: http://account.welfare.seoul.kr❍‘26. 5. 26. 기준 다음 ①∼⑤에 모두 해당하는 경우 신청 가능① 관악구 거주자  ※주민등록번호 부여자만 신청 가능(재외국인 및 재외국민 신청 불가)   ※공고일부터 약정일까지 관악구에 주민등록이 계속 유지되어야 함② 18세~34세 청년 ※출생년월일이 1991. 1. 1.~2008. 12. 31.인 자    ※제대군인의 경우 복무기간만큼 신청 가능 연령 상향(최대 연령 39세까지)",
+      "slctCritCn": "③ 공고일 기준 최근 1년간 3개월 이상 근로하였거나 공고일 기준 현재 3개월 이상 근로 중인 자  ※근로 종류, 근로시간, 근로일수 무관하며, 공고문에 안내된 증빙서류에 한하여 월 단위 인정  ※근로이력 확인은 서울시 희망두배 청년통장 제출서류로 갈음④ 본인 근로소득 세전 월평균 255만 원 이하 ※기준기간: 2025. 6. 1. ~ 2026. 5. 31. ⑤ 부·모(기혼시 배우자) 소득 연 1억(세전 월평균 834만 원) 미만이고 재산 9억 미만  ※세대분리 여부 무관 미혼자는 부·모 합산, 기혼자는 배우자를 적용",
+      "alwServCn": "❍ 2년 또는 3년간 본인적립금 15만원 대비 근로장려금 지급❍ 참가자 의무사항(매칭지원금 수령 조건)- 약정기간 내 관악구 거주(주민등록 유지, 관악구 외 지역으로 전출 시 중도해지)- 약정기간의 50% 이상 월 1회 저축 실시- 약정기간의 50% 이상 근로 유지(근로기간에 따라 매칭지원금 차등 지급)- 약정기간 내 1시간 이상 금융교육 이수",
+      "aplyMtdCn": "신청시 공고문 참조하여 서울시 희망두배 청년통장과 동시 신청",
+      "inqNum": "5469",
+      "lastModYmd": "20260716",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "02-879-5931",
+        "wlfareInfoReldNm": "관악구 청년정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울특별시 관악구 청년 지원 기본 조례 제13조"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20250704UUWBM1427110144888003&atcflSn=1",
+        "wlfareInfoReldNm": "2025.「으뜸관악 청년통장」모집 및 선발 계획.hwpx"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006567",
+    "summary": {
+      "aplyMtdNm": "방문, 인터넷",
+      "bizChrDeptNm": "경기도 이천시 보건소 건강증진과",
+      "ctpvNm": "경기도",
+      "inqNum": "120",
+      "intrsThemaNmArray": "임신·출산, 서민금융",
+      "lastModYmd": "20260715",
+      "lifeNmArray": "청년, 임신 · 출산",
+      "servDgst": "1인 자영업자, 프리랜서, 특수형태근로자, 농업인 등 소득활동을 하나 고용보험 출산휴가급여를 받을 수 없는 출산여성에게 출산급여 지원",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006567&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006567",
+      "servNm": "1인 자영업자 등 출산급여 지원",
+      "sggNm": "이천시",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006567",
+      "servNm": "1인 자영업자 등 출산급여 지원",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 이천시 보건소 건강증진과",
+      "ctpvNm": "경기도",
+      "sggNm": "이천시",
+      "servDgst": "1인 자영업자, 프리랜서, 특수형태근로자, 농업인 등 소득활동을 하나 고용보험 출산휴가급여를 받을 수 없는 출산여성에게 출산급여 지원",
+      "lifeNmArray": "청년, 임신 · 출산",
+      "intrsThemaNmArray": "임신·출산, 서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문, 인터넷",
+      "sprtTrgtCn": "1인 자영업자, 프리랜서, 특수형태근로자, 농업인 등 소득활동을 하나 고용보험 출산휴가급여를 받을 수 없는 출산여성",
+      "slctCritCn": "아래 조건 모두 충족1. 고용노동부 '고용보험 미적용자ㅐ 출산급여' 를 지원받은 출산여성2. 출산일(유산, 사산일) 및 신청일 현재 출산여성이 시에 주민등록을 두고 거주할 것3. 신청일 현재 출생자녀가 시에 주민등록을 두고 거주할 것4. 출생한 자녀의 출생신고를 시에 하였을 것",
+      "alwServCn": "- 단태아 90만원, 다태아 170만원 지원- 유산, 사산의 경우 임신 기간에 따라 차등 지원(18~170만원)",
+      "aplyMtdCn": "보건소 방문 혹은 정부24 온라인 신청",
+      "inqNum": "120",
+      "lastModYmd": "20260715",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-6190-7201",
+        "wlfareInfoReldNm": "이천시보건소 모자건강팀"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "이천시 1인 자영업자 등 출산급여 지원에 관한 조례"
+      }
+    }
   }
 ]
