@@ -2,7 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.db.crud.ocr_result import OcrResultCrud
 from app.db.crud.user import UserCrud
+from app.db.crud.user_profile import UserProfileCrud
 from app.db.scheme.ocr_result import OcrResultCreate, OcrMatchCreate
+from app.db.scheme.user_profile import UserProfileRead
 from app.db.models.ocr_result import OcrResult, OcrResultMatch
 from app.services.ai_client import AiClient
 
@@ -75,6 +77,29 @@ class OcrResultService:
         extracted_text = ai_result.get("extracted_text", "")
         ai_matches = ai_result.get("matches", [])  # [{policy_id, plcyNo, plcyNm, score}, ...]
         summary_text = ai_result.get("summary_text")
+
+        # 매칭된 정책마다 "지원가능"/"지원불가" 판정을 붙인다. 프로필 미등록/AI 호출 실패 시엔
+        # eligible을 None으로 두고 조용히 넘어간다(화면에서는 그 경우 칩을 안 보여주면 됨).
+        if ai_matches:
+            profile = await UserProfileCrud.get_profile(db, user_id)
+            if profile:
+                try:
+                    user_profile_payload = UserProfileRead.model_validate(profile).model_dump(mode="json")
+                    plcy_nos = [m["plcyNo"] for m in ai_matches if m.get("plcyNo")]
+                    eligibility_results = await AiClient.check_eligibility_batch(user_profile_payload, plcy_nos)
+                    eligibility_by_plcyno = {r["plcyNo"]: r for r in eligibility_results}
+                    for m in ai_matches:
+                        result = eligibility_by_plcyno.get(m.get("plcyNo"))
+                        m["eligible"] = result["result"] if result else None
+                        m["ineligible_reasons"] = result["reasons"] if result else []
+                except HTTPException:
+                    for m in ai_matches:
+                        m["eligible"] = None
+                        m["ineligible_reasons"] = []
+            else:
+                for m in ai_matches:
+                    m["eligible"] = None
+                    m["ineligible_reasons"] = []
 
         if not extracted_text:
             return {
