@@ -33,6 +33,8 @@ import requests
 import pymysql
 from dotenv import load_dotenv
 
+from load_policy_regions import build_plcyno_to_id_map, build_region_pairs, insert_pairs
+
 load_dotenv()
 
 API_URL = "https://www.youthcenter.go.kr/go/ythip/getPlcy"
@@ -279,6 +281,7 @@ def main():
         page_num = 1
         total_inserted = 0
         total_count = None
+        all_items = []  # 이후 policy_region 매핑에 재사용 (zipCd는 COLUMNS에 없어 policy 테이블엔 안 들어감)
 
         while True:
             raw = fetch_page(page_num)
@@ -287,6 +290,7 @@ def main():
                 total_count = get_total_count(raw)
                 if total_count > 0:
                     print(f"전체 공고 건수: {total_count}")
+                    print(f"TOTAL_COUNT:{total_count}")  # external_sync.py가 파싱해 관리자 화면에 작업량으로 표시
 
             items = extract_items(raw)
             if not items:
@@ -295,6 +299,7 @@ def main():
 
             rows = [row_from_item(item) for item in items]
             insert_batch(conn, rows)
+            all_items.extend(items)
             total_inserted += len(rows)
             print(f"[page {page_num}] {len(rows)}건 처리 (누적 {total_inserted}건)")
 
@@ -307,6 +312,18 @@ def main():
             time.sleep(0.3)  # API 과호출 방지
 
         print(f"완료. 총 {total_inserted}건 적재/업데이트.")
+
+        # policy_region 동기화: 이 스크립트는 zipCd를 policy 테이블에 반영하지 않으므로,
+        # 여기서 방금 적재/갱신한 항목들의 zipCd를 policy_region에 채워준다
+        # (load_policy_regions.py를 별도 파일 경로로 수동 실행해야 했던 것을 자동화).
+        print("policy_region 동기화 중...")
+        plcyno_map = build_plcyno_to_id_map(conn)
+        pairs, missing_policy, empty_zip = build_region_pairs(all_items, plcyno_map)
+        inserted = insert_pairs(conn, pairs)
+        print(
+            f"policy_region: {inserted}건 적재 시도 "
+            f"(정책 매칭 실패 {missing_policy}건, zipCd 없음 {empty_zip}건)"
+        )
 
     finally:
         conn.close()
