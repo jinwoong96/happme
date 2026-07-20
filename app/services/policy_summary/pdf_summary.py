@@ -209,8 +209,66 @@ class PdfSummaryService:
         s, e = fmt(start_ymd), fmt(end_ymd)
         return "상시" if not s and not e else f"{s} ~ {e}"
 
+    # ---------- 요약 캐시 (policy_summary_cache 테이블, bene_backend와 공유) ----------
+    # 캐시 조회를 LLM 호출보다 먼저 해서, 캐시가 있으면 LLM을 아예 부르지 않는다.
+    # (기존에는 bene_backend가 매번 LLM 요약을 새로 받은 뒤에야 캐시로 덮어써서,
+    # 캐시가 있어도 LLM 호출 자체는 매번 발생하는 낭비가 있었다. 이 캐시를 요약이
+    # 실제로 만들어지는 지점으로 옮겨서, summarize_policy_svc를 부르는 모든
+    # 경로(pdf/text/url 매칭, 후보 요약, 즐겨찾기 비교용 summarize-policies)가
+    # 자동으로 캐시 혜택을 받게 한다.)
+
+    @staticmethod
+    def _get_cached_summary(policy_name: str) -> str | None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT summary_text FROM policy_summary_cache WHERE policy_name = %s",
+                    (policy_name,),
+                )
+                row = cursor.fetchone()
+                return row["summary_text"] if row and row["summary_text"] else None
+        except Exception as e:
+            print(f"[PdfSummaryService] 캐시 조회 오류: {e}")
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _set_cached_summary(policy_name: str, summary_text: str) -> None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO policy_summary_cache (policy_name, summary_text)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE summary_text = VALUES(summary_text)
+                    """,
+                    (policy_name, summary_text),
+                )
+            conn.commit()
+        except Exception as e:
+            print(f"[PdfSummaryService] 캐시 저장 오류: {e}")
+        finally:
+            conn.close()
+
     def summarize_policy_svc(self, policy_detail: dict) -> str | None:
         name = (policy_detail.get("plcyNm") or "").strip()
+
+        if name:
+            cached = self._get_cached_summary(name)
+            if cached:
+                print(f"[PdfSummaryService] 캐시된 요약 재사용: {name}")
+                return cached
+
         explain = (policy_detail.get("plcyExplnCn") or "").strip()
         support = (policy_detail.get("plcySprtCn") or "").strip()
         apply_method = (policy_detail.get("plcyAplyMthdCn") or "").strip()
@@ -271,13 +329,14 @@ class PdfSummaryService:
             raw = self.llm_model.generate(prompt=prompt)
             print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
             response = raw["results"][0]["generated_text"]
-            response = raw["results"][0]["generated_text"]
             print("=" * 80)
             print(response)
             print("=" * 80)
 
-            return response.strip()
-            return response.strip()
+            result = response.strip()
+            if name and result:
+                self._set_cached_summary(name, result)
+            return result
         except Exception as e:
             print(f"[PdfSummaryService] 요약 생성 오류: {e}")
             return None
