@@ -14,15 +14,13 @@ opencv-python
 Pillow
 numpy<2
 
-paddlepaddle==3.2.2
-paddleocr==3.7.0
-
 sentence-transformers==2.7.0
 transformers==4.51.2
 
 ibm-watsonx-ai
 
-paddlepaddle==3.2.2
+--extra-index-url https://www.paddlepaddle.org.cn/packages/stable/cu130/
+paddlepaddle-gpu==3.3.0
 paddleocr==3.7.0
 pymupdf
 playwright

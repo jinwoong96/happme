@@ -383,28 +383,21 @@ class PdfSummaryService:
 
     def compare_policies_svc(self, summaries: list[dict]) -> str | None:
         policy_list = "\n\n".join(
-            f"[정책 {i+1}] {s['policy_name']}\n{s['summary']}"
-            for i, s in enumerate(summaries) if s.get("summary")
+            f"{s['policy_name']}\n{s['summary']}"
+            for s in summaries if s.get("summary")
         )
-        names_str = " | ".join(s["policy_name"] for s in summaries)
-        divider_str = "|".join("------" for _ in summaries)
 
-        prompt = f"""아래 {len(summaries)}개의 청년 정책을 비교 분석해줘.
+        prompt = f"""아래 {len(summaries)}개의 청년 정책 정보를 보고, 두 가지 서로 다른 상황을 정해서 각 상황에 어떤 정책이 더 적합한지 한눈에 보기 쉽게 정리해줘.
 
 {policy_list}
 
-다음 형식으로 비교해줘:
+작성 방법:
+1. 정책명은 위에 나온 이름을 그대로 사용한다.
+2. 하이픈(-)으로 시작하는 항목을 정확히 2개 작성한다.
+3. 각 항목은 "<상황 키워드>: <정책명> — <핵심 이유 키워드>" 형태로, 완전한 문장이 아니라 짧은 단어와 구로만 작성한다.
+4. 안내 문장 없이 첫 번째 항목부터 바로 시작한다.
 
-**📊 정책 비교**
-
-| 항목 | {names_str} |
-|------|{divider_str}|
-| 지원대상 | (각 정책 지원대상) |
-| 지원내용 | (각 정책 지원내용) |
-| 신청기간 | (각 정책 신청기간) |
-| 담당기관 | (각 정책 담당기관) |
-
-**💡 추천**: (어떤 상황에 어떤 정책이 더 적합한지)"""
+답변:"""
             
         try:
             raw = self.llm_model.generate(prompt=prompt)
