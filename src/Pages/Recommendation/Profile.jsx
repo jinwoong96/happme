@@ -147,7 +147,7 @@ export default function RecommendationProfilePage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">{from === 'mypage' ? '프로필 수정' : '맞춤형 지원금 추천'}</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">{from === 'mypage' ? '프로필 수정' : '맞춤형 정책 추천'}</p>
         {from === 'recommendation' && hasProfile && (
           <button
             type="button"
@@ -166,7 +166,7 @@ export default function RecommendationProfilePage() {
           <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <UserPen size={18} color="#fff" />
           </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed">정보를 입력하면 AI가 최적의 지원금을 추천해 드립니다.</p>
+          <p className="text-[13px] text-gray-600 leading-relaxed">정보를 입력하면 AI가 최적의 정책을 추천해 드립니다.</p>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

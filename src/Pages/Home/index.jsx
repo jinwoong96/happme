@@ -45,7 +45,7 @@ const MENU = [
   { label: '맞춤추천', path: '/recommendation/profile', Icon: Sparkles },
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
-  { label: '지원금알림', path: '/notification', Icon: BellRing },
+  { label: '정책알림', path: '/notification', Icon: BellRing },
   { label: '지역프로그램', path: '/region', Icon: Bookmark },
 ];
 

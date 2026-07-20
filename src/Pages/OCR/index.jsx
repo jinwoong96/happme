@@ -150,6 +150,7 @@ function Chip({ tone = 'neutral', children }) {
   const tones = {
     accent: { backgroundColor: '#eff6ff', color: '#2563eb' },
     success: { backgroundColor: '#f0fdf4', color: '#16a34a' },
+    danger: { backgroundColor: '#fef2f2', color: '#dc2626' },
     neutral: { backgroundColor: '#fff', color: '#6b7280', border: '1px solid #e5e7eb' },
   };
   return (
@@ -183,6 +184,7 @@ function IconRow({ icon, label, value, singleLine = false }) {
 
 function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmark }) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [reasonsOpen, setReasonsOpen] = useState(false);
   const docs = splitItems(match.sbmsnDcmntCn);
   const maxAmount = extractMaxAmount(match.plcySprtCn);
   const ageChip = formatAgeChip(match.sprtTrgtMinAge, match.sprtTrgtMaxAge);
@@ -240,12 +242,43 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <Chip tone="accent">매칭도 {Math.round((match.score || 0) * 100)}%</Chip>
+          {match.eligible === 'YES' && <Chip tone="success">지원가능</Chip>}
+          {match.eligible === 'NO' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setReasonsOpen((v) => !v); }}
+              className="flex items-center gap-1 bg-transparent border-none p-0"
+              style={{ cursor: 'pointer' }}
+              aria-label="지원불가 사유 보기"
+            >
+              <Chip tone="danger">지원불가</Chip>
+              <ChevronDown
+                size={12}
+                color="#dc2626"
+                style={{ transform: reasonsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+              />
+            </button>
+          )}
           {maxAmount && <Chip tone="success">{maxAmount}</Chip>}
           {/* 연령/마감일은 접힌 상태에서 한눈에 훑어보라고 넣는 칩이라, 펼치면
               바로 아래 아이콘 줄에서 다시 자세히 보여주므로 여기선 숨긴다 */}
           {!isOpen && ageChip && <Chip>{ageChip}</Chip>}
           {!isOpen && dday && <Chip>{dday}</Chip>}
         </div>
+
+        {reasonsOpen && match.eligible === 'NO' && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ backgroundColor: '#fef2f2', borderRadius: 10, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}
+          >
+            {(match.ineligible_reasons || []).length === 0 ? (
+              <p style={{ fontSize: 12, color: '#991b1b', margin: 0 }}>사유 정보가 없어요.</p>
+            ) : (
+              match.ineligible_reasons.map((r, i) => (
+                <p key={i} style={{ fontSize: 12, color: '#991b1b', margin: 0, lineHeight: 1.5 }}>· {r.reason}</p>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {isOpen && (
