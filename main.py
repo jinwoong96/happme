@@ -1,12 +1,14 @@
 import uvicorn
 import sentry_sdk
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.concurrency import asynccontextmanager
 
 from app.core.settings import settings
 from app.core.logging_config import setup_logging
+from app.core.slack_alert import send_slack_alert
 from app.db.database import Base, async_engine, AsyncSessionLocal
 from app.db.seed import run_all_seeds
 from app.middleware.token_refresh import RefreshTokenMiddleware
@@ -94,6 +96,14 @@ app.include_router(pdf_router)
 app.include_router(code_router)
 app.include_router(recommendation_router)
 app.include_router(local_program_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
+    await send_slack_alert(request, exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8082, reload=True,
