@@ -24,9 +24,18 @@ export default function useHome() {
   const [bannerLoading, setBannerLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     let ignore = false;
+
+    api.get('/notifications/me?unread_only=true')
+      .then((data) => {
+        if (!ignore) setUnreadCount((data || []).length);
+      })
+      .catch(() => {
+        if (!ignore) setUnreadCount(0);
+      });
 
     api.get('/users/me')
       .then((data) => {
@@ -66,7 +75,7 @@ export default function useHome() {
   const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();
 
   return {
-    benefits, banner, bannerLoading, loading, userName,
+    benefits, banner, bannerLoading, loading, userName, unreadCount,
     selectedPolicy, policyLoading, openPolicy, closePolicy,
   };
 }

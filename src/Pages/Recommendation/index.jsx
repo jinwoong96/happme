@@ -9,10 +9,11 @@ import IncomeEligibilityModal from '../../Components/IncomeEligibilityModal';
 import { ChoiceButtonsWithInput } from '../../Components/ChoiceButtons';
 import { REGION_CHOICE_OPTIONS, EMPLOYMENT_CHOICE_OPTIONS } from '../../data/codeOptions';
 
+// 범위가 좁은 것부터(시/군/구 -> 시/도 -> 광역) 기본으로 노출한다.
 const TABS = [
-  { key: 'available', label: '조건 만족', empty: '조건에 맞는 정책을 찾지 못했어요.' },
-  { key: 'closedOrExpired', label: '마감/종료', empty: '마감되었거나 신청기간이 종료된 정책이 없어요.' },
-  { key: 'unavailable', label: '조건 불만족', empty: '조건이 맞지 않는 정책이 없어요.' },
+  { key: 'local', label: '시/군/구', empty: '조건에 맞는 시/군/구 단위 정책을 찾지 못했어요.' },
+  { key: 'province', label: '시/도', empty: '조건에 맞는 시/도 단위 정책을 찾지 못했어요.' },
+  { key: 'wide', label: '광역', empty: '조건에 맞는 광역(전국/여러 시·도) 단위 정책을 찾지 못했어요.' },
 ];
 
 // policies는 이미 유사도 내림차순으로 정렬되어 들어온다. Map은 삽입 순서를 보존하므로
@@ -28,11 +29,9 @@ function groupByCategory(policies) {
   return Array.from(groups, ([category, policies]) => ({ category, policies }));
 }
 
-// 마감/종료는 이미 계산된 탭 분류를 그대로 쓰고, 상시는 카드 데이터의 apply_period_type을 봅니다.
+// 상시는 카드 데이터의 apply_period_type을 봅니다.
 // (특정기간이면서 아직 열려있는 경우엔 배지 없이 날짜만 보여줍니다.)
-function getPeriodBadge(tabKey, policy) {
-  if (tabKey === 'closed') return { label: '마감', bg: '#fee2e2', color: '#ef4444' };
-  if (tabKey === 'expired') return { label: '종료', bg: '#fef3c7', color: '#d97706' };
+function getPeriodBadge(policy) {
   if (policy.apply_period_type === '상시') return { label: '상시', bg: '#dcfce7', color: '#16a34a' };
   return null;
 }
@@ -47,11 +46,15 @@ export default function RecommendationPage() {
   } = useRecommendation();
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('available');
+  const [activeTab, setActiveTab] = useState('local');
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [incomeCheckPolicy, setIncomeCheckPolicy] = useState(null);
 
-  // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화한다.
+  // 결과가 없는 탭은 아예 숨긴다.
+  const visibleTabs = results ? TABS.filter((tab) => (results[tab.key] || []).length > 0) : [];
+
+  // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화하고, 활성 탭이 결과가
+  // 없어 숨겨졌다면(예: 이전엔 있던 탭이 이번엔 0건) 보이는 탭 중 첫 번째로 옮겨준다.
   useEffect(() => {
     if (!results) return;
     const allCategories = new Set();
@@ -61,6 +64,11 @@ export default function RecommendationPage() {
       }
     }
     setCollapsedCategories(allCategories);
+
+    if (visibleTabs.length > 0 && !visibleTabs.some((tab) => tab.key === activeTab)) {
+      setActiveTab(visibleTabs[0].key);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results]);
 
   const toggleCategory = (category) => {
@@ -163,76 +171,72 @@ export default function RecommendationPage() {
           <div style={{ marginTop: 24 }}>
             <p className="mb-3 text-[16px] font-bold text-gray-900">추천 결과</p>
 
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar mb-3.5">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  style={{
-                    padding: '7px 14px',
-                    borderRadius: 999,
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: activeTab === tab.key ? '#3b82f6' : '#f3f4f6',
-                    color: activeTab === tab.key ? '#fff' : '#4b5563',
-                  }}
-                >
-                  {tab.label} ({results[tab.key].length})
-                </button>
-              ))}
-            </div>
-
-            {results[activeTab].length === 0 ? (
-              <p className="text-[13px] text-gray-400">{TABS.find((t) => t.key === activeTab).empty}</p>
+            {visibleTabs.length === 0 ? (
+              <p className="text-[13px] text-gray-400">조건에 맞는 정책을 찾지 못했어요.</p>
             ) : (
-              <div className="flex flex-col gap-4">
-                {groupByCategory(results[activeTab]).map(({ category, policies }) => {
-                  const collapsed = collapsedCategories.has(category);
-                  return (
-                    <div key={category}>
-                      <button
-                        onClick={() => toggleCategory(category)}
-                        className="flex items-center gap-1 bg-transparent border-none p-0 w-full"
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <p className="mb-2 text-[13px] font-bold text-gray-500">{category} ({policies.length})</p>
-                        <ChevronDown
-                          size={14}
-                          color="#9ca3af"
-                          style={{ marginBottom: 8, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}
-                        />
-                      </button>
-                      {!collapsed && (
-                        <div className="flex flex-col gap-2.5">
-                          {policies.map((r) => (
-                            <PolicyCard
-                              key={r.plcyNo}
-                              policy={r}
-                              badge={getPeriodBadge(activeTab, r)}
-                              onOpen={openPolicy}
-                              isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
-                              onToggleBookmark={toggleBookmark}
-                              bookmarkDisabled={bookmarksLoading}
-                              onCheckIncome={setIncomeCheckPolicy}
-                            >
-                              {r.fail_reasons?.length > 0 && (
-                                <ul className="mt-2" style={{ paddingLeft: 16, margin: 0 }}>
-                                  {r.fail_reasons.map((fr, i) => (
-                                    <li key={i} className="text-[11px] text-red-400 list-disc">{fr.reason}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </PolicyCard>
-                          ))}
+              <>
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar mb-3.5">
+                  {visibleTabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: 999,
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: activeTab === tab.key ? '#3b82f6' : '#f3f4f6',
+                        color: activeTab === tab.key ? '#fff' : '#4b5563',
+                      }}
+                    >
+                      {tab.label} ({results[tab.key].length})
+                    </button>
+                  ))}
+                </div>
+
+                {(results[activeTab] || []).length > 0 && (
+                  <div className="flex flex-col gap-4">
+                    {groupByCategory(results[activeTab]).map(({ category, policies }) => {
+                      const collapsed = collapsedCategories.has(category);
+                      return (
+                        <div key={category}>
+                          <button
+                            onClick={() => toggleCategory(category)}
+                            className="flex items-center gap-1 bg-transparent border-none p-0 w-full"
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <p className="mb-2 text-[13px] font-bold text-gray-500">{category} ({policies.length})</p>
+                            <ChevronDown
+                              size={14}
+                              color="#9ca3af"
+                              style={{ marginBottom: 8, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}
+                            />
+                          </button>
+                          {!collapsed && (
+                            <div className="flex flex-col gap-2.5">
+                              {policies.map((r) => (
+                                <PolicyCard
+                                  key={r.plcyNo}
+                                  policy={r}
+                                  badge={getPeriodBadge(r)}
+                                  onOpen={openPolicy}
+                                  isBookmarked={isBookmarked(r.policy_id, r.is_bookmarked)}
+                                  onToggleBookmark={toggleBookmark}
+                                  bookmarkDisabled={bookmarksLoading}
+                                  onCheckIncome={setIncomeCheckPolicy}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

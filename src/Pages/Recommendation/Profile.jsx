@@ -10,10 +10,6 @@ import {
   EMPLOYMENT_OPTIONS,
   EDUCATION_OPTIONS,
   MAJOR_CATEGORY_OPTIONS,
-  STUDENT_STATUS_OPTIONS,
-  STARTUP_STATUS_OPTIONS,
-  HOUSING_OPTIONS,
-  COMPANY_TYPE_OPTIONS,
   YES_NO_OPTIONS,
 } from '../../data/codeOptions';
 
@@ -191,20 +187,8 @@ export default function RecommendationProfilePage() {
           <Field label="최종 학력" required>
             <Select value={form.education} onChange={set('education')} options={EDUCATION_OPTIONS} />
           </Field>
-          <Field label="학교명">
-            <TextInput value={form.school_name} onChange={set('school_name')} placeholder="예: 한국대학교" />
-          </Field>
-          <Field label="전공">
-            <TextInput value={form.major} onChange={set('major')} placeholder="예: 컴퓨터공학과" />
-          </Field>
           <Field label="전공계열">
             <Select value={form.major_category} onChange={set('major_category')} options={MAJOR_CATEGORY_OPTIONS} />
-          </Field>
-          <Field label="재학 상태">
-            <Select value={form.student_status} onChange={set('student_status')} options={STUDENT_STATUS_OPTIONS} />
-          </Field>
-          <Field label="졸업 연도">
-            <TextInput type="number" value={form.graduation_year} onChange={set('graduation_year')} placeholder="예: 2024" />
           </Field>
 
           <p style={sectionTitleStyle}>취업/직업 정보</p>
@@ -212,14 +196,8 @@ export default function RecommendationProfilePage() {
           <Field label="취업상태" required>
             <Select value={form.employment_status} onChange={set('employment_status')} options={EMPLOYMENT_OPTIONS} />
           </Field>
-          <Field label="직업/업종">
-            <TextInput value={form.occupation} onChange={set('occupation')} placeholder="예: 농업인, 창업자 등" />
-          </Field>
-          <Field label="구직 여부">
-            <ToggleGroup options={YES_NO_OPTIONS} value={form.job_seeking} onChange={set('job_seeking')} />
-          </Field>
-          <Field label="경력 사항">
-            <Textarea value={form.career_history} onChange={set('career_history')} placeholder="주요 경력을 입력해주세요" />
+          <Field label="중소기업 재직 여부">
+            <ToggleGroup options={YES_NO_OPTIONS} value={form.sme_employment} onChange={set('sme_employment')} />
           </Field>
 
           <p style={sectionTitleStyle}>혼인/특수 상태</p>
@@ -237,31 +215,10 @@ export default function RecommendationProfilePage() {
             <ToggleGroup options={YES_NO_OPTIONS} value={form.disability} onChange={set('disability')} />
           </Field>
 
-          <p style={sectionTitleStyle}>창업 정보</p>
-
-          <Field label="창업 관심 여부">
-            <ToggleGroup options={YES_NO_OPTIONS} value={form.startup_interest} onChange={set('startup_interest')} />
-          </Field>
-          <Field label="사업자 여부">
-            <ToggleGroup options={YES_NO_OPTIONS} value={form.business_owner} onChange={set('business_owner')} />
-          </Field>
-          <Field label="창업 단계">
-            <Select value={form.startup_status} onChange={set('startup_status')} options={STARTUP_STATUS_OPTIONS} />
-          </Field>
-          <Field label="기업 형태">
-            <Select value={form.company_type} onChange={set('company_type')} options={COMPANY_TYPE_OPTIONS} />
-          </Field>
-
           <p style={sectionTitleStyle}>기타</p>
 
-          <Field label="주거 상태">
-            <Select value={form.housing_status} onChange={set('housing_status')} options={HOUSING_OPTIONS} />
-          </Field>
           <Field label="현재 상황">
             <Textarea value={form.situation} onChange={set('situation')} placeholder="현재 상황을 자유롭게 입력해주세요" />
-          </Field>
-          <Field label="기타 참고 사항">
-            <Textarea value={form.reason} onChange={set('reason')} placeholder="추가로 참고할 내용이 있다면 입력해주세요" />
           </Field>
 
           {error && <p style={{ margin: 0, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>{error}</p>}

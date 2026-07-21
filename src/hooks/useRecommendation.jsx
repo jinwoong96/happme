@@ -32,9 +32,9 @@ export default function useRecommendation() {
         situation: situationText,
       });
       setResults({
-        available: data?.available_policies || [],
-        closedOrExpired: data?.closed_or_expired_policies || [],
-        unavailable: data?.unavailable_policies || [],
+        wide: data?.wide_policies || [],
+        province: data?.province_policies || [],
+        local: data?.local_policies || [],
       });
     } catch (err) {
       setError(err.message || 'AI 분석에 실패했습니다.');

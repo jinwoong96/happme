@@ -50,37 +50,6 @@ export const MAJOR_CATEGORY_OPTIONS = [
   { value: '기타', label: '기타' },
 ];
 
-// rule engine에서 직접 참조하지 않는 필드 - code_master 라벨 그대로 사용
-export const STUDENT_STATUS_OPTIONS = [
-  { value: '재학', label: '재학' },
-  { value: '휴학', label: '휴학' },
-  { value: '졸업', label: '졸업' },
-  { value: '졸업예정', label: '졸업예정' },
-];
-
-export const STARTUP_STATUS_OPTIONS = [
-  { value: '관심있음', label: '관심있음' },
-  { value: '준비중', label: '준비중' },
-  { value: '운영중', label: '운영중' },
-];
-
-export const HOUSING_OPTIONS = [
-  { value: '자가', label: '자가' },
-  { value: '전세', label: '전세' },
-  { value: '월세', label: '월세' },
-  { value: '기숙사', label: '기숙사' },
-  { value: '기타', label: '기타' },
-];
-
-// code_mapping.py SBIZ_USER_CHECK("중소기업")과 맞춘 기업 형태 값
-export const COMPANY_TYPE_OPTIONS = [
-  { value: '해당 없음', label: '해당 없음' },
-  { value: '중소기업', label: '중소기업' },
-  { value: '중견기업', label: '중견기업' },
-  { value: '대기업', label: '대기업' },
-  { value: '기타', label: '기타' },
-];
-
 export const YES_NO_OPTIONS = [
   { value: true, label: '예' },
   { value: false, label: '아니오' },
