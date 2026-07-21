@@ -50,6 +50,10 @@ class PolicyLoaderService:
                 cursor.execute(f"SELECT {', '.join(FIELDS)} FROM policy")
                 policies = cursor.fetchall()
 
+                # GROUP_CONCAT은 세션 기본값(1024자)을 넘으면 조용히 잘라버린다. 지역코드가
+                # 많은(200개 이상) 전국/광역 단위 정책의 zipCd가 중간에 끊겨 나오는 문제가 있어
+                # 세션 한도를 넉넉히 올려준다.
+                cursor.execute("SET SESSION group_concat_max_len = 1000000")
                 cursor.execute(ZIP_QUERY)
                 zip_by_policy_id = {row["policy_id"]: row["zipCd"] for row in cursor.fetchall()}
         finally:

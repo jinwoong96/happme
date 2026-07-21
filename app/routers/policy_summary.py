@@ -1,11 +1,13 @@
 import asyncio
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, HTTPException, Request
 from pydantic import BaseModel
 
+from app.services.policy_summary import pdf_summary as pdf_summary_module
 from app.services.policy_summary.pdf_summary import PdfSummaryService
 from app.services.policy_summary.web_summary import WebSummaryService
+from app.services.policy_summary import policy_summary_builder
 
 router = APIRouter(prefix="/policy-summary", tags=["PolicySummary"])
 
@@ -380,6 +382,44 @@ async def ask(request: Request, payload: QuestionRequest):
     if answer is None:
         raise HTTPException(status_code=500, detail="답변 생성에 실패했습니다")
     return {"answer": answer}
+
+
+# DB에 summary가 비어있는 정책만 골라 policy.summary를 채우는 백그라운드 작업을 시작한다.
+# LLM 호출이 정책 수만큼 걸릴 수 있어 백그라운드로 실행하고, 바로 상태만 응답한다.
+# search_docs.py의 /search-docs/rebuild와 동일한 패턴 (관리자 "최신화" 흐름에서 트리거됨).
+@router.post("/rebuild")
+async def rebuild_policy_summaries(background_tasks: BackgroundTasks):
+    if policy_summary_builder.get_status()["running"]:
+        return {"status": "already_running"}
+
+    new_policies = policy_summary_builder.get_new_policies()
+    if not new_policies:
+        return {"status": "up_to_date", "new_count": 0}
+
+    background_tasks.add_task(policy_summary_builder.run_rebuild, new_policies)
+    return {"status": "started", "new_count": len(new_policies)}
+
+
+@router.get("/rebuild/status")
+async def rebuild_status():
+    return policy_summary_builder.get_status()
+
+
+# PdfSummaryService(공고문 PDF/텍스트/URL 매칭)가 들고 있는 정책 목록/임베딩 캐시를 DB 최신
+# 상태로 갱신한다. reload_policies_svc()가 신규/변경분만 재임베딩하므로, 서버 재시작 없이도
+# "최신화"로 들어온 정책이 이 매칭 기능에 반영되도록 트리거하는 용도.
+@router.post("/pdf-cache/rebuild")
+async def rebuild_pdf_cache(request: Request, background_tasks: BackgroundTasks):
+    if pdf_summary_module.get_rebuild_status()["running"]:
+        return {"status": "already_running"}
+
+    background_tasks.add_task(pdf_summary_module.run_rebuild, request.app.state.pdf_summary_service)
+    return {"status": "started"}
+
+
+@router.get("/pdf-cache/rebuild/status")
+async def get_pdf_cache_rebuild_status():
+    return pdf_summary_module.get_rebuild_status()
 
 
 # 헬스체크
