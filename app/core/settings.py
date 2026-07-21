@@ -97,6 +97,13 @@ class Settings(BaseSettings):
     policy_summary_embed_cache: str = Field("./policy_summary_embeddings_cache.npz", alias="POLICY_SUMMARY_EMBED_CACHE")
     policy_summary_llm_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="POLICY_SUMMARY_LLM_MODEL_ID")
 
+    # 모니터링
+    app_env: str = Field("development", alias="APP_ENV")
+    sentry_dsn: str = Field("", alias="SENTRY_DSN")
+    sentry_environment: str = Field("", alias="SENTRY_ENVIRONMENT")
+    slack_webhook_url: str = Field("", alias="SLACK_WEBHOOK_URL")
+    log_dir: str = Field("./logs", alias="LOG_DIR")
+
     class Config:
         env_file = ".env"
         case_sensitive = True
