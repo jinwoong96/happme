@@ -1,0 +1,1 @@
+{'notification_id': 38, 'user_id': 25, 'policy_id': 52068, 'notify_type': 'KEYWORD_MATCH', 'content': "등록하신 '전세보증금' 관련 '전세보증금 반환보증 특별지원사업'에 지원 가능해요.", 'created_at': datetime.datetime(2026, 7, 21, 11, 21, 30)}

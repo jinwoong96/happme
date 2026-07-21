@@ -1,0 +1,1 @@
+{'notification_id': 33, 'policy_id': None, 'content': "등록하신 '전세보증금' 관련 '청년 전세보증금 대출이자 지원사업'에 지원 가능해요.", 'created_at': datetime.datetime(2026, 7, 21, 10, 39, 28)}

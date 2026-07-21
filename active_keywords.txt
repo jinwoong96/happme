@@ -1,0 +1,2 @@
+{'keyword_id': 3, 'user_id': 25, 'keyword': '전세보증금', 'is_active': 1, 'created_at': datetime.datetime(2026, 7, 21, 6, 52, 32)}
+{'keyword_id': 4, 'user_id': 25, 'keyword': '신혼부부', 'is_active': 1, 'created_at': datetime.datetime(2026, 7, 21, 6, 52, 46)}
