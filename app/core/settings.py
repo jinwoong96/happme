@@ -49,6 +49,12 @@ class Settings(BaseSettings):
 
     frontend_url: str = Field("http://localhost:5173", alias="FRONTEND_URL")
 
+    # 모니터링
+    app_env: str = Field("development", alias="APP_ENV")
+    sentry_dsn: str = Field("", alias="SENTRY_DSN")
+    sentry_environment: str = Field("", alias="SENTRY_ENVIRONMENT")
+    slack_webhook_url: str = Field("", alias="SLACK_WEBHOOK_URL")
+
     class Config:
         env_file = ".env"
         case_sensitive = True
