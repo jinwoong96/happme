@@ -20,9 +20,14 @@ if sys.platform == "win32":
         pass
 
 import uvicorn
-from fastapi import FastAPI
+import sentry_sdk
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.concurrency import asynccontextmanager
+from app.core.settings import settings
+from app.core.logging_config import setup_logging
+from app.core.slack_alert import send_slack_alert
 from app.core.model_downloader import ensure_models_downloaded
 from app.core.data_downloader import ensure_data_downloaded
 
@@ -53,6 +58,14 @@ from app.routers.policy_cache import router as policy_cache_router
 
 from app.routers.schedule import router as schedule_router
 
+setup_logging(settings.log_dir)
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment or settings.app_env,
+        traces_sample_rate=1.0,
+    )
 
 
 @asynccontextmanager
@@ -119,6 +132,14 @@ app.include_router(policy_summary_router)
 app.include_router(policy_dedup_router)
 app.include_router(search_docs_router)
 app.include_router(policy_cache_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
+    await send_slack_alert(request, exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)
