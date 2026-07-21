@@ -1,6 +1,7 @@
 import httpx
 from fastapi import HTTPException, status
 from app.core.settings import settings
+from app.core.request_context import get_request_id, REQUEST_ID_HEADER
 
 class AiClient:
 
@@ -113,7 +114,9 @@ class AiClient:
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
-                response = await client.post(path, json=payload)
+                response = await client.post(
+                    path, json=payload, headers={REQUEST_ID_HEADER: get_request_id()}
+                )
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPStatusError:
@@ -125,7 +128,7 @@ class AiClient:
     async def _get(path: str):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
-                response = await client.get(path)
+                response = await client.get(path, headers={REQUEST_ID_HEADER: get_request_id()})
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPStatusError:
@@ -156,7 +159,7 @@ class AiClient:
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 files = {"file": (filename, image_bytes, content_type or "image/jpeg")}
-                resp = await client.post(url, files=files)
+                resp = await client.post(url, files=files, headers={REQUEST_ID_HEADER: get_request_id()})
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPError as e:
