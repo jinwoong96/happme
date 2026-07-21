@@ -56,7 +56,7 @@ function getBadge(policy) {
 
 export default function HomePage() {
   const {
-    benefits, banner, bannerLoading, loading, userName,
+    benefits, banner, bannerLoading, loading, userName, unreadCount,
     selectedPolicy, policyLoading, openPolicy, closePolicy,
   } = useHome();
   const { isBookmarked, toggleBookmark, loading: bookmarksLoading } = useBookmarks();
@@ -98,11 +98,25 @@ export default function HomePage() {
           <p className="mt-0.5 text-[22px] font-extrabold text-gray-900">{userName}님 👋</p>
         </div>
         <div className="flex gap-2 mt-1">
-          {[Bell, RefreshCw].map((Icon, i) => (
-            <button key={i} className="w-[38px] h-[38px] rounded-full border border-gray-100 bg-white flex items-center justify-center cursor-pointer">
-              <Icon size={i === 0 ? 18 : 16} color="#555" />
-            </button>
-          ))}
+          <button
+            onClick={() => navigate('/alerts')}
+            style={{ position: 'relative' }}
+            className="w-[38px] h-[38px] rounded-full border border-gray-100 bg-white flex items-center justify-center cursor-pointer"
+          >
+            <Bell size={18} color="#555" />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute', top: 6, right: 6,
+                  width: 8, height: 8, borderRadius: '50%',
+                  backgroundColor: '#ef4444', border: '1.5px solid #fff',
+                }}
+              />
+            )}
+          </button>
+          <button className="w-[38px] h-[38px] rounded-full border border-gray-100 bg-white flex items-center justify-center cursor-pointer">
+            <RefreshCw size={16} color="#555" />
+          </button>
         </div>
       </div>
 
