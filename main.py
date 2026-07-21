@@ -1,3 +1,24 @@
+import os
+import sys
+
+# pip로 설치된 nvidia-cublas-cu13 등은 site-packages 안에 DLL을 두지만 Windows PATH에는
+# 자동으로 잡히지 않아 paddlepaddle-gpu가 cublas64_13.dll 등을 못 찾는 문제가 생긴다.
+# paddle 내부 로더는 os.add_dll_directory가 아니라 PATH 환경변수를 직접 참조하므로
+# GPU 관련 모듈(paddleocr 등)을 import하기 전에 PATH에 해당 DLL 폴더를 추가해준다.
+if sys.platform == "win32":
+    try:
+        import nvidia
+        _nvidia_dir = os.path.dirname(nvidia.__file__)
+        _dll_dirs = [
+            os.path.join(_nvidia_dir, *_sub.split("/"))
+            for _sub in ("cu13/bin/x86_64", "cudnn/bin")
+        ]
+        _dll_dirs = [d for d in _dll_dirs if os.path.isdir(d)]
+        if _dll_dirs:
+            os.environ["PATH"] = os.pathsep.join(_dll_dirs) + os.pathsep + os.environ["PATH"]
+    except ImportError:
+        pass
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +48,7 @@ from app.routers.policy_summary import router as policy_summary_router
 from app.routers.image_analyze import router as image_analyze_router
 from app.routers.recommendation import router as recommendation_router
 from app.routers.policy_dedup import router as policy_dedup_router
+from app.routers.search_docs import router as search_docs_router
 
 from app.routers.schedule import router as schedule_router
 
@@ -93,6 +115,7 @@ app.include_router(recommendation_router)
 app.include_router(schedule_router)
 app.include_router(policy_summary_router)
 app.include_router(policy_dedup_router)
+app.include_router(search_docs_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)

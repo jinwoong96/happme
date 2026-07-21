@@ -1,13 +1,25 @@
 import os
 import re
-import json
 import hashlib
+import threading
 
 import numpy as np
+import pymysql
+import torch
 import fitz
 
 from app.core.settings import settings
 from app.core.s3_utils import get_s3_client, upload_file
+
+# _load_policies_from_db가 조회하는 컬럼. summarize_policy_svc/web_summary.py/라우터가
+# policy_detail dict에서 참조하는 필드를 전부 포함한다.
+POLICY_FIELDS = [
+    "plcyNo", "plcyNm", "operInstCdNm", "sprvsnInstCdNm", "rgtrInstCdNm",
+    "plcyKywdNm", "plcyExplnCn", "plcySprtCn", "ptcpPrpTrgtCn", "plcyAplyMthdCn",
+    "aplyYmd", "bizPrdBgngYmd", "bizPrdEndYmd", "earnEtcCn",
+    "sprtTrgtMinAge", "sprtTrgtMaxAge", "aplyUrlAddr", "sprtSclCnt",
+    "sbmsnDcmntCn", "etcMttrCn",
+]
 
 
 class PdfSummaryService:
@@ -20,8 +32,9 @@ class PdfSummaryService:
     def __init__(self):
         from sentence_transformers import SentenceTransformer
 
-        print("[PdfSummaryService] 임베딩 모델 로드 중...")
-        self.embed_model = SentenceTransformer(settings.policy_summary_embed_model)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[PdfSummaryService] 임베딩 모델 로드 중... (device={device})")
+        self.embed_model = SentenceTransformer(settings.policy_summary_embed_model, device=device)
 
         print("[PdfSummaryService] watsonx LLM 연결 중...")
         from ibm_watsonx_ai import Credentials, APIClient
@@ -35,81 +48,130 @@ class PdfSummaryService:
             params={"max_new_tokens": 500, "temperature": 0.0, "decoding_method": "greedy"},
         )
 
-        print("[PdfSummaryService] 정책 DB 로드 중...")
-        self.policy_names, self.policy_texts, self.policy_institutions, self.policy_by_name = self._load_policies()
+        print("[PdfSummaryService] RDS에서 정책 데이터 로드 중...")
+        self.policy_plcynos, self.policy_names, self.policy_texts, self.policy_institutions, self.policy_by_name = \
+            self._load_policies_from_db()
+        print(f"[PdfSummaryService] 총 {len(self.policy_names)}개 정책 로드")
         self.db_embeddings = self._load_or_encode_db()
         print(f"[PdfSummaryService] 준비 완료 (정책 {len(self.policy_names)}개)")
 
+    def reload_policies_svc(self) -> dict:
+        """DB에서 정책을 다시 읽고 임베딩 캐시를 갱신한다. __init__과 동일한 두 호출을
+        재사용하며, _load_or_encode_db()가 텍스트 해시로 신규/변경분만 판별해 재임베딩하므로
+        서버 재시작 없이도 "최신화"로 새로 들어온 정책을 이 캐시에 반영할 수 있다."""
+        self.policy_plcynos, self.policy_names, self.policy_texts, self.policy_institutions, self.policy_by_name = \
+            self._load_policies_from_db()
+        self.db_embeddings = self._load_or_encode_db()
+        return {"policy_count": len(self.policy_names)}
+
     # ---------- DB 로드/캐시 ----------
 
-    def _load_policies(self):
-        with open(settings.policy_summary_json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    @staticmethod
+    def _load_policies_from_db():
+        """
+        SearchService/PolicyLoaderService와 동일하게 RDS를 직접 조회한다.
+        정책명이 같은 정책이 여러 건이면(같은 정책이 다른 연도/기관으로 재등록된 경우 등)
+        policy_id가 더 큰(가장 최근에 등록된) 쪽을 채택한다 - ORDER BY DESC로 조회해서
+        먼저 순회되는 쪽이 항상 최신 건이 되도록 한다.
+        """
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT {', '.join(POLICY_FIELDS)} FROM policy ORDER BY policy_id DESC"
+                )
+                rows = cursor.fetchall()
+        finally:
+            conn.close()
 
-        target = None
-        if isinstance(data, list):
-            target = data
-        elif isinstance(data, dict):
-            if "result" in data and "youthPolicyList" in data.get("result", {}):
-                target = data["result"]["youthPolicyList"]
-            elif "youthPolicyList" in data:
-                target = data["youthPolicyList"]
-
-        names, texts, institutions, by_name = [], [], [], {}
+        plcynos, names, texts, institutions, by_name = [], [], [], [], {}
         seen = set()
-        for item in target or []:
-            if not isinstance(item, dict):
-                continue
-            name = item.get("plcyNm", "").strip()
+        for item in rows:
+            name = (item.get("plcyNm") or "").strip()
             if not name or name in seen:
                 continue
             seen.add(name)
             by_name[name] = item
 
             institution = " ".join(filter(None, [
-                item.get("operInstCdNm", ""), item.get("sprvsnInstCdNm", ""), item.get("rgtrInstCdNm", ""),
+                item.get("operInstCdNm") or "", item.get("sprvsnInstCdNm") or "", item.get("rgtrInstCdNm") or "",
             ]))
             combined = " ".join(filter(None, [
-                name, institution, item.get("plcyKywdNm", ""), item.get("plcyExplnCn", ""),
-                item.get("plcySprtCn", ""), item.get("ptcpPrpTrgtCn", ""), item.get("plcyAplyMthdCn", ""),
+                name, institution, item.get("plcyKywdNm") or "", item.get("plcyExplnCn") or "",
+                item.get("plcySprtCn") or "", item.get("ptcpPrpTrgtCn") or "", item.get("plcyAplyMthdCn") or "",
             ]))
+            plcynos.append(item.get("plcyNo"))
             names.append(name)
             texts.append(combined)
             institutions.append(institution)
 
-        return names, texts, institutions, by_name
+        return plcynos, names, texts, institutions, by_name
 
     @staticmethod
-    def _file_content_hash(path: str) -> str:
-        with open(path, "rb") as f:
-            return hashlib.md5(f.read()).hexdigest()
+    def _text_hash(text: str) -> str:
+        return hashlib.md5(text.encode("utf-8")).hexdigest()
 
     def _load_or_encode_db(self):
-        # S3에서 새로 받은 파일은 내용이 같아도 mtime이 "지금 막 받은 시각"으로 바뀌어버려서
-        # mtime 비교로는 캐시가 매번 무효화된다. 내용 해시로 비교하면 다운로드 시점과
-        # 무관하게 원본이 실제로 바뀌었는지만 정확히 판단할 수 있다.
-        content_hash = self._file_content_hash(settings.policy_summary_json_path)
+        """
+        정책별로 텍스트 해시를 따로 저장해뒀다가, 이번에 로드한 정책들 중 캐시에 없거나(신규)
+        해시가 달라진(내용 변경) 것만 새로 임베딩하고 나머지는 캐시에서 그대로 재사용한다.
+        DB에서 사라진 정책은 최종 배열을 plcyNo 기준으로 다시 조립하는 과정에서 자연히 빠진다.
+        """
         cache_path = settings.policy_summary_embed_cache
+        current_hashes = [self._text_hash(t) for t in self.policy_texts]
 
+        cached_by_plcyno = {}
         if os.path.exists(cache_path):
-            cache = np.load(cache_path)
-            if "content_hash" in cache.files and str(cache["content_hash"]) == content_hash \
-                    and int(cache["count"]) == len(self.policy_texts):
-                print("[PdfSummaryService] 캐시된 임베딩 재사용")
-                return cache["embeddings"]
+            cache = np.load(cache_path, allow_pickle=True)
+            if "plcy_nos" in cache.files and "text_hashes" in cache.files:
+                plcy_nos_arr = cache["plcy_nos"]
+                text_hashes_arr = cache["text_hashes"]
+                embeddings_arr = cache["embeddings"]
+                for idx, plcy_no in enumerate(plcy_nos_arr):
+                    cached_by_plcyno[str(plcy_no)] = (text_hashes_arr[idx], embeddings_arr[idx])
 
-        print(f"[PdfSummaryService] 정책 {len(self.policy_texts)}개 벡터화 중...")
-        prefixed = [f"passage: {t}" for t in self.policy_texts]
-        embeddings = self.embed_model.encode(prefixed, batch_size=64, show_progress_bar=True)
-        np.savez(cache_path, embeddings=embeddings, content_hash=content_hash, count=len(self.policy_texts))
+        to_encode_idx = []
+        for i, plcy_no in enumerate(self.policy_plcynos):
+            cached = cached_by_plcyno.get(str(plcy_no))
+            if cached is None or cached[0] != current_hashes[i]:
+                to_encode_idx.append(i)
 
-        # 원본 JSON이 더 최신이라 방금 로컬에서 다시 계산했으므로, S3에 있는 캐시도 최신으로 갱신한다.
-        if settings.data_s3_bucket and settings.policy_summary_embed_cache_s3_key:
-            client = get_s3_client(settings.data_s3_public)
-            upload_file(
-                cache_path, settings.data_s3_bucket,
-                settings.policy_summary_embed_cache_s3_key, client, label="PdfSummaryService",
+        reused = len(self.policy_plcynos) - len(to_encode_idx)
+        print(
+            f"[PdfSummaryService] 신규/변경 {len(to_encode_idx)}건 벡터화, "
+            f"캐시 재사용 {reused}건 (전체 {len(self.policy_plcynos)}건)"
+        )
+
+        new_embeddings_by_idx = {}
+        if to_encode_idx:
+            prefixed = [f"passage: {self.policy_texts[i]}" for i in to_encode_idx]
+            encoded = self.embed_model.encode(prefixed, batch_size=64, show_progress_bar=True)
+            for i, emb in zip(to_encode_idx, encoded):
+                new_embeddings_by_idx[i] = emb
+
+        embeddings = np.stack([
+            new_embeddings_by_idx[i] if i in new_embeddings_by_idx
+            else cached_by_plcyno[str(self.policy_plcynos[i])][1]
+            for i in range(len(self.policy_plcynos))
+        ])
+
+        if to_encode_idx or reused != len(cached_by_plcyno):
+            np.savez(
+                cache_path, embeddings=embeddings,
+                plcy_nos=np.array(self.policy_plcynos, dtype=object),
+                text_hashes=np.array(current_hashes, dtype=object),
             )
+            if settings.data_s3_bucket and settings.policy_summary_embed_cache_s3_key:
+                client = get_s3_client(settings.data_s3_public)
+                upload_file(
+                    cache_path, settings.data_s3_bucket,
+                    settings.policy_summary_embed_cache_s3_key, client, label="PdfSummaryService",
+                )
+
         return embeddings
 
     # ---------- 공용 함수 (WebSummaryService도 재사용) ----------
@@ -157,19 +219,80 @@ class PdfSummaryService:
         s, e = fmt(start_ymd), fmt(end_ymd)
         return "상시" if not s and not e else f"{s} ~ {e}"
 
+    # ---------- 요약 캐시 (policy_summary_cache 테이블, bene_backend와 공유) ----------
+    # 캐시 조회를 LLM 호출보다 먼저 해서, 캐시가 있으면 LLM을 아예 부르지 않는다.
+    # (기존에는 bene_backend가 매번 LLM 요약을 새로 받은 뒤에야 캐시로 덮어써서,
+    # 캐시가 있어도 LLM 호출 자체는 매번 발생하는 낭비가 있었다. 이 캐시를 요약이
+    # 실제로 만들어지는 지점으로 옮겨서, summarize_policy_svc를 부르는 모든
+    # 경로(pdf/text/url 매칭, 후보 요약, 즐겨찾기 비교용 summarize-policies)가
+    # 자동으로 캐시 혜택을 받게 한다.)
+
+    @staticmethod
+    def _get_cached_summary(policy_name: str) -> str | None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT summary_text FROM policy_summary_cache WHERE policy_name = %s",
+                    (policy_name,),
+                )
+                row = cursor.fetchone()
+                return row["summary_text"] if row and row["summary_text"] else None
+        except Exception as e:
+            print(f"[PdfSummaryService] 캐시 조회 오류: {e}")
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _set_cached_summary(policy_name: str, summary_text: str) -> None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO policy_summary_cache (policy_name, summary_text)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE summary_text = VALUES(summary_text)
+                    """,
+                    (policy_name, summary_text),
+                )
+            conn.commit()
+        except Exception as e:
+            print(f"[PdfSummaryService] 캐시 저장 오류: {e}")
+        finally:
+            conn.close()
+
     def summarize_policy_svc(self, policy_detail: dict) -> str | None:
-        name = policy_detail.get("plcyNm", "").strip()
-        explain = policy_detail.get("plcyExplnCn", "").strip()
-        support = policy_detail.get("plcySprtCn", "").strip()
-        apply_method = policy_detail.get("plcyAplyMthdCn", "").strip()
-        apply_period = policy_detail.get("aplyYmd", "").strip()
-        biz_start = policy_detail.get("bizPrdBgngYmd", "").strip()
-        biz_end = policy_detail.get("bizPrdEndYmd", "").strip()
-        target = policy_detail.get("ptcpPrpTrgtCn", "").strip() or policy_detail.get("earnEtcCn", "").strip()
-        age_min = policy_detail.get("sprtTrgtMinAge", "").strip()
-        age_max = policy_detail.get("sprtTrgtMaxAge", "").strip()
-        apply_url = policy_detail.get("aplyUrlAddr", "").strip()
-        scale = policy_detail.get("sprtSclCnt", "").strip()
+        name = (policy_detail.get("plcyNm") or "").strip()
+
+        if name:
+            cached = self._get_cached_summary(name)
+            if cached:
+                print(f"[PdfSummaryService] 캐시된 요약 재사용: {name}")
+                return cached
+
+        explain = (policy_detail.get("plcyExplnCn") or "").strip()
+        support = (policy_detail.get("plcySprtCn") or "").strip()
+        apply_method = (policy_detail.get("plcyAplyMthdCn") or "").strip()
+        apply_period = (policy_detail.get("aplyYmd") or "").strip()
+        biz_start = (policy_detail.get("bizPrdBgngYmd") or "").strip()
+        biz_end = (policy_detail.get("bizPrdEndYmd") or "").strip()
+        target = (policy_detail.get("ptcpPrpTrgtCn") or "").strip() or (policy_detail.get("earnEtcCn") or "").strip()
+        age_min_val = policy_detail.get("sprtTrgtMinAge")
+        age_max_val = policy_detail.get("sprtTrgtMaxAge")
+        scale_val = policy_detail.get("sprtSclCnt")
+        age_min = str(age_min_val).strip() if age_min_val is not None else ""
+        age_max = str(age_max_val).strip() if age_max_val is not None else ""
+        apply_url = (policy_detail.get("aplyUrlAddr") or "").strip()
+        scale = str(scale_val).strip() if scale_val is not None else ""
 
         biz_period = self._format_period(biz_start, biz_end) if (biz_start and biz_end) else ""
         age_str = f"{age_min}~{age_max}세" if age_min and age_max else ""
@@ -216,13 +339,14 @@ class PdfSummaryService:
             raw = self.llm_model.generate(prompt=prompt)
             print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
             response = raw["results"][0]["generated_text"]
-            response = raw["results"][0]["generated_text"]
             print("=" * 80)
             print(response)
             print("=" * 80)
 
-            return response.strip()
-            return response.strip()
+            result = response.strip()
+            if name and result:
+                self._set_cached_summary(name, result)
+            return result
         except Exception as e:
             print(f"[PdfSummaryService] 요약 생성 오류: {e}")
             return None
@@ -343,7 +467,7 @@ class PdfSummaryService:
 4. 안내 문장 없이 첫 번째 항목부터 바로 시작한다.
 
 답변:"""
-            
+
         try:
             raw = self.llm_model.generate(prompt=prompt)
             print(f"[DEBUG] LLM 원본 전체 응답: {raw}")
@@ -352,3 +476,35 @@ class PdfSummaryService:
         except Exception as e:
             print(f"[PdfSummaryService] 요약 생성 오류: {e}")
             return None
+
+
+# ---------------------------------------------------------------------------
+# 캐시 재구축 (관리자 "최신화" 흐름 후처리 - search_docs_builder.py와 동일한 상태 관리 패턴).
+# PdfSummaryService.reload_policies_svc()가 신규/변경분만 재임베딩하도록 이미 되어있으므로
+# 여기서는 그걸 백그라운드로 실행하고 상태만 추적한다.
+# ---------------------------------------------------------------------------
+
+_rebuild_lock = threading.Lock()
+_rebuild_status: dict = {"running": False, "last_run": None}
+
+
+def get_rebuild_status() -> dict:
+    return {"running": _rebuild_status["running"], "last_run": _rebuild_status["last_run"]}
+
+
+def run_rebuild(service: PdfSummaryService) -> None:
+    """BackgroundTasks에서 호출되는 동기 함수. service는 app.state.pdf_summary_service(싱글턴)."""
+    with _rebuild_lock:
+        if _rebuild_status["running"]:
+            return
+        _rebuild_status["running"] = True
+
+    result: dict = {"policy_count": None, "error": None}
+    _rebuild_status["last_run"] = dict(result)
+    try:
+        result.update(service.reload_policies_svc())
+    except Exception as e:
+        result["error"] = str(e)
+    finally:
+        _rebuild_status["running"] = False
+        _rebuild_status["last_run"] = result

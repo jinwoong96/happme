@@ -174,16 +174,40 @@ class RegionMatcher:
             return []
         return [x.strip() for x in str(zip_cd).split(",") if x.strip()]
 
+    # 정책의 zipCd가 전체 시군구코드의 이 비율 이상을 포함하면(예: 지역 몇 곳 데이터 누락 등으로
+    # 100%가 아니어도) 사실상 전국 단위 정책으로 취급한다.
+    _NATIONWIDE_COVERAGE_RATIO = 0.95
+
     def _summarize_policy_region(self, policy_zip_list: list[str], limit: int = 20) -> dict:
+        """
+        정책의 지역 범위를 화면 탭 분류용으로 3단계로 나눈다.
+        - 광역: 지역 제한이 없거나(zipCd 없음), 전체 시군구코드를 사실상 다 포함하거나,
+          시/도 전역을 2개 이상 포함(여러 시/도에 걸침) - 전국 단위와 여러 시/도 단위를 하나로 묶음
+        - 시도범위: 특정 시/도 산하 시군구코드를 전부 포함(그 시/도 하나 전역 대상)
+        - 시군구범위: 그 외 - 특정 시/군/구 단위로만 한정
+        """
         if not policy_zip_list:
-            return {"type": "전국", "zipCd_count": 0, "region_names": []}
+            return {"type": "광역", "zipCd_count": 0, "region_names": []}
+
+        zip_set = set(policy_zip_list)
+        all_known = set(self.zipcd_df["시군구코드"])
+
+        if all_known and len(zip_set & all_known) / len(all_known) >= self._NATIONWIDE_COVERAGE_RATIO:
+            return {"type": "광역", "zipCd_count": len(policy_zip_list), "region_names": []}
+
+        full_province_count = 0
+        for prefix in PREFIX_MAP.values():
+            province_codes = set(self.zipcd_df.loc[self.zipcd_df["시군구코드"].str.startswith(prefix), "시군구코드"])
+            if province_codes and province_codes.issubset(zip_set):
+                full_province_count += 1
+
+        if full_province_count >= 2:
+            return {"type": "광역", "zipCd_count": len(policy_zip_list), "region_names": []}
+        if full_province_count == 1:
+            return {"type": "시도범위", "zipCd_count": len(policy_zip_list), "region_names": []}
 
         if len(policy_zip_list) > limit:
-            return {
-                "type": "광범위지역",
-                "zipCd_count": len(policy_zip_list),
-                "region_names": [],
-            }
+            return {"type": "시군구범위", "zipCd_count": len(policy_zip_list), "region_names": []}
 
         region_names = []
 
@@ -193,7 +217,7 @@ class RegionMatcher:
                 region_names.append(str(row.iloc[0].get("지역명", "")).strip())
 
         return {
-            "type": "일부지역",
+            "type": "시군구범위",
             "zipCd_count": len(policy_zip_list),
             "region_names": region_names,
         }
