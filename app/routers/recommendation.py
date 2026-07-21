@@ -36,6 +36,11 @@ class ChatRecommendationRequest(BaseModel):
     chat: str
 
 
+class EligibilityBatchRequest(BaseModel):
+    user_profile: UserProfileIn
+    plcyNos: list[str]
+
+
 # C 맞춤형 정책 추천 (rule engine 실행, 정책 데이터는 서버에서 직접 로드)
 @router.post("/")
 async def recommend(data: RecommendationRequest, request: Request):
@@ -48,6 +53,13 @@ async def recommend(data: RecommendationRequest, request: Request):
 async def recommend_chat(data: ChatRecommendationRequest, request: Request):
     recommendation_service = get_recommendation_service(request)
     return recommendation_service.recommend_chat_svc(data.user_profile.model_dump(mode="json"), data.chat)
+
+
+# C 이미 매칭된 정책들(plcyNo 목록)에 대해서만 지원 가능 여부를 판정 (OCR/사진분석용, rule engine만 사용)
+@router.post("/eligibility-batch")
+async def check_eligibility_batch(data: EligibilityBatchRequest, request: Request):
+    recommendation_service = get_recommendation_service(request)
+    return recommendation_service.check_eligibility_svc(data.user_profile.model_dump(mode="json"), data.plcyNos)
 
 
 # C 구조화 질문(Q1 지역이동/Q2 취업 변화) 답변을 profile diff로 변환 (DB/Watson 미사용)
