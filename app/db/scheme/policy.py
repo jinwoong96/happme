@@ -52,6 +52,7 @@ class PolicyCreate(BaseModel):
 
 
 class PolicyUpdate(BaseModel):
+    plcyNo: Optional[str] = None
     plcyNm: Optional[str] = None
     source: Optional[str] = None
     plcyKywdNm: Optional[str] = None

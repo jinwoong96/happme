@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .user_testprofile import UserTestProfile
     from .ocr_result import OcrResult
     from .pdf_summary import PdfSummary
+    from .user_alert_keyword import UserAlertKeyword
 
 
 class User(Base):
@@ -43,3 +44,4 @@ class User(Base):
     test_profiles:      Mapped[List["UserTestProfile"]]       = relationship("UserTestProfile", back_populates="user", cascade="all, delete-orphan")
     ocr_results:        Mapped[List["OcrResult"]]             = relationship("OcrResult", back_populates="user", cascade="all, delete-orphan")
     pdf_summaries:      Mapped[List["PdfSummary"]]            = relationship("PdfSummary", back_populates="user", cascade="all, delete-orphan")
+    alert_keywords:     Mapped[List["UserAlertKeyword"]]      = relationship("UserAlertKeyword", back_populates="user", cascade="all, delete-orphan")

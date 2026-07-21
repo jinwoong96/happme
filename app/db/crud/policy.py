@@ -151,6 +151,19 @@ class PolicyCrud:
         return {row.plcyNo: row.summary for row in result.all() if row.summary}
 
     @staticmethod
+    async def get_changed_since(db: AsyncSession, since) -> list[Policy]:
+        """since(datetime) 이후 새로 등록(frstRegDt)되었거나 수정(lastMdfcnDt)된 정책 목록.
+        외부 동기화(온통청년/복지로)는 raw SQL bulk upsert라 ORM의 updatedAt이 갱신되지
+        않으므로, API가 내려주는 frstRegDt/lastMdfcnDt를 기준으로 판단한다.
+        알림 키워드 매칭 배치(external_sync.run_refresh_all 종료 시점)에서 사용."""
+        result = await db.execute(
+            select(Policy)
+            .options(selectinload(Policy.regions))
+            .where(or_(Policy.frstRegDt >= since, Policy.lastMdfcnDt >= since))
+        )
+        return list(result.scalars().all())
+
+    @staticmethod
     async def update_policy(db: AsyncSession, policy: Policy, data: PolicyUpdate) -> Policy:
         for key, value in data.model_dump(exclude_unset=True).items():
             setattr(policy, key, value)
