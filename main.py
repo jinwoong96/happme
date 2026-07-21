@@ -28,6 +28,7 @@ from fastapi.concurrency import asynccontextmanager
 from app.core.settings import settings
 from app.core.logging_config import setup_logging
 from app.core.slack_alert import send_slack_alert
+from app.core.request_context import set_request_id, new_request_id, REQUEST_ID_HEADER
 from app.core.model_downloader import ensure_models_downloaded
 from app.core.data_downloader import ensure_data_downloaded
 
@@ -121,6 +122,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """backend가 호출할 때 넘겨준 X-Request-Id를 그대로 이어받아서, backend->ai로
+    넘어오는 하나의 요청 흐름을 로그로 계속 따라갈 수 있게 한다. 헤더가 없으면(직접
+    호출 등) 새로 하나 만든다."""
+    request_id = request.headers.get(REQUEST_ID_HEADER) or new_request_id()
+    set_request_id(request_id)
+    sentry_sdk.set_tag("request_id", request_id)
+    response = await call_next(request)
+    response.headers[REQUEST_ID_HEADER] = request_id
+    return response
 
 
 app.include_router(image_analyze_router)
