@@ -144,7 +144,7 @@ export default function RecommendationProfilePage() {
           <ChevronLeft size={24} color="#333" />
         </button>
         <p className="flex-1 text-[20px] font-bold text-gray-900">{from === 'mypage' ? '프로필 수정' : '맞춤형 지원금 추천'}</p>
-        {from === 'recommendation' && hasProfile && (
+        {(from === 'recommendation' || from === 'current') && hasProfile && (
           <button
             type="button"
             onClick={handleSkip}

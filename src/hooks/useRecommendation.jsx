@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
 export default function useRecommendation() {
+  const navigate = useNavigate();
   const [regionChoice, setRegionChoice] = useState('지역 이동 안함');
   const [regionText, setRegionText] = useState('');
   const [employmentChoice, setEmploymentChoice] = useState('없음');
@@ -18,8 +20,7 @@ export default function useRecommendation() {
   // "AI 분석 시작" 버튼은 Q3(상황 설명)까지 채워야 활성화된다.
   const canAnalyze = !loading && regionChoice && employmentChoice && situation.trim();
 
-  // 실제 API 호출 로직. situationText를 인자로 받아서, 버튼 클릭(situation 필수)과
-  // 페이지 진입 시 자동 호출(situation 없이도 실행) 양쪽에서 재사용한다.
+  // 실제 API 호출 로직. situation은 handleAnalyze(버튼 클릭)에서만 채워져서 넘어온다.
   const runAnalysis = async (situationText) => {
     setLoading(true);
     setError('');
@@ -49,13 +50,20 @@ export default function useRecommendation() {
     runAnalysis(situation);
   };
 
-  // 페이지 진입 시 한 번, Q1/Q2 기본값("지역 이동 안함"/"없음") + 빈 situation으로
-  // 현재 프로필 기준 기본 추천을 자동으로 띄운다. 버튼의 situation 필수 조건(canAnalyze)은 거치지 않는다.
-  const hasAutoAnalyzedRef = useRef(false);
+  // 이 페이지는 시뮬레이션(미래 상황) 전용이라 진입 시 자동으로 분석을 돌리지 않는다.
+  // (현재 프로필만으로 보는 추천은 "가능정책" 페이지로 분리됨.)
+  // 다만 시뮬레이션도 저장된 프로필 위에 diff를 얹는 방식이라, 프로필이 없으면 먼저 입력받는다.
   useEffect(() => {
-    if (hasAutoAnalyzedRef.current) return;
-    hasAutoAnalyzedRef.current = true;
-    runAnalysis('');
+    let ignore = false;
+
+    api.get('/profiles/me').catch(() => null).then((profile) => {
+      if (ignore) return;
+      if (!profile) {
+        navigate('/recommendation/profile', { state: { from: 'recommendation' }, replace: true });
+      }
+    });
+
+    return () => { ignore = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
