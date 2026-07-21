@@ -228,6 +228,26 @@ class RecommendationService:
             "fail_reasons_by_plcyNo": fail_reasons,
         }
 
+    def check_eligibility_svc(self, user: dict, plcy_nos: list[str]) -> list[dict]:
+        """OCR/사진분석 등에서 이미 매칭된 정책들에 대해, plcyNo 기준으로 전체 필드를 갖춘
+        원본 정책을 다시 찾아 PolicyEligibilityEngine으로 지원 가능 여부를 판정한다.
+        정책을 못 찾으면 result를 None으로 반환한다(화면에서는 칩을 숨기면 됨).
+        result가 NO인 경우 reasons에 조건을 만족하지 못한 항목별 사유를 담아 반환한다."""
+        results = []
+        for plcy_no in plcy_nos:
+            policy = self.policy_loader.get_policy_by_plcyno(plcy_no)
+            if not policy:
+                results.append({"plcyNo": plcy_no, "result": None, "reasons": []})
+                continue
+            outcome = self.eligibility_engine.evaluate(user, policy)
+            reasons = [
+                {"check": check, "reason": detail["reason"]}
+                for check, detail in outcome["details"].items()
+                if not detail["match"]
+            ]
+            results.append({"plcyNo": plcy_no, "result": outcome["result"], "reasons": reasons})
+        return results
+
     @staticmethod
     def _bucket_for(match_result: dict[str, Any]) -> str:
         apply_period = match_result["details"]["apply_period"]
