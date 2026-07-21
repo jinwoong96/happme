@@ -69,3 +69,27 @@ class PolicyLoaderService:
 
     def get_policy_by_plcyno(self, plcy_no: str) -> dict | None:
         return self._by_plcyno.get(str(plcy_no))
+
+    def upsert_policy(self, policy: dict) -> None:
+        """단일 정책을 메모리 캐시에 즉시 반영한다(있으면 교체, 없으면 추가).
+        __init__ 이후 서버가 DB를 다시 읽지 않으므로, bene_backend가 정책을 생성/수정하거나
+        외부 동기화(최신화) 배치가 끝난 뒤 이 메서드를 호출해줘야 재시작 없이 반영된다.
+        policy_id를 기준 키로 쓴다 - plcyNo는 관리자가 수동 등록한 정책의 경우 없을 수 있어서
+        (예: 테스트 정책) 기준 키로 쓸 수 없다."""
+        policy_id = policy.get("policy_id")
+        for i, existing in enumerate(self.policies):
+            if existing.get("policy_id") == policy_id:
+                self.policies[i] = policy
+                break
+        else:
+            self.policies.append(policy)
+
+        plcy_no = policy.get("plcyNo")
+        if plcy_no is not None:
+            self._by_plcyno[str(plcy_no)] = policy
+
+    def remove_policy(self, policy_id: int) -> None:
+        """정책 삭제 시 메모리 캐시에서도 제거한다(기존에는 이 로직 자체가 없어서, 삭제된
+        정책이 서버 재시작 전까지 추천/알림 매칭에 계속 남아있었다)."""
+        self.policies = [p for p in self.policies if p.get("policy_id") != policy_id]
+        self._by_plcyno = {k: v for k, v in self._by_plcyno.items() if v.get("policy_id") != policy_id}

@@ -49,6 +49,7 @@ from app.routers.image_analyze import router as image_analyze_router
 from app.routers.recommendation import router as recommendation_router
 from app.routers.policy_dedup import router as policy_dedup_router
 from app.routers.search_docs import router as search_docs_router
+from app.routers.policy_cache import router as policy_cache_router
 
 from app.routers.schedule import router as schedule_router
 
@@ -80,6 +81,7 @@ async def lifespan(app: FastAPI):
     # app.state.schedule_service = ScheduleService()
 
     policy_loader = PolicyLoaderService()
+    app.state.policy_loader = policy_loader
     policy_similarity_service = PolicySimilarityService()
     app.state.policy_similarity_service = policy_similarity_service
     app.state.recommendation_service = RecommendationService(
@@ -116,6 +118,7 @@ app.include_router(schedule_router)
 app.include_router(policy_summary_router)
 app.include_router(policy_dedup_router)
 app.include_router(search_docs_router)
+app.include_router(policy_cache_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)
