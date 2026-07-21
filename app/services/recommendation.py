@@ -14,10 +14,9 @@ from app.services.policy import PolicyService
 # user_testprofile은 user_profile과 컬럼이 동일하다. UserProfileRead에는 있지만
 # user_testprofile에는 없는 계정성/계산 필드(user_id 제외, updated_at, age)는 제외하고 골라낸다.
 TEST_PROFILE_FIELDS = (
-    "birth_date", "gender", "region", "district", "education", "school_name", "major", "major_category",
-    "student_status", "graduation_year", "employment_status", "occupation", "job_seeking", "career_history",
-    "marital_status", "disability", "basic_livelihood", "single_parent", "startup_interest", "business_owner",
-    "startup_status", "company_type", "situation", "housing_status", "reason",
+    "birth_date", "gender", "region", "district", "education", "major_category",
+    "employment_status", "sme_employment",
+    "marital_status", "disability", "basic_livelihood", "single_parent", "situation",
 )
 
 
