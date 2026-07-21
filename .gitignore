@@ -16,3 +16,6 @@ data/policy_search_docs.json
 data/embeddings/search_docs_full_text_embeddings.npy
 data/zipcd_mapping.csv
 
+# 로컬 벡터 DB 캐시 (용량 크고 재생성 가능)
+data/chroma_db_service/
+
