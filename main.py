@@ -20,9 +20,12 @@ if sys.platform == "win32":
         pass
 
 import uvicorn
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import asynccontextmanager
+from app.core.settings import settings
+from app.core.logging_config import setup_logging
 from app.core.model_downloader import ensure_models_downloaded
 from app.core.data_downloader import ensure_data_downloaded
 
@@ -52,6 +55,14 @@ from app.routers.search_docs import router as search_docs_router
 
 from app.routers.schedule import router as schedule_router
 
+setup_logging(settings.log_dir)
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment or settings.app_env,
+        traces_sample_rate=1.0,
+    )
 
 
 @asynccontextmanager
