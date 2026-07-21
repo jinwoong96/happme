@@ -33,6 +33,14 @@ class AiClient:
         return await AiClient._post("/recommendations/income-eligibility", {"plcyNo": plcy_no, "answers": answers})
 
     @staticmethod
+    async def check_eligibility_batch(user_profile: dict, plcy_nos: list[str]) -> list[dict]:
+        """bene_ai의 POST /recommendations/eligibility-batch 호출.
+        Returns: [{plcyNo, result: "YES"|"NO"|None}]"""
+        return await AiClient._post(
+            "/recommendations/eligibility-batch", {"user_profile": user_profile, "plcyNos": plcy_nos}
+        )
+
+    @staticmethod
     async def search_similar_policies(query_text: str, top_k: int = 5) -> list[dict]:
         """bene_ai의 POST /policy-dedup/search 호출 (BAAI/bge-m3 임베딩 유사도 검색).
         Returns: [{plcyNo, policy_name, policy_summary, score}]"""
