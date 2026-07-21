@@ -162,7 +162,7 @@ export default function RecommendationProfilePage() {
           <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <UserPen size={18} color="#fff" />
           </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed">정보를 입력하면 AI가 최적의 지원금을 추천해 드립니다.</p>
+          <p className="text-[13px] text-gray-600 leading-relaxed">정보를 입력하면 AI가 최적의 정책을 추천해 드립니다.</p>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

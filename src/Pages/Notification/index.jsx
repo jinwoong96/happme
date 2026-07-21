@@ -23,14 +23,14 @@ export default function NotificationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="text-[20px] font-bold text-gray-900">지원금 알림</p>
+        <p className="text-[20px] font-bold text-gray-900">정책 알림</p>
       </div>
 
       <div className="bg-white border-b border-gray-100" style={{ padding: '12px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#f5f6fa', borderRadius: 14, padding: '11px 14px' }}>
           <Search size={16} color="#aaa" />
           <input
-            value={search} onChange={(e) => setSearch(e.target.value)} placeholder="지원금 검색..."
+            value={search} onChange={(e) => setSearch(e.target.value)} placeholder="정책 검색..."
             style={{
               flex: 1, border: 'none', backgroundColor: 'transparent',
               fontSize: 14, color: '#1f2937', outline: 'none',
@@ -44,7 +44,7 @@ export default function NotificationPage() {
         {loading
           ? <div className="text-center py-10 text-[13px] text-gray-400">불러오는 중...</div>
           : isEmpty
-          ? <div className="text-center py-10 text-[13px] text-gray-400">즐겨찾기한 지원금이 없어요. 전체보기에서 관심있는 정책을 즐겨찾기 해보세요.</div>
+          ? <div className="text-center py-10 text-[13px] text-gray-400">즐겨찾기한 정책이 없어요. 전체보기에서 관심있는 정책을 즐겨찾기 해보세요.</div>
           : filtered.length === 0
           ? <div className="text-center py-10 text-[13px] text-gray-400">검색 결과가 없습니다.</div>
           : filtered.map((item, i) => (
