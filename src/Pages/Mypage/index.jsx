@@ -40,7 +40,7 @@ export default function MypagePage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-          {[['즐겨찾기', user.bookmarkCount], ['신청 완료', 0], ['알림', 2]].map(([label, value]) => (
+          {[['즐겨찾기', user.bookmarkCount], ['알림설정', user.alertCount]].map(([label, value]) => (
             <div key={label} style={{ flex: 1, backgroundColor: '#f8f9ff', borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>
               <p className="text-[20px] font-extrabold text-blue-500">{value}</p>
               <p className="mt-0.5 text-[11px] text-gray-400">{label}</p>
