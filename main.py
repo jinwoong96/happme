@@ -1,9 +1,12 @@
 import uvicorn
+import sentry_sdk
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import asynccontextmanager
 
+from app.core.settings import settings
+from app.core.logging_config import setup_logging
 from app.db.database import Base, async_engine, AsyncSessionLocal
 from app.db.seed import run_all_seeds
 from app.middleware.token_refresh import RefreshTokenMiddleware
@@ -29,6 +32,15 @@ from app.routers.recommendation import router as recommendation_router
 from app.routers.local_program import router as local_program_router
 
 load_dotenv(dotenv_path=".env")
+
+setup_logging()
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment or settings.app_env,
+        traces_sample_rate=1.0,
+    )
 
 
 @asynccontextmanager

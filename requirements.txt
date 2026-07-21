@@ -45,5 +45,6 @@ requests
 xmltodict
 
 python-multipart
+sentry-sdk[fastapi]
 
 # 테스트
