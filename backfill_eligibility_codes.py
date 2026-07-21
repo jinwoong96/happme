@@ -34,7 +34,7 @@ DB_CONFIG = {
     "charset": "utf8mb4",
 }
 
-DEFAULT_INPUT_FILE = "../ai/data/ontong_total.json.json"
+DEFAULT_INPUT_FILE = "../bene_ai/data/ontong_total.json.json"
 
 CODE_FIELDS = ["aplyPrdSeCd", "sprtTrgtAgeLmtYn", "schoolCd", "plcyMajorCd", "sbizCd", "jobCd"]
 

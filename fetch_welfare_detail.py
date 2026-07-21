@@ -133,6 +133,11 @@ def main():
     done_ids = set(existing.keys())
 
     total = len(summary_items)
+    remaining = sum(
+        1 for idx, item in enumerate(summary_items)
+        if idx >= args.start_index and item.get("servId") and item["servId"] not in done_ids
+    )
+    print(f"TOTAL_COUNT:{remaining}")  # 목록 전체가 아니라 이번에 실제로 상세조회할 남은 건수만 표시
     fail_count = 0
     for idx, item in enumerate(summary_items):
         if idx < args.start_index:

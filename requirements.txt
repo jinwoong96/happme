@@ -46,4 +46,5 @@ xmltodict
 
 python-multipart
 
-# 테스트
+APScheduler==3.11.0
+tzdata

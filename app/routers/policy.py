@@ -105,6 +105,30 @@ async def get_search_docs_rebuild_status(current_admin: User = Depends(get_curre
     return await AiClient.get_search_docs_rebuild_status()
 
 
+# DB에 summary가 비어있는 정책만 골라 채우는 백그라운드 작업을 bene_ai에 트리거한다 (관리자용).
+# "/{policy_id}"보다 먼저 선언해야 "policy-summary"가 int 파싱 대상으로 잘못 매칭되지 않는다.
+@router.post("/policy-summary/rebuild")
+async def rebuild_policy_summaries(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.trigger_policy_summary_rebuild()
+
+
+@router.get("/policy-summary/rebuild/status")
+async def get_policy_summary_rebuild_status(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.get_policy_summary_rebuild_status()
+
+
+# 공고문 PDF/텍스트/URL 매칭용 캐시(PdfSummaryService)를 DB 최신 상태로 갱신하는 백그라운드
+# 작업을 bene_ai에 트리거한다 (관리자용). "/{policy_id}"보다 먼저 선언.
+@router.post("/pdf-cache/rebuild")
+async def rebuild_pdf_cache(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.trigger_pdf_cache_rebuild()
+
+
+@router.get("/pdf-cache/rebuild/status")
+async def get_pdf_cache_rebuild_status(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.get_pdf_cache_rebuild_status()
+
+
 # R 단일 조회
 @router.get("/{policy_id}", response_model=PolicyRead)
 async def get_policy(policy_id: int, db: AsyncSession = Depends(get_db)):

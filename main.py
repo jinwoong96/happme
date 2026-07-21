@@ -7,6 +7,7 @@ from fastapi.concurrency import asynccontextmanager
 from app.db.database import Base, async_engine, AsyncSessionLocal
 from app.db.seed import run_all_seeds
 from app.middleware.token_refresh import RefreshTokenMiddleware
+from app.core.scheduler import start_scheduler, stop_scheduler
 
 from app.routers.user import router as user_router
 from app.routers.email_verification import router as email_verification_router
@@ -38,7 +39,12 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as session:
         async with session.begin():
             await run_all_seeds(session)
+
+    start_scheduler()
+
     yield
+
+    stop_scheduler()
     await async_engine.dispose()
 
 

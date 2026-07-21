@@ -22,9 +22,9 @@ import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처
     sprtTrgtMinAge/MaxAge = 19/39 고정값 (WELFARE2.py가 lifeArray=004 청년으로 필터링해서 받음)
     지역(policy_region) = 전국 매핑. 중앙부처 사업은 시도명(ctpvNm) 자체가 응답에 없어서 지자체
     임포트처럼 시도명 기준으로 매핑할 근거 데이터는 없지만, 중앙부처 사업은 성격상 전국 대상인
-    경우가 대부분이고 온통청년 데이터의 기존 "전국 단위 정책"도 zipcd_mapping.csv의 모든
+    경우가 대부분이고 온통청년 데이터의 기존 "전국 단위 정책"도 zipcd 테이블의 모든
     시군구코드를 policy_region에 연결하는 방식으로 처리돼 있어서, 같은 방식을 따른다
-    (어떤 지역으로 필터링해도 노출됨). zipcd_mapping.csv를 못 찾으면 지역 매핑은 건너뛴다.
+    (어떤 지역으로 필터링해도 노출됨). zipcd 테이블이 비어있으면 지역 매핑은 건너뛴다.
 
 사전 준비:
     pip install pymysql python-dotenv
@@ -46,11 +46,9 @@ import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처
 import os
 import sys
 import re
-import csv
 import json
 import argparse
 from datetime import datetime
-from pathlib import Path
 
 import pymysql
 from dotenv import load_dotenv
@@ -67,7 +65,6 @@ DB_CONFIG = {
 }
 
 DETAIL_FILE = "National_welfare_data_detail.json"
-ZIPCD_CSV = Path(__file__).resolve().parent.parent / "bene_ai" / "data" / "zipcd_mapping.csv"
 PLCYNO_PREFIX = "BOKJIRO-NATL-"
 
 # policy 테이블 컬럼 순서 (auto_increment인 policy_id, createdAt/updatedAt DEFAULT 제외)
@@ -216,10 +213,11 @@ def build_keyword(detail: dict) -> str:
 
 
 def build_mclsf(detail: dict) -> str:
-    kw = clean(detail.get("intrsThemaArray"))
-    if kw:
-        return kw.split(",")[0].strip()
-    return "기타"
+    """관심주제(intrsThemaArray)를 원본 그대로 저장한다(여러 개면 콤마 그대로 유지).
+    ONTONG도 mclsfNm에 콤마로 여러 값을 넣는 경우가 있어 같은 규칙이고, 화면에 보여줄 대표
+    카테고리를 뽑는 건 recommendation_service.py가 이 원본 값을 보고 별도로 판단한다
+    (여기서 첫 값만 남기고 잘라버리면 DB에 원문 분류가 안 남아서 복원이 안 됨)."""
+    return clean(detail.get("intrsThemaArray")) or "기타"
 
 
 def transform_record(record: dict) -> tuple:
@@ -300,20 +298,16 @@ def insert_batch(conn, rows: list):
     conn.commit()
 
 
-def load_zipcd_mapping() -> list:
-    """전국 매핑용 - [(시군구코드, 지역명), ...] 전체를 그대로 반환."""
-    if not ZIPCD_CSV.exists():
-        print(f"[경고] {ZIPCD_CSV} 를 찾지 못해 지역 매핑을 건너뜁니다.")
-        return []
-    rows = []
-    with open(ZIPCD_CSV, encoding="utf-8-sig") as f:  # 파일에 UTF-8 BOM이 있어 utf-8-sig로 읽어야 함
-        reader = csv.DictReader(f)
-        for row in reader:
-            code = (row.get("시군구코드") or "").strip()
-            name = (row.get("지역명") or "").strip()
-            if code and name:
-                rows.append((code, name))
-    return rows
+def load_zipcd_mapping(conn) -> list:
+    """전국 매핑용 - [(시군구코드, 지역명), ...] 전체를 zipcd 테이블(load_zipcd_mapping.py로
+    zipcd_mapping.csv를 적재해둔 것)에서 그대로 반환. 예전엔 ai/data/zipcd_mapping.csv를
+    상대경로로 읽었는데, 디렉터리 구조가 바뀌면 깨지는 경로 의존이라 DB로 옮겼다."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT sigungu_code, full_name FROM zipcd")
+        rows = cur.fetchall()
+    if not rows:
+        print("[경고] zipcd 테이블이 비어있어 지역 매핑을 건너뜁니다 (load_zipcd_mapping.py 먼저 실행 필요).")
+    return [(code, name) for code, name in rows]
 
 
 def build_plcyno_to_id_map(conn) -> dict:
@@ -341,7 +335,7 @@ def run_region_mapping(conn, records: list):
     """중앙부처 사업은 시도명(ctpvNm)이 없어 개별 매칭이 불가능하므로, 전국 정책 취급으로
     zipcd_mapping.csv의 모든 시군구코드를 각 정책에 연결한다(온통청년 기존 전국 단위 정책과
     동일한 방식). 어떤 지역으로 필터링해도 노출된다."""
-    mapping = load_zipcd_mapping()
+    mapping = load_zipcd_mapping(conn)
     if not mapping:
         return
     all_codes = [code for code, _ in mapping]
@@ -369,6 +363,7 @@ def main():
 
     records = load_records()
     print(f"{DETAIL_FILE}에서 상세정보 있는 {len(records)}건 로드")
+    print(f"TOTAL_COUNT:{len(records)}")  # external_sync.py가 파싱해 관리자 화면에 작업량으로 표시
 
     if args.peek:
         row = transform_record(records[0])

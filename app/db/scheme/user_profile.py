@@ -12,7 +12,7 @@ class UserProfileCreate(BaseModel):
     education: Optional[str] = None
     major_category: Optional[str] = None
     employment_status: Optional[str] = None
-    sme_employment: Optional[bool] = None
+    sme_employment: bool = False  # 중소기업 재직 여부
     marital_status: Optional[str] = None
     disability: bool = False
     basic_livelihood: bool = False
@@ -28,7 +28,7 @@ class UserProfileUpdate(BaseModel):
     education: Optional[str] = None
     major_category: Optional[str] = None
     employment_status: Optional[str] = None
-    sme_employment: Optional[bool] = None
+    sme_employment: Optional[bool] = None  # 중소기업 재직 여부
     marital_status: Optional[str] = None
     disability: Optional[bool] = None
     basic_livelihood: Optional[bool] = None
@@ -45,7 +45,7 @@ class UserProfileRead(BaseModel):
     education: Optional[str] = None
     major_category: Optional[str] = None
     employment_status: Optional[str] = None
-    sme_employment: Optional[bool] = None
+    sme_employment: bool = False  # 중소기업 재직 여부
     marital_status: Optional[str] = None
     disability: bool = False
     basic_livelihood: bool = False
