@@ -106,7 +106,13 @@ def _init_steps() -> list[dict]:
         {"key": s["key"], "label": s["label"], "status": "pending", "output": "", "total": None}
         for s in AI_REBUILD_STEPS
     ]
-    return subprocess_steps + ai_steps
+    policy_cache_step = [
+        {"key": "policy_cache_sync", "label": "bene_ai 정책 메모리 캐시 반영", "status": "pending", "output": "", "total": None}
+    ]
+    keyword_alert_step = [
+        {"key": "keyword_alert_check", "label": "알림 키워드 매칭 체크", "status": "pending", "output": "", "total": None}
+    ]
+    return subprocess_steps + ai_steps + policy_cache_step + keyword_alert_step
 
 
 def _steps_by_chain() -> dict:
@@ -243,8 +249,9 @@ async def run_refresh_all():
     if _status["running"]:
         return
 
+    started_at_dt = datetime.now()
     _status["running"] = True
-    _status["started_at"] = datetime.now().isoformat()
+    _status["started_at"] = started_at_dt.isoformat()
     _status["finished_at"] = None
     _status["steps"] = _init_steps()
 
@@ -277,6 +284,50 @@ async def run_refresh_all():
                 ok, out = False, f"예상하지 못한 오류: {e}"
             step["status"] = "success" if ok else "failed"
             step["output"] = out
+
+        # bene_ai의 PolicyLoaderService는 서버 시작 시 DB를 한 번만 읽어 메모리에 캐싱하고
+        # 그 뒤로는 다시 안 읽는다. raw SQL 배치로 들어온 신규/변경 정책은 bene_ai를 재시작하기
+        # 전까지 추천/알림 매칭에서 영원히 안 보이므로, started_at_dt 이후 신규/변경된 정책들을
+        # 여기서 bene_ai 메모리 캐시에 밀어넣어준다(아래 키워드 매칭 체크보다 먼저 실행되어야 함).
+        cache_step = next(st for st in _status["steps"] if st["key"] == "policy_cache_sync")
+        cache_step["status"] = "running"
+        try:
+            from app.db.database import AsyncSessionLocal
+            from app.db.crud.policy import PolicyCrud
+            from app.services.policy import PolicyService
+            from app.services.ai_client import AiClient
+
+            async with AsyncSessionLocal() as session:
+                changed_policies = await PolicyCrud.get_changed_since(session, started_at_dt)
+                synced, failed = 0, 0
+                for policy in changed_policies:
+                    try:
+                        payload = PolicyService._build_policy_cache_payload(policy)
+                        await AiClient.sync_policy_cache_upsert(payload)
+                        synced += 1
+                    except Exception:
+                        failed += 1
+            cache_step["status"] = "success" if failed == 0 else "failed"
+            cache_step["output"] = f"{synced}/{len(changed_policies)}건 반영" + (f" ({failed}건 실패)" if failed else "")
+        except Exception as e:
+            cache_step["status"] = "failed"
+            cache_step["output"] = f"정책 캐시 반영 실패: {e}"
+
+        # 온통청년/복지로 raw SQL 배치는 ORM을 거치지 않아 create/update 훅을 못 타므로,
+        # 여기서 started_at_dt 이후 신규/변경된 정책만 모아 알림 키워드 매칭을 한 번에 체크한다.
+        keyword_step = next(st for st in _status["steps"] if st["key"] == "keyword_alert_check")
+        keyword_step["status"] = "running"
+        try:
+            from app.db.database import AsyncSessionLocal
+            from app.services.user_alert_keyword import UserAlertKeywordService
+
+            async with AsyncSessionLocal() as session:
+                created = await UserAlertKeywordService.check_and_notify_since_svc(session, started_at_dt)
+            keyword_step["status"] = "success"
+            keyword_step["output"] = f"알림 {created}건 생성"
+        except Exception as e:
+            keyword_step["status"] = "failed"
+            keyword_step["output"] = f"키워드 알림 체크 실패: {e}"
     finally:
         _status["running"] = False
         _status["finished_at"] = datetime.now().isoformat()

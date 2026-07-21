@@ -1,4 +1,6 @@
+import asyncio
 import json
+import logging
 import re
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,13 @@ from app.db.crud.policy_summary_cache import PolicySummaryCacheCrud
 from app.db.scheme.policy import PolicyCreate, PolicyUpdate, PolicyRead, PolicyListRead
 from app.db.models.policy import Policy
 from app.services.ai_client import AiClient
+from app.services.user_alert_keyword import UserAlertKeywordService
+
+logger = logging.getLogger(__name__)
+
+# asyncio.create_task()로 띄운 백그라운드 태스크는 참조를 어딘가 들고 있지 않으면 실행 중간에
+# 가비지 컬렉션될 수 있다(Python 공식 문서 권고). 완료될 때까지 여기 붙잡아둔다.
+_background_tasks: set = set()
 
 # 정책 카드 표시용 텍스트 길이 제한 (policy_cards.json 원본에 지나치게 긴 값이 섞여있음)
 CARD_TITLE_MAX_LENGTH = 60
@@ -27,6 +36,11 @@ _BANNER_DEADLINE_WITHIN_DAYS = 30
 _BANNER_AMOUNT_POOL_SIZE = _BANNER_GROUP_SIZE * 5
 # 배너에는 대출/금리혜택성 정책은 지원금 자체가 아니므로 제외한다.
 _BANNER_EXCLUDE_KEYWORDS = ["금리혜택", "대출"]
+
+# 정책 1건 생성/수정 직후 bene_ai 검색문서(임베딩) 재생성이 끝나길 기다리는 상한(최신화의
+# 전체 배치용 3600초보다 훨씬 짧게 - 정책 1건 정도라 오래 걸리지 않을 것으로 예상).
+_SEARCH_DOCS_REBUILD_POLL_SEC = 3
+_SEARCH_DOCS_REBUILD_MAX_WAIT_SEC = 120
 
 # 가나다순 초성 필터용. 한글 음절의 유니코드 구조(0xAC00 + 초성*588 + 중성*28 + 종성)를 이용해
 # 초성 인덱스(0~18: ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ)를 구한 뒤, 된소리(ㄲㄸㅃㅆㅉ)는
@@ -122,9 +136,20 @@ class PolicyService:
             policy = await PolicyCrud.create_policy(db, data)
             await db.commit()
             await db.refresh(policy)
+            # regions는 방금 만든 policy_id를 참조할 행이 아직 있을 수 없으므로 항상 빈 목록이다.
+            # 직접 policy.regions = [] 를 대입하면 cascade(delete-orphan) 처리를 위해
+            # "이전 값"을 먼저 지연로딩하려다 async 컨텍스트 밖이라 MissingGreenlet으로 터진다.
+            # db.refresh(attribute_names=...)는 await로 감싸져 있어 안전하게 로딩된 상태로 만든다.
+            # (응답 직렬화 시점에 지연로딩이 다시 시도되는 걸 막기 위한 목적)
+            await db.refresh(policy, attribute_names=["regions"])
+            await PolicyService._sync_ai_policy_cache_best_effort(policy)
+            # 검색문서 재생성(최대 120초 대기)+키워드 알림 체크는 느려서 응답을 막으면 안 되므로
+            # 백그라운드로 돌린다. 관리자 저장 버튼은 바로 응답을 받는다.
+            PolicyService._schedule_post_save_ai_sync(policy.policy_id)
             return policy
         except Exception:
             await db.rollback()
+            logger.exception("정책 생성에 실패했습니다.")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="정책 생성에 실패했습니다.")
 
     @staticmethod
@@ -405,10 +430,125 @@ class PolicyService:
             updated = await PolicyCrud.update_policy(db, policy, data)
             await db.commit()
             await db.refresh(updated)
+            # regions는 _require_policy(selectinload)가 이미 로딩해뒀지만, 위 refresh()가
+            # 다시 미로딩 상태로 되돌릴 수 있어 create_policy_svc와 동일하게 명시적으로 챙긴다.
+            await db.refresh(updated, attribute_names=["regions"])
+            await PolicyService._sync_ai_policy_cache_best_effort(updated)
+            # create_policy_svc와 동일하게, 느린 작업(검색문서 재생성+키워드 알림 체크)은
+            # 백그라운드로 돌려서 관리자 저장 버튼이 오래 멈춰있지 않게 한다.
+            PolicyService._schedule_post_save_ai_sync(updated.policy_id)
             return updated
         except Exception:
             await db.rollback()
+            logger.exception("정책 수정에 실패했습니다.")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="정책 수정에 실패했습니다.")
+
+    @staticmethod
+    def _build_policy_cache_payload(policy: Policy) -> dict:
+        """bene_ai POST /policy-cache/upsert가 기대하는 형태(PolicyLoaderService.FIELDS +
+        zipCd)로 정책 dict를 만든다. policy.regions는 호출 전에 로딩되어 있어야 한다."""
+        zip_codes = sorted({r.zip_code for r in (policy.regions or [])})
+        return {
+            "policy_id": policy.policy_id,
+            "plcyNo": policy.plcyNo,
+            "plcyNm": policy.plcyNm,
+            "plcyExplnCn": policy.plcyExplnCn,
+            "plcySprtCn": policy.plcySprtCn,
+            "plcyKywdNm": policy.plcyKywdNm,
+            "lclsfNm": policy.lclsfNm,
+            "mclsfNm": policy.mclsfNm,
+            "rgtrInstCdNm": policy.rgtrInstCdNm,
+            "aplyPrdSeCd": policy.aplyPrdSeCd,
+            "aplyYmd": policy.aplyYmd,
+            "sprtTrgtAgeLmtYn": policy.sprtTrgtAgeLmtYn,
+            "sprtTrgtMinAge": policy.sprtTrgtMinAge,
+            "sprtTrgtMaxAge": policy.sprtTrgtMaxAge,
+            "mrgSttsCd": policy.mrgSttsCd,
+            "schoolCd": policy.schoolCd,
+            "plcyMajorCd": policy.plcyMajorCd,
+            "sbizCd": policy.sbizCd,
+            "jobCd": policy.jobCd,
+            "earnCndSeCd": policy.earnCndSeCd,
+            "earnEtcCn": policy.earnEtcCn,
+            "earnMinAmt": policy.earnMinAmt,
+            "earnMaxAmt": policy.earnMaxAmt,
+            "zipCd": ",".join(zip_codes) if zip_codes else None,
+        }
+
+    @staticmethod
+    async def _sync_ai_policy_cache_best_effort(policy: Policy) -> None:
+        """bene_ai의 PolicyLoaderService는 서버 시작 시 DB를 한 번만 읽어 메모리에 캐싱하고
+        그 뒤로는 다시 안 읽는다. 그래서 정책을 생성/수정한 직후 이 메모리 캐시에도 바로
+        반영해줘야 재시작 없이 추천/알림 매칭이 이 정책을 알아본다. bene_ai 호출이 실패해도
+        정책 생성/수정 자체는 이미 커밋됐으므로 실패를 삼킨다."""
+        try:
+            payload = PolicyService._build_policy_cache_payload(policy)
+            await AiClient.sync_policy_cache_upsert(payload)
+        except Exception:
+            logger.exception("bene_ai 정책 캐시 동기화(upsert)에 실패했습니다 (policy_id=%s)", policy.policy_id)
+
+    @staticmethod
+    async def _sync_ai_search_docs_best_effort(policy: Policy) -> None:
+        """recommend_chat의 유사도 매칭(PolicySimilarityService)은 policy_search_docs.json에
+        미리 만들어둔 임베딩만 대상으로 하고, 이 임베딩은 plcyNo를 키로 쓴다(plcyNo가 없으면
+        bene_ai가 애초에 생성 대상으로도 안 잡는다 - get_new_policies가 plcyNo 필수).
+        그래서 plcyNo가 없는 정책은 아무리 캐시를 갱신해도 키워드 알림 매칭 자체가 불가능하다.
+        plcyNo가 있으면 검색문서/임베딩 재생성을 트리거하고, 끝날 때까지(상한 있음) 기다려서
+        바로 이어지는 키워드 매칭 체크가 이 정책을 찾을 수 있게 한다. 실패/타임아웃이어도
+        정책 생성/수정 자체는 이미 커밋됐으므로 실패를 삼킨다."""
+        if not policy.plcyNo:
+            logger.warning(
+                "정책 '%s'(policy_id=%s)에 plcyNo가 없어 bene_ai 검색문서 생성 대상에서 제외됩니다. "
+                "키워드 알림 매칭은 plcyNo가 있는 정책만 가능합니다.", policy.plcyNm, policy.policy_id,
+            )
+            return
+        try:
+            started = await AiClient.trigger_search_docs_rebuild()
+            if started.get("status") == "up_to_date":
+                return
+            waited = 0
+            while waited < _SEARCH_DOCS_REBUILD_MAX_WAIT_SEC:
+                await asyncio.sleep(_SEARCH_DOCS_REBUILD_POLL_SEC)
+                waited += _SEARCH_DOCS_REBUILD_POLL_SEC
+                rebuild_status = await AiClient.get_search_docs_rebuild_status()
+                if not rebuild_status.get("running"):
+                    return
+        except Exception:
+            logger.exception("bene_ai 검색문서 재생성 동기화에 실패했습니다 (policy_id=%s)", policy.policy_id)
+
+    @staticmethod
+    def _schedule_post_save_ai_sync(policy_id: int) -> None:
+        """검색문서 재생성(최대 _SEARCH_DOCS_REBUILD_MAX_WAIT_SEC초 대기)+키워드 알림 체크는
+        느려서(bene_ai LLM 호출 포함) 요청/응답을 막으면 관리자 저장 버튼이 오래 멈춰있게 되고,
+        프록시/브라우저 타임아웃에 걸려 정책 자체는 이미 커밋됐는데도 저장 실패처럼 보일 수 있다.
+        그래서 fire-and-forget으로 백그라운드 태스크를 띄운다. 요청에 쓰인 db 세션은 응답 후
+        닫히므로, 백그라운드 태스크는 별도 세션을 새로 연다."""
+        task = asyncio.create_task(PolicyService._post_save_ai_sync(policy_id))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+
+    @staticmethod
+    async def _post_save_ai_sync(policy_id: int) -> None:
+        from app.db.database import AsyncSessionLocal
+
+        try:
+            async with AsyncSessionLocal() as session:
+                policy = await PolicyCrud.get_policy(session, policy_id)
+                if not policy:
+                    return
+                await PolicyService._sync_ai_search_docs_best_effort(policy)
+                await PolicyService._notify_alert_keywords_best_effort(session, policy)
+        except Exception:
+            logger.exception("정책 저장 후 백그라운드 AI 동기화에 실패했습니다 (policy_id=%s)", policy_id)
+
+    @staticmethod
+    async def _notify_alert_keywords_best_effort(db: AsyncSession, policy: Policy) -> None:
+        """관리자가 정책 1건을 생성/수정할 때, 등록된 알림 키워드와 즉시 매칭 체크한다.
+        bene_ai 호출이 실패해도 정책 생성/수정 자체는 이미 커밋됐으므로 실패를 삼킨다."""
+        try:
+            await UserAlertKeywordService.check_and_notify_svc(db, [policy])
+        except Exception:
+            logger.exception("정책 생성/수정 직후 알림 키워드 매칭에 실패했습니다 (policy_id=%s)", policy.policy_id)
 
     @staticmethod
     async def delete_policy_svc(db: AsyncSession, policy_id: int) -> dict:
@@ -416,10 +556,20 @@ class PolicyService:
         try:
             await PolicyCrud.delete_policy(db, policy)
             await db.commit()
+            await PolicyService._sync_ai_policy_cache_remove_best_effort(policy_id)
             return {"message": f"policy_id '{policy_id}' 삭제 완료"}
         except Exception:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="정책 삭제에 실패했습니다.")
+
+    @staticmethod
+    async def _sync_ai_policy_cache_remove_best_effort(policy_id: int) -> None:
+        """정책 삭제 시 bene_ai 메모리 캐시에서도 제거한다(기존에는 이 로직 자체가 없었다).
+        실패해도 정책 삭제 자체는 이미 커밋됐으므로 실패를 삼킨다."""
+        try:
+            await AiClient.sync_policy_cache_remove(policy_id)
+        except Exception:
+            logger.exception("bene_ai 정책 캐시 동기화(remove)에 실패했습니다 (policy_id=%s)", policy_id)
 
     @staticmethod
     async def similarity_search_svc(db: AsyncSession, query_text: str, top_k: int = 5) -> list[dict]:

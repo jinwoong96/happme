@@ -97,6 +97,19 @@ class AiClient:
         return await AiClient._get("/policy-summary/pdf-cache/rebuild/status")
 
     @staticmethod
+    async def sync_policy_cache_upsert(policy: dict) -> dict:
+        """bene_ai의 POST /policy-cache/upsert 호출. bene_ai의 PolicyLoaderService는 서버
+        시작 시 DB를 한 번만 읽어 메모리에 캐싱하고 그 뒤로는 다시 안 읽으므로, 정책을
+        생성/수정하거나 외부 동기화(최신화) 배치가 끝난 뒤 재시작 없이 반영하려면 이걸 호출해야
+        추천/알림 매칭(recommend_chat 등)이 해당 정책을 바로 알아본다."""
+        return await AiClient._post("/policy-cache/upsert", policy)
+
+    @staticmethod
+    async def sync_policy_cache_remove(policy_id: int) -> dict:
+        """bene_ai의 DELETE /policy-cache/{policy_id} 호출. 정책 삭제 시 메모리 캐시에서도 제거한다."""
+        return await AiClient._delete(f"/policy-cache/{policy_id}")
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
@@ -119,7 +132,19 @@ class AiClient:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI 서버 요청에 실패했습니다.")
         except httpx.RequestError:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 서버에 연결할 수 없습니다.")
-        
+
+    @staticmethod
+    async def _delete(path: str):
+        try:
+            async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:
+                response = await client.delete(path)
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPStatusError:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI 서버 요청에 실패했습니다.")
+        except httpx.RequestError:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 서버에 연결할 수 없습니다.")
+
     # 코드분석 필요
     @staticmethod
     async def analyze_image(image_bytes: bytes, filename: str, content_type: str) -> dict:
