@@ -101,6 +101,7 @@ class Settings(BaseSettings):
     app_env: str = Field("development", alias="APP_ENV")
     sentry_dsn: str = Field("", alias="SENTRY_DSN")
     sentry_environment: str = Field("", alias="SENTRY_ENVIRONMENT")
+    slack_webhook_url: str = Field("", alias="SLACK_WEBHOOK_URL")
     log_dir: str = Field("./logs", alias="LOG_DIR")
 
     class Config:
