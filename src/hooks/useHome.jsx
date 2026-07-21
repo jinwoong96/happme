@@ -18,6 +18,10 @@ function mapPolicy(p) {
   };
 }
 
+// 홈 화면에 머무르는 동안에도 관리자가 새로 등록/수정한 공고문의 키워드 알림이 뜨는지
+// 주기적으로 다시 확인한다(관리자 저장 -> AI 임베딩/매칭은 백그라운드라 수 초~수십 초 걸림).
+const UNREAD_POLL_MS = 30_000;
+
 export default function useHome() {
   const [benefits, setBenefits] = useState([]);
   const [banner, setBanner] = useState([]);
@@ -29,13 +33,18 @@ export default function useHome() {
   useEffect(() => {
     let ignore = false;
 
-    api.get('/notifications/me?unread_only=true')
-      .then((data) => {
-        if (!ignore) setUnreadCount((data || []).length);
-      })
-      .catch(() => {
-        if (!ignore) setUnreadCount(0);
-      });
+    const fetchUnreadCount = () => {
+      api.get('/notifications/me?unread_only=true')
+        .then((data) => {
+          if (!ignore) setUnreadCount((data || []).length);
+        })
+        .catch(() => {
+          if (!ignore) setUnreadCount(0);
+        });
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, UNREAD_POLL_MS);
 
     api.get('/users/me')
       .then((data) => {
@@ -69,7 +78,7 @@ export default function useHome() {
         if (!ignore) setBannerLoading(false);
       });
 
-    return () => { ignore = true; };
+    return () => { ignore = true; clearInterval(interval); };
   }, []);
 
   const { selectedPolicy, policyLoading, openPolicy, closePolicy } = usePolicyDetail();

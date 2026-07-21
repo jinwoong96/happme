@@ -24,5 +24,15 @@ export default function useAlerts() {
     setAlerts((prev) => prev.map((a) => ({ ...a, is_read: true })));
   };
 
-  return { alerts, loading, markRead, markAllRead };
+  const removeAlert = async (id) => {
+    const prev = alerts;
+    setAlerts((cur) => cur.filter((a) => a.notification_id !== id));
+    try {
+      await api.delete(`/notifications/${id}`);
+    } catch {
+      setAlerts(prev);
+    }
+  };
+
+  return { alerts, loading, markRead, markAllRead, removeAlert };
 }
