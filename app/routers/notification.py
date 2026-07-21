@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
@@ -5,6 +7,7 @@ from app.db.scheme.notification import NotificationCreate, NotificationRead, Not
 from app.db.scheme.notice import NoticeRead
 from app.db.models.user import User
 from app.services.notification import NotificationService as notif_svc
+from app.services.deadline_alert import run_deadline_alerts
 from app.core.jwt_handle import get_current_user
 from app.core.admin import get_current_admin
 
@@ -21,6 +24,17 @@ async def create_notification(data: NotificationCreate, db: AsyncSession = Depen
 @router.post("/broadcast", response_model=NoticeRead, status_code=201)
 async def broadcast_notification(data: NotificationBroadcastCreate, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     return await notif_svc.broadcast_svc(db, current_admin.user_id, data)
+
+
+# C 마감 D-1 알림 배치 수동 실행 (관리자용 - 테스트, 스케줄러 장애 시 수동 복구용)
+@router.post("/deadline-check")
+async def trigger_deadline_check(
+    target_date: date | None = Query(None, description="생략하면 내일(KST) 마감 정책 기준"),
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    created = await run_deadline_alerts(db, target_date=target_date)
+    return {"message": f"알림 {created}건 생성", "created": created}
 
 
 # R 내 알림 목록

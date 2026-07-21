@@ -1,5 +1,7 @@
+from datetime import date
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.db.models.notification import Notification
 from app.db.scheme.notification import NotificationCreate
 
@@ -26,6 +28,20 @@ class NotificationCrud:
         stmt = stmt.order_by(Notification.created_at.desc())
         result = await db.execute(stmt)
         return list(result.scalars().all())
+
+    @staticmethod
+    async def exists_today(db: AsyncSession, user_id: int, policy_id: int, notify_type: str) -> bool:
+        """스케줄러가 같은 날 두 번 돌거나 서버가 여러 대여도 같은 알림이 중복 생성되지 않도록,
+        오늘 이미 같은 유저+정책+타입 알림이 있는지 확인."""
+        result = await db.execute(
+            select(Notification.notification_id).where(
+                Notification.user_id == user_id,
+                Notification.policy_id == policy_id,
+                Notification.notify_type == notify_type,
+                func.date(Notification.created_at) == date.today(),
+            )
+        )
+        return result.scalar_one_or_none() is not None
 
     @staticmethod
     async def mark_read(db: AsyncSession, notification: Notification) -> Notification:

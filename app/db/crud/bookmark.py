@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -62,6 +64,18 @@ class BookmarkCrud:
             select(Bookmark).where(Bookmark.user_id == user_id, Bookmark.local_program_id == local_program_id)
         )
         return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_alarm_targets_by_deadline(db: AsyncSession, target_date: date) -> list[Bookmark]:
+        """알림(alarm_yn=True) 켜둔 즐겨찾기 중, 정책 마감일(aplyEndDt)이 target_date인 것만 policy와 함께 조회.
+        마감 하루 전 알림 배치에서 사용."""
+        result = await db.execute(
+            select(Bookmark)
+            .join(Policy, Bookmark.policy_id == Policy.policy_id)
+            .options(selectinload(Bookmark.policy))
+            .where(Bookmark.alarm_yn == True, Policy.aplyEndDt == target_date)
+        )
+        return list(result.scalars().all())
 
     @staticmethod
     async def get_by_user_with_targets(db: AsyncSession, user_id: int) -> list[Bookmark]:
