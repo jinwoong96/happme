@@ -1,10 +1,11 @@
-import time
-
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
 from app.services.image_analyze.search import SearchService
 from app.services.image_analyze.llm import LlmService
 from app.core.settings import settings
+from app.core.step_logger import log_step, log_event
+
+PIPELINE = "image_analyze"
 
 TARGET_REGION_CLASSES = ("title", "text_area")
 
@@ -57,6 +58,7 @@ class ImageAnalyzeService:
 
     @staticmethod
     def _empty_result(detected_objects: int, message: str, extracted_text: str = "") -> dict:
+        log_event(PIPELINE, "result", outcome="empty", reason=message, detected_objects=detected_objects)
         return {
             "extracted_text": extracted_text,
             "detected_objects": detected_objects,
@@ -95,14 +97,12 @@ class ImageAnalyzeService:
               "message": str | None,
             }
         """
-        t0 = time.perf_counter()
-        detection_result = self.detection_service.detect_svc(image_path)
-        t1 = time.perf_counter()
+        with log_step(PIPELINE, "detection"):
+            detection_result = self.detection_service.detect_svc(image_path)
         objects = detection_result["objects"]
 
         # 1) 공고물류 자체를 하나도 못 찾음 -> 공고문 이미지가 아닐 가능성이 높음
         if not objects:
-            print(f"[timing] detection={t1 - t0:.2f}s (공고물 없음, 종료)")
             return self._empty_result(0, MSG_NO_NOTICE_DETECTED)
 
         crop_images = [
@@ -114,21 +114,17 @@ class ImageAnalyzeService:
 
         # 2) 공고물은 찾았지만 제목/본문 텍스트 영역이 없음
         if not crop_images:
-            print(f"[timing] detection={t1 - t0:.2f}s (텍스트 영역 없음, 종료)")
             return self._empty_result(len(objects), MSG_NO_TEXT_REGION)
 
-        t2 = time.perf_counter()
-        extracted_text = self.ocr_service.extract_combined_text_svc(crop_images)
-        t3 = time.perf_counter()
+        with log_step(PIPELINE, "ocr", crop_count=len(crop_images)):
+            extracted_text = self.ocr_service.extract_combined_text_svc(crop_images)
 
         # 3) 텍스트 영역은 있었지만 OCR로 의미 있는 글자를 거의 읽어내지 못함
         if len(extracted_text.strip()) < settings.ocr_min_text_length:
-            print(f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s (텍스트 부족, 종료)")
             return self._empty_result(len(objects), MSG_OCR_TOO_SHORT, extracted_text)
 
-        t4 = time.perf_counter()
-        matches = self.search_service.search_policy_svc(extracted_text)
-        t5 = time.perf_counter()
+        with log_step(PIPELINE, "search", text_length=len(extracted_text)):
+            matches = self.search_service.search_policy_svc(extracted_text)
 
         # 4) 정책 후보는 나왔지만 (a) 유사도가 임계값 미만이거나
         #    (b) 정책 공고문에 흔한 키워드가 텍스트에 전혀 없으면 -> 무관한 이미지로 판단
@@ -136,20 +132,16 @@ class ImageAnalyzeService:
         if matches and not _has_policy_keyword(extracted_text):
             matches = []
         if not matches:
-            print(
-                f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s "
-                f"search={t5 - t4:.2f}s (매칭 없음, 종료)"
-            )
             return self._empty_result(len(objects), MSG_NO_MATCH, extracted_text)
 
-        t6 = time.perf_counter()
-        summary_text = self.llm_service.summarize_svc(extracted_text, matches)
-        one_liners = self.llm_service.summarize_one_liners_svc(matches)
-        t7 = time.perf_counter()
+        with log_step(PIPELINE, "llm", match_count=len(matches)):
+            summary_text = self.llm_service.summarize_svc(extracted_text, matches)
+            one_liners = self.llm_service.summarize_one_liners_svc(matches)
 
-        print(
-            f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s "
-            f"search={t5 - t4:.2f}s llm={t7 - t6:.2f}s total={t7 - t0:.2f}s"
+        log_event(
+            PIPELINE, "result", outcome="matched",
+            detected_objects=len(objects), match_count=len(matches),
+            top_score=matches[0]["score"] if matches else None,
         )
 
         return {
