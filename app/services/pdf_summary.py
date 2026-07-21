@@ -1,16 +1,16 @@
-import os
 import httpx
 from sqlalchemy import select
 from app.db.models.policy import Policy
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from app.core.settings import settings
 from app.db.crud.pdf_summary import PdfSummaryCrud
 from app.db.crud.user import UserCrud
 from app.db.scheme.pdf_summary import PdfSummaryCreate, PdfMatchCreate
 from app.db.models.pdf_summary import PdfSummary, PdfSummaryMatch
 from app.db.crud.policy_summary_cache import PolicySummaryCacheCrud
 
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8090")
+AI_SERVICE_URL = settings.ai_service_url
 
 class PdfSummaryService:
 
@@ -75,7 +75,7 @@ class PdfSummaryService:
     async def _save_ai_result_svc(db: AsyncSession, user_id: int, ai_result: dict) -> dict:
         results = ai_result.get("results", [])
 
-        # ✅ 매칭 안 된 후보 정책들에도 즐겨찾기용 policy_id를 붙여줌
+        # 매칭 안 된 후보 정책들에도 즐겨찾기용 policy_id를 붙여줌
         for r in results:
             if not r.get("matched"):
                 for cand in r.get("candidates", []) or []:
@@ -97,13 +97,13 @@ class PdfSummaryService:
             if policy_id is None:
                 continue
 
-            r["policy_id"] = policy_id  # ✅ policy_id 추가 (즐겨찾기용)
+            r["policy_id"] = policy_id  # policy_id 추가 (즐겨찾기용)
 
             await PdfSummaryService.add_match_svc(
                 db, PdfMatchCreate(pdf_id=pdf.pdf_id, policy_id=policy_id, match_type=r.get("method"))
             )
 
-            # ✅ 캐시 저장
+            # 캐시 저장
             existing = await PolicySummaryCacheCrud.get_cache(db, r["policy_name"])
             if not existing:
                 await PolicySummaryCacheCrud.set_cache(db, r["policy_name"], r["summary"])
