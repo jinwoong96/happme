@@ -45,6 +45,7 @@ requests
 xmltodict
 
 python-multipart
+sentry-sdk[fastapi]
 
 APScheduler==3.11.0
 tzdata
