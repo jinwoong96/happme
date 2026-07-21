@@ -6,7 +6,7 @@ from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
 
 SBIZ_USER_CHECK = {
-    "중소기업": lambda u: u.get("company_type") == "중소기업",
+    "중소기업": lambda u: u.get("sme_employment") is True,
     "여성": lambda u: u.get("gender") == "여",
     "기초생활수급자": lambda u: u.get("basic_livelihood") is True,
     "한부모가정": lambda u: u.get("single_parent") is True,
@@ -264,8 +264,7 @@ class PolicyEligibilityEngine:
             "basic_livelihood": user.get("basic_livelihood"),
             "single_parent": user.get("single_parent"),
             "employment_status": user.get("employment_status"),
-            "occupation": user.get("occupation"),
-            "company_type": user.get("company_type"),
+            "sme_employment": user.get("sme_employment"),
         }
 
         for code in policy_sbiz_codes:
@@ -307,10 +306,6 @@ class PolicyEligibilityEngine:
                 return make_result(True, "취업 상태 제한 없음", user_status, policy_job)
 
             policy_values.append({"code": code, "name": allowed_value})
-
-            if code == "0013006":
-                if user.get("startup_interest") is True or user.get("occupation") == "창업자":
-                    return make_result(True, "창업 관련 조건 충족", user_status, policy_values)
 
             if job_check_status == allowed_value:
                 return make_result(True, "취업 상태 조건 충족", user_status, policy_values)
