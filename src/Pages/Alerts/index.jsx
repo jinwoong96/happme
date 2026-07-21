@@ -8,6 +8,7 @@ const TYPE_LABEL = {
   SYSTEM: { label: '시스템', bg: '#f5f6fa', color: '#6b7280' },
   NEW_POLICY: { label: '새 정책', bg: '#fdf2f8', color: '#ec4899' },
   BOOKMARK: { label: '즐겨찾기', bg: '#fffbeb', color: '#f59e0b' },
+  KEYWORD_MATCH: { label: '관심 공고', bg: '#eef2ff', color: '#6366f1' },
 };
 
 function formatDate(iso) {
