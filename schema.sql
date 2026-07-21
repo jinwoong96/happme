@@ -70,26 +70,14 @@ CREATE TABLE user_profile (
     region                 VARCHAR(50),
     district               VARCHAR(50),
     education              VARCHAR(50),
-    school_name            VARCHAR(100),
-    major                  VARCHAR(100),
     major_category         VARCHAR(50),   -- 전공계열, AI rule engine 라벨값(code_mapping.py MAJOR_MAP)
-    student_status         VARCHAR(50),
-    graduation_year        INT,
     employment_status      VARCHAR(50),   -- AI rule engine 라벨값(code_mapping.py JOB_MAP), code_master 아님
-    occupation             VARCHAR(50),
-    job_seeking            BOOLEAN      DEFAULT FALSE,
-    career_history         TEXT,
+    sme_employment          BOOLEAN      DEFAULT FALSE,  -- 중소기업 재직 여부
     marital_status         VARCHAR(20),   -- AI rule engine 라벨값(code_mapping.py MARRIAGE_MAP), code_master 아님
     disability             BOOLEAN      DEFAULT FALSE,
     basic_livelihood       BOOLEAN      DEFAULT FALSE,  -- 기초생활수급자 여부
     single_parent          BOOLEAN      DEFAULT FALSE,  -- 한부모가정 여부
-    startup_interest       BOOLEAN      DEFAULT FALSE,
-    business_owner         BOOLEAN      DEFAULT FALSE,
-    startup_status         VARCHAR(50),
-    company_type           VARCHAR(50),
     situation              TEXT,
-    housing_status         VARCHAR(50),
-    reason                 TEXT,
     updated_at             DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
