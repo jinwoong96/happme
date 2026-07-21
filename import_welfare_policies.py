@@ -18,8 +18,9 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
     sprtTrgtMinAge/MaxAge = 19/39 고정값 (복지로 API 자체를 lifeArray=004 청년으로만 조회했으므로)
-    지역(ctpvNm, 시도명) -> policy_region.zip_code는 zipcd 테이블(load_zipcd_mapping.py로 적재)로 접두 매칭
-    (예: ctpvNm="대전광역시" -> full_name이 "대전광역시"로 시작하는 시군구코드 전부 매핑)
+    지역(ctpvNm+sggNm) -> policy_region.zip_code는 zipcd 테이블(load_zipcd_mapping.py로 적재)로 매칭
+    (예: ctpvNm="경기도", sggNm="파주시" -> sido_name="경기도" & sigungu_name="파주시"인 시군구코드로 매핑.
+     sggNm이 비어있으면(광역 단위 정책) ctpvNm과 sido_name이 일치하는 시군구코드 전부를 매핑)
 
 사전 준비:
     pip install pymysql python-dotenv
@@ -272,22 +273,41 @@ def insert_batch(conn, rows: list):
 
 
 def load_zipcd_mapping(conn) -> list:
-    """[(시군구코드, 지역명), ...] - zipcd 테이블(load_zipcd_mapping.py로 zipcd_mapping.csv를
-    적재해둔 것)에서 조회한다. 예전엔 ai/data/zipcd_mapping.csv를 상대경로로 읽었는데, 그
-    경로가 디렉터리 구조가 바뀌면 깨지는 데다 서비스 간 파일 의존이라 DB로 옮겼다."""
+    """[(시군구코드, 시도명, 시군구명), ...] - zipcd 테이블(load_zipcd_mapping.py로
+    zipcd_mapping.csv를 적재해둔 것)에서 조회한다. 예전엔 ai/data/zipcd_mapping.csv를
+    상대경로로 읽었는데, 그 경로가 디렉터리 구조가 바뀌면 깨지는 데다 서비스 간 파일
+    의존이라 DB로 옮겼다."""
     with conn.cursor() as cur:
-        cur.execute("SELECT sigungu_code, full_name FROM zipcd")
+        cur.execute("SELECT sigungu_code, sido_name, sigungu_name FROM zipcd")
         rows = cur.fetchall()
     if not rows:
         print("[경고] zipcd 테이블이 비어있어 지역 매핑을 건너뜁니다 (load_zipcd_mapping.py 먼저 실행 필요).")
-    return [(code, name) for code, name in rows]
+    return [(code, sido, sigungu) for code, sido, sigungu in rows]
 
 
-def zip_codes_for_ctpv(ctpv_nm: str, mapping: list) -> list:
+def zip_codes_for_region(ctpv_nm: str, sgg_nm: str, mapping: list) -> list:
+    """ctpvNm(시도)+sggNm(시군구)로 zipcd 테이블을 매칭한다.
+    sggNm이 있으면 해당 시군구만, 없으면(광역 단위 정책) 그 시도 전체 시군구코드를 반환한다.
+    sggNm이 있는데 zipcd 테이블과 정확히 안 맞으면(예: "세종시" vs "세종특별자치시") 접두 매칭으로
+    재시도하고, 그래도 없으면 시도 전체로 넓혀서(과거 동작과 동일) 최소한 매핑이 비지 않게 한다."""
     ctpv_nm = (ctpv_nm or "").strip()
+    sgg_nm = (sgg_nm or "").strip()
     if not ctpv_nm:
         return []
-    return [code for code, name in mapping if name.startswith(ctpv_nm)]
+
+    province_rows = [(code, sigungu) for code, sido, sigungu in mapping if sido.startswith(ctpv_nm)]
+    if not sgg_nm:
+        return [code for code, _ in province_rows]
+
+    exact = [code for code, sigungu in province_rows if sigungu == sgg_nm]
+    if exact:
+        return exact
+
+    prefix = [code for code, sigungu in province_rows if sigungu.startswith(sgg_nm) or sgg_nm.startswith(sigungu)]
+    if prefix:
+        return prefix
+
+    return [code for code, _ in province_rows]
 
 
 def build_plcyno_to_id_map(conn) -> dict:
@@ -311,6 +331,20 @@ def insert_region_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
     return total
 
 
+def delete_region_pairs(conn, policy_ids: list) -> int:
+    """재실행 시 옛 매칭 로직(ctpvNm만으로 시도 전체 매핑)으로 잘못 넣은 policy_region 행이
+    남지 않도록, 이번에 다시 계산할 policy_id들의 기존 행을 지우고 새로 넣는다."""
+    if not policy_ids:
+        return 0
+    placeholders = ", ".join(["%s"] * len(policy_ids))
+    sql = f"DELETE FROM policy_region WHERE policy_id IN ({placeholders})"
+    with conn.cursor() as cur:
+        cur.execute(sql, policy_ids)
+        deleted = cur.rowcount
+    conn.commit()
+    return deleted
+
+
 def run_region_mapping(conn, records: list):
     mapping = load_zipcd_mapping(conn)
     if not mapping:
@@ -318,26 +352,32 @@ def run_region_mapping(conn, records: list):
     plcyno_map = build_plcyno_to_id_map(conn)
 
     pairs = []
+    policy_ids_in_scope = set()
     no_match = 0
     for record in records:
         serv_id = record["servId"]
         detail = record.get("detail") or {}
         summary = record.get("summary") or {}
         ctpv_nm = clean(detail.get("ctpvNm")) or clean(summary.get("ctpvNm"))
+        sgg_nm = clean(detail.get("sggNm")) or clean(summary.get("sggNm"))
 
         plcy_no = PLCYNO_PREFIX + serv_id
         policy_id = plcyno_map.get(plcy_no)
-        if policy_id is None or not ctpv_nm:
+        if policy_id is None:
+            continue
+        policy_ids_in_scope.add(policy_id)
+        if not ctpv_nm:
             continue
 
-        codes = zip_codes_for_ctpv(ctpv_nm, mapping)
+        codes = zip_codes_for_region(ctpv_nm, sgg_nm, mapping)
         if not codes:
             no_match += 1
             continue
         pairs.extend((policy_id, code) for code in codes)
 
+    deleted = delete_region_pairs(conn, list(policy_ids_in_scope))
     inserted = insert_region_pairs(conn, pairs)
-    print(f"policy_region: {inserted}건 적재 시도 (매칭 안 된 시도명 {no_match}건)")
+    print(f"policy_region: 기존 {deleted}건 삭제 후 {inserted}건 재적재 (매칭 안 된 시도명 {no_match}건)")
 
 
 def main():
