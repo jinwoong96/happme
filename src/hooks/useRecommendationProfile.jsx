@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
+import { clearCurrentPoliciesCache } from '../utils/currentPoliciesCache';
 
 const EMPTY_FORM = {
   birth_date: '',
@@ -29,7 +30,11 @@ const REQUIRED_FIELDS = ['birth_date', 'gender', 'region', 'education', 'employm
 export default function useRecommendationProfile() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from === 'mypage' ? 'mypage' : 'recommendation';
+  const from = location.state?.from === 'mypage'
+    ? 'mypage'
+    : location.state?.from === 'current'
+      ? 'current'
+      : 'recommendation';
   const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -89,7 +94,11 @@ export default function useRecommendationProfile() {
       // 프로필이 있으면 수정, 없으면 생성 (백엔드에서 통합 처리)
       await api.put('/profiles/me', payload);
 
-      navigate(from === 'mypage' ? '/mypage' : '/recommendation');
+  // 프로필이 바뀌었으니 "가능정책" 캐시는 다음 진입 시 새로 계산되게 지운다.
+      clearCurrentPoliciesCache();
+
+      const destination = from === 'mypage' ? '/mypage' : from === 'current' ? '/recommendation/current' : '/recommendation';
+      navigate(destination);
     } catch (err) {
       setError(err.message || '프로필 저장에 실패했습니다.');
     } finally {
@@ -98,7 +107,7 @@ export default function useRecommendationProfile() {
   };
 
   const handleSkip = () => {
-    navigate('/recommendation');
+    navigate(from === 'current' ? '/recommendation/current' : '/recommendation');
   };
 
   return { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile, requiredFields: REQUIRED_FIELDS };

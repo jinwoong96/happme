@@ -86,7 +86,7 @@ export default function RecommendationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">맞춤형 정책 추천</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">미래준비</p>
         <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <Home size={22} color="#333" />
         </button>
@@ -97,7 +97,7 @@ export default function RecommendationPage() {
           <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <Bot size={18} color="#fff" />
           </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed">현재 상황과 미래 계획을 입력하면 AI가 최적의 지원금을 추천해요.</p>
+          <p className="text-[13px] text-gray-600 leading-relaxed">현재 상황과 미래 계획을 입력하면 AI가 최적의 정책을 추천해요.</p>
         </div>
 
         <p style={{ marginBottom: 8, fontSize: 14, fontWeight: 600, color: '#374151' }}>Q1. 지역이동을 하실 건가요?</p>

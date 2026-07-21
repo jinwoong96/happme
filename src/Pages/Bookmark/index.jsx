@@ -222,6 +222,10 @@ export default function BookmarkPage() {
     closePolicy();
   };
 
+  // 스크롤-투-탑 버튼 위치(비교 모드일 땐 하단 액션 바 위로 띄움) + 비교 토글 버튼은 그 바로 위에 쌓음
+  const scrollTopBottom = comparisonMode ? 92 : 20;
+  const compareToggleBottom = showScrollTop ? scrollTopBottom + 44 + 8 : scrollTopBottom;
+
   return (
     <div style={{ backgroundColor: '#f5f6fa', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div className="flex items-center gap-2 bg-white" style={{ padding: '20px 20px 16px' }}>
@@ -229,22 +233,9 @@ export default function BookmarkPage() {
           <ChevronLeft size={24} color="#333" />
         </button>
         <p className="flex-1 text-[20px] font-bold text-gray-900">즐겨찾기</p>
-        <button
-          onClick={handleToggleComparisonMode}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '6px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            backgroundColor: comparisonMode ? '#3b82f6' : '#fff',
-            color: comparisonMode ? '#fff' : '#6b7280',
-            fontSize: 12, fontWeight: 700,
-            boxShadow: comparisonMode ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
-          }}
-        >
-          {comparisonMode ? '취소' : '비교하기'}
-        </button>
       </div>
 
-      <div ref={pageScrollRef} onScroll={handlePageScroll} style={{ flex: 1, overflowY: 'auto' }}>
+      <div ref={pageScrollRef} onScroll={handlePageScroll} style={{ flex: 1, overflowY: 'auto', paddingBottom: comparisonMode ? 76 : 0 }}>
 
       <div style={{ padding: '18px 20px 24px' }}>
         {/* 캘린더 카드 */}
@@ -425,21 +416,6 @@ export default function BookmarkPage() {
             </div>
           )}
 
-          {comparisonMode && (
-            <button
-              onClick={handleStartCompare}
-              disabled={selectedForCompare.length < 2 || compareLoading}
-              style={{
-                marginTop: 8, width: '100%', padding: '10px', borderRadius: 12, border: 'none',
-                backgroundColor: selectedForCompare.length >= 2 ? '#3b82f6' : '#e5e7eb',
-                color: selectedForCompare.length >= 2 ? '#fff' : '#9ca3af',
-                fontSize: 13, fontWeight: 700,
-                cursor: selectedForCompare.length >= 2 ? 'pointer' : 'default',
-              }}
-            >
-              {compareLoading ? '불러오는 중...' : `선택한 ${selectedForCompare.length}개 비교하기`}
-            </button>
-          )}
         </div>
 
         <div className="flex flex-col gap-2.5">
@@ -504,7 +480,7 @@ export default function BookmarkPage() {
         <button
           onClick={scrollToTop}
           style={{
-            position: 'absolute', right: 20, bottom: 20, width: 44, height: 44,
+            position: 'absolute', right: 20, bottom: scrollTopBottom, width: 44, height: 44,
             borderRadius: '50%', border: 'none', backgroundColor: '#3b82f6', color: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
@@ -512,6 +488,39 @@ export default function BookmarkPage() {
         >
           <ChevronUp size={22} />
         </button>
+      )}
+
+      <button
+        onClick={handleToggleComparisonMode}
+        style={{
+          position: 'absolute', right: 20, bottom: compareToggleBottom, width: 44, height: 44,
+          borderRadius: '50%', border: 'none',
+          backgroundColor: comparisonMode ? '#3b82f6' : '#7bb3f8',
+          color: comparisonMode ? '#fff' : '#fff',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', fontSize: 11, fontWeight: 700, lineHeight: 1.3, gap: 0,
+          boxShadow: '0 4px 12px rgba(59,130,246,0.25)',
+        }}
+      >
+        {comparisonMode ? '취소' : (<><span>정책</span><span>비교</span></>)}
+      </button>
+
+      {comparisonMode && (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '12px 20px', backgroundColor: '#fff', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
+          <button
+            onClick={handleStartCompare}
+            disabled={selectedForCompare.length < 2 || compareLoading}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 12, border: 'none',
+              backgroundColor: selectedForCompare.length >= 2 ? '#3b82f6' : '#e5e7eb',
+              color: selectedForCompare.length >= 2 ? '#fff' : '#9ca3af',
+              fontSize: 14, fontWeight: 700,
+              cursor: selectedForCompare.length >= 2 ? 'pointer' : 'default',
+            }}
+          >
+            {compareLoading ? '불러오는 중...' : `선택한 ${selectedForCompare.length}개 비교하기`}
+          </button>
+        </div>
       )}
 
       <Modal
@@ -562,7 +571,7 @@ export default function BookmarkPage() {
               ))}
             </div>
 
-            {COMPARE_ROWS.map((row, rowIndex) => (
+            {COMPARE_ROWS.filter((row) => compareItems.some((p) => row.getValue(p))).map((row, rowIndex, visibleRows) => (
               <div key={row.label}>
                 <p className="text-[12px] font-semibold text-blue-500" style={{ margin: '0 0 6px' }}>{row.label}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -570,12 +579,12 @@ export default function BookmarkPage() {
                     <div key={p.policy_id} className="flex items-start gap-1.5">
                       <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: COMPARE_COLORS[i], flexShrink: 0, marginTop: 5 }} />
                       <p className="text-[13px] text-gray-800" style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                        {row.getValue(p) || '정보 없음'}
+                        {row.getValue(p) || '-'}
                       </p>
                     </div>
                   ))}
                 </div>
-                {rowIndex < COMPARE_ROWS.length - 1 && (
+                {rowIndex < visibleRows.length - 1 && (
                   <div style={{ borderTop: '1px solid #f3f4f6', marginTop: 14 }} />
                 )}
               </div>

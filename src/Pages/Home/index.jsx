@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, RefreshCw, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
+import { Bell, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
 import useHome from '../../hooks/useHome';
 import useBookmarks from '../../hooks/useBookmarks';
 import PolicyCard from '../../Components/PolicyCard';
@@ -41,8 +41,8 @@ function getBannerDetail(item) {
 }
 
 const MENU = [
-  { label: '전체보기', path: '/category', Icon: List },
-  { label: '맞춤추천', path: '/recommendation/profile', Icon: Sparkles },
+  { label: '가능정책', path: '/recommendation/current', Icon: List },
+  { label: '미래준비', path: '/recommendation', Icon: Sparkles },
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
   { label: '지원금알림', path: '/notification', Icon: BellRing },
@@ -113,9 +113,6 @@ export default function HomePage() {
                 }}
               />
             )}
-          </button>
-          <button className="w-[38px] h-[38px] rounded-full border border-gray-100 bg-white flex items-center justify-center cursor-pointer">
-            <RefreshCw size={16} color="#555" />
           </button>
         </div>
       </div>
