@@ -143,7 +143,7 @@ export default function RecommendationProfilePage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">{from === 'mypage' ? '프로필 수정' : '맞춤형 지원금 추천'}</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">{from === 'mypage' ? '프로필 수정' : '맞춤형 정책 추천'}</p>
         {(from === 'recommendation' || from === 'current') && hasProfile && (
           <button
             type="button"
@@ -213,12 +213,6 @@ export default function RecommendationProfilePage() {
           </Field>
           <Field label="장애 여부">
             <ToggleGroup options={YES_NO_OPTIONS} value={form.disability} onChange={set('disability')} />
-          </Field>
-
-          <p style={sectionTitleStyle}>기타</p>
-
-          <Field label="현재 상황">
-            <Textarea value={form.situation} onChange={set('situation')} placeholder="현재 상황을 자유롭게 입력해주세요" />
           </Field>
 
           {error && <p style={{ margin: 0, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>{error}</p>}
