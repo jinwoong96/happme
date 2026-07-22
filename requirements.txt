@@ -6,6 +6,8 @@ pydantic-settings
 PyMySQL
 cryptography
 boto3
+sentry-sdk[fastapi]
+httpx
 
 torch==2.2.2
 torchvision==0.17.2

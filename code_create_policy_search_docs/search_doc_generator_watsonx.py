@@ -1,14 +1,14 @@
 ### watsonx.ai로 정책 문서 생성 (하위 코드)
 
 import json
-import os
 import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from dotenv import load_dotenv
 from ibm_watsonx_ai.foundation_models import ModelInference
+
+from app.core.settings import settings
 
 
 DEFAULT_LLM_INPUT_FIELDS = [
@@ -33,12 +33,10 @@ class WatsonxSearchDocGenerator:
         max_tokens: int = 1200,
         temperature: float = 0.0,
     ):
-        load_dotenv()
-
-        self.api_key = os.getenv("WATSONX_API_KEY")
-        self.url = os.getenv("WATSONX_URL")
-        self.project_id = os.getenv("WATSONX_PROJECT_ID")
-        self.model_id = model_id or os.getenv("WATSONX_MODEL_ID")
+        self.api_key = settings.watsonx_api_key
+        self.url = settings.watsonx_url
+        self.project_id = settings.watsonx_project_id
+        self.model_id = model_id or settings.watsonx_model_id
 
         if not self.api_key or not self.url or not self.project_id or not self.model_id:
             raise ValueError(
