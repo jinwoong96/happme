@@ -52,7 +52,7 @@ async def recommend(data: RecommendationRequest, request: Request):
 @router.post("/chat")
 async def recommend_chat(data: ChatRecommendationRequest, request: Request):
     recommendation_service = get_recommendation_service(request)
-    return recommendation_service.recommend_chat_svc(data.user_profile.model_dump(mode="json"), data.chat)
+    return await recommendation_service.recommend_chat_svc(data.user_profile.model_dump(mode="json"), data.chat)
 
 
 # C 이미 매칭된 정책들(plcyNo 목록)에 대해서만 지원 가능 여부를 판정 (OCR/사진분석용, rule engine만 사용)

@@ -60,6 +60,27 @@ class PolicyEligibilityEngine:
             "details": checks,
         }
 
+    def evaluate_apply_period(self, user: dict, policy: dict) -> dict:
+        """apply_period 체크만 따로 실행한다. 이 체크만 "오늘 날짜"에 의존해 정책 내용이
+        그대로여도 매일 결과가 바뀔 수 있어, RuleEngineCache가 캐싱하지 않고 매 요청 새로
+        계산하는 부분이다(evaluate_content와 짝을 이룸)."""
+        return self._match_apply_period(user, policy)
+
+    def evaluate_content(self, user: dict, policy: dict) -> dict:
+        """apply_period를 제외한 나머지 7개 체크(전부 프로필/정책 정적 필드만 사용, "오늘
+        날짜"와 무관)를 전부 실행해 반환한다. full_detail 여부와 무관하게 항상 7개를 전부
+        계산한다 - RuleEngineCache가 persona_signature+plcyNo 기준으로 이 결과를 캐싱해
+        재사용하므로, 중간에 멈추지 않고 완전한 결과를 채워둬야 다음 요청에서 재사용할 수 있다."""
+        return {
+            "age": self._match_age(user, policy),
+            "region": self.region_matcher.match(user, policy),
+            "marriage": self._match_marriage(user, policy),
+            "school_status": self._match_school_status(user, policy),
+            "major": self._match_major(user, policy),
+            "sbiz": self._match_sbiz(user, policy),
+            "job": self._match_job(user, policy),
+        }
+
     @staticmethod
     def _parse_yyyymmdd(value):
         if value is None:
