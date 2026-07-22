@@ -22,6 +22,7 @@ class OcrService:
             use_doc_unwarping=False,
             use_textline_orientation=False,
             device=settings.ocr_device,
+            enable_mkldnn=False,
         )
         # numpy 배열을 직접 predict()에 넣을 수 있는지 최초 1회만 확인해서 캐싱
         # (지원 안 되면 매 요청마다 임시파일 방식으로 폴백)
