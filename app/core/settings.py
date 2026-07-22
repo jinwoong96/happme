@@ -67,6 +67,11 @@ class Settings(BaseSettings):
         "./data/embeddings/search_docs_full_text_embeddings.npy", alias="SIMILARITY_EMBEDDINGS_PATH"
     )
     similarity_docs_path: str = Field("./data/policy_search_docs.json", alias="SIMILARITY_DOCS_PATH")
+    # recommend_chat(채팅/상황 기반 추천)의 유사도 검색 최소 커트라인. 이보다 낮으면 결과에서
+    # 제외한다. debug_similarity_score.py로 실측한 결과, "월세가 비싸서 이사...행복주택"
+    # 질의에서 실제로 관련 있는 매치는 0.54 이상이었고, 무관한 "노숙인" 계열 정책들은
+    # top_k=None(개수 제한 없음)이라 전부 결과에 섞여 나왔는데 전부 0.49 이하였다.
+    chat_similarity_min_score: float = Field(0.5, alias="CHAT_SIMILARITY_MIN_SCORE")
 
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
@@ -96,6 +101,16 @@ class Settings(BaseSettings):
     policy_summary_embed_model: str = Field("intfloat/multilingual-e5-large", alias="POLICY_SUMMARY_EMBED_MODEL")
     policy_summary_embed_cache: str = Field("./policy_summary_embeddings_cache.npz", alias="POLICY_SUMMARY_EMBED_CACHE")
     policy_summary_llm_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="POLICY_SUMMARY_LLM_MODEL_ID")
+
+    # 모니터링
+    app_env: str = Field("development", alias="APP_ENV")
+    sentry_dsn: str = Field("", alias="SENTRY_DSN")
+    sentry_environment: str = Field("", alias="SENTRY_ENVIRONMENT")
+    slack_webhook_url: str = Field("", alias="SLACK_WEBHOOK_URL")
+    log_dir: str = Field("./logs", alias="LOG_DIR")
+    # 날짜별로 로테이션된 로그(ai.log.YYYY-MM-DD, steps.jsonl.YYYY-MM-DD)를 업로드할 위치.
+    # 버킷은 모델/데이터와 같은 DATA_S3_BUCKET을 재사용하고, prefix만 분리한다.
+    log_s3_prefix: str = Field("ai-storage/logs", alias="LOG_S3_PREFIX")
 
     class Config:
         env_file = ".env"

@@ -10,6 +10,9 @@ import fitz
 
 from app.core.settings import settings
 from app.core.s3_utils import get_s3_client, upload_file
+from app.core.step_logger import log_step, log_event
+
+PIPELINE = "policy_summary"
 
 # _load_policies_from_db가 조회하는 컬럼. summarize_policy_svc/web_summary.py/라우터가
 # policy_detail dict에서 참조하는 필드를 전부 포함한다.
@@ -395,8 +398,10 @@ class PdfSummaryService:
 
     def match_pdf_svc(self, pdf_bytes: bytes, filename: str,
                        raw_threshold_high=0.88, raw_threshold_low=0.875, top_k=10) -> dict:
-        combined_text, full_text, pdf_institution = self.extract_pdf_features_svc(pdf_bytes)
+        with log_step(PIPELINE, "extract", source="pdf"):
+            combined_text, full_text, pdf_institution = self.extract_pdf_features_svc(pdf_bytes)
         if not combined_text or len(combined_text.strip()) < 10:
+            log_event(PIPELINE, "result", source="pdf", method="텍스트추출실패")
             return {"matched_policy": None, "method": "텍스트추출실패", "candidates": []}
 
         pdf_name_clean = filename.replace(" ", "").replace(".pdf", "").replace(".hwp", "").replace(".hwpx", "")
@@ -405,10 +410,12 @@ class PdfSummaryService:
         for name in self.policy_names:
             nc = name.replace(" ", "")
             if nc == pdf_name_clean or (nc in pdf_name_clean and len(nc) > 10) or (nc in pdf_text_clean and len(nc) > 10):
+                log_event(PIPELINE, "result", source="pdf", method="직접매칭")
                 return {"matched_policy": name, "method": "직접매칭"}
 
-        embedding = self.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
-        similarities = self._cosine_sim(embedding)
+        with log_step(PIPELINE, "embed", source="pdf", candidate_count=len(self.policy_names)):
+            embedding = self.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
+            similarities = self._cosine_sim(embedding)
         raw_best_score = float(similarities.max())
 
         s_min, s_max = similarities.min(), similarities.max()
@@ -422,10 +429,9 @@ class PdfSummaryService:
         top_indices = normalized.argsort()[::-1][:top_k]
         top_names = [self.policy_names[i] for i in top_indices]
         best_match = top_names[0]
-        print("raw_best_score =", raw_best_score)
-        print("top_names =", top_names)
 
         if raw_best_score < raw_threshold_low:
+            log_event(PIPELINE, "result", source="pdf", method="매칭불가", raw_score=raw_best_score)
             return {
                 "matched_policy": "해당 없음",
                 "method": "매칭불가",
@@ -433,6 +439,7 @@ class PdfSummaryService:
                 "raw_score": raw_best_score
             }
         if raw_best_score >= raw_threshold_high:
+            log_event(PIPELINE, "result", source="pdf", method="임베딩매칭", raw_score=raw_best_score)
             return {
                 "matched_policy": best_match,
                 "method": "임베딩매칭",
@@ -440,9 +447,14 @@ class PdfSummaryService:
                 "raw_score": raw_best_score
             }
 
-        llm_result = self.verify_with_llm_svc(full_text, top_names, filename)
+        with log_step(PIPELINE, "llm_verify", source="pdf", candidate_count=len(top_names)):
+            llm_result = self.verify_with_llm_svc(full_text, top_names, filename)
         is_none = llm_result == "없음" or llm_result not in self.policy_names
         matched = "해당 없음" if is_none else llm_result
+        log_event(
+            PIPELINE, "result", source="pdf",
+            method="매칭불가" if is_none else "하이브리드매칭", raw_score=raw_best_score,
+        )
         return {
             "matched_policy": matched,
             "method": "매칭불가" if is_none else "하이브리드매칭",
