@@ -356,7 +356,7 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
 }
 
 export default function OCRPage() {
-  const { files, loading, results, error, previewDataUrl, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
+  const { files, loading, results, error, previewDataUrl, fileInputRef, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const navigate = useNavigate();
   const can = !loading && files.length > 0;
@@ -398,7 +398,7 @@ export default function OCRPage() {
         </div>
 
         <label style={{ display: 'block', position: 'relative', cursor: loading ? 'default' : 'pointer' }}>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={loading} />
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={loading} />
           <div style={{ border: '2px dashed #d1d5db', borderRadius: 24, padding: previewUrl ? '20px' : '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, backgroundColor: '#fff' }}>
             {previewUrl ? (
               <img

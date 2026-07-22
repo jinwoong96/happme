@@ -9,7 +9,7 @@ export default function SummaryPage() {
   const [expandedIndex, setExpandedIndex] = useState(null);
   const {
       files, text, url, loading, results, error,
-      question, answer, asking,
+      question, answer, asking, fileInputRef,
       handleFileChange, handleRemoveFile, handleTextChange, handleUrlChange,
       handleSummarize, canSummarize,
       setQuestion, setAnswer, handleAsk,
@@ -50,7 +50,7 @@ export default function SummaryPage() {
 
         <p className="text-[13px] font-semibold text-gray-700 mb-2">파일 업로드</p>
         <label style={{ display: 'block', cursor: 'pointer' }}>
-          <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+          <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
           <div style={{ position: 'relative', border: '2px dashed #d1d5db', borderRadius: 24, padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, backgroundColor: '#fff' }}>
             {files.length > 0 && (
               <button
