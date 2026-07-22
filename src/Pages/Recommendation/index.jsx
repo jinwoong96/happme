@@ -19,14 +19,39 @@ const TABS = [
 // policies는 이미 유사도 내림차순으로 정렬되어 들어온다. Map은 삽입 순서를 보존하므로
 // 카테고리를 처음 등장한 순서 그대로 묶으면 "유사도 가장 높은 정책이 속한 카테고리부터"
 // 자연스럽게 정렬되고, 각 카테고리 내부도 원래의 유사도 순서가 그대로 유지된다.
-function groupByCategory(policies) {
+// highlightPlcyNo가 있으면(LLM이 추천한 정책) 그 정책이 속한 카테고리를 맨 앞으로, 카테고리
+// 안에서도 그 정책 카드를 맨 앞으로 옮겨서 화면 최상단에서 바로 보이게 한다.
+function groupByCategory(policies, highlightPlcyNo) {
   const groups = new Map();
   for (const policy of policies) {
     const category = policy.category || '기타';
     if (!groups.has(category)) groups.set(category, []);
     groups.get(category).push(policy);
   }
-  return Array.from(groups, ([category, policies]) => ({ category, policies }));
+  const grouped = Array.from(groups, ([category, policies]) => ({ category, policies }));
+
+  if (!highlightPlcyNo) return grouped;
+
+  const highlightIndex = grouped.findIndex(
+    (group) => group.policies.some((p) => p.plcyNo === highlightPlcyNo)
+  );
+  if (highlightIndex <= 0) return grouped;
+
+  const [highlightGroup] = grouped.splice(highlightIndex, 1);
+  highlightGroup.policies = [
+    ...highlightGroup.policies.filter((p) => p.plcyNo === highlightPlcyNo),
+    ...highlightGroup.policies.filter((p) => p.plcyNo !== highlightPlcyNo),
+  ];
+  return [highlightGroup, ...grouped];
+}
+
+// results(wide/province/local)에서 plcyNo가 속한 탭 키를 찾는다.
+function findTabForPlcyNo(results, plcyNo) {
+  if (!plcyNo) return null;
+  for (const tab of TABS) {
+    if ((results[tab.key] || []).some((p) => p.plcyNo === plcyNo)) return tab.key;
+  }
+  return null;
 }
 
 // 상시는 카드 데이터의 apply_period_type을 봅니다.
@@ -53,19 +78,17 @@ export default function RecommendationPage() {
   // 결과가 없는 탭은 아예 숨긴다.
   const visibleTabs = results ? TABS.filter((tab) => (results[tab.key] || []).length > 0) : [];
 
-  // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화하고, 활성 탭이 결과가
-  // 없어 숨겨졌다면(예: 이전엔 있던 탭이 이번엔 0건) 보이는 탭 중 첫 번째로 옮겨준다.
+  // 분석 결과가 새로 나올 때마다 모든 카테고리를 기본 펼침 상태로 초기화한다. LLM이 추천한
+  // 정책이 있으면 그 정책이 속한 탭을 먼저 보여주고, 없으면(또는 그 탭이 결과에 없으면) 보이는
+  // 탭 중 첫 번째로 옮겨준다.
   useEffect(() => {
     if (!results) return;
-    const allCategories = new Set();
-    for (const tab of TABS) {
-      for (const policy of results[tab.key] || []) {
-        allCategories.add(policy.category || '기타');
-      }
-    }
-    setCollapsedCategories(allCategories);
+    setCollapsedCategories(new Set());
 
-    if (visibleTabs.length > 0 && !visibleTabs.some((tab) => tab.key === activeTab)) {
+    const llmTab = findTabForPlcyNo(results, results.llmAnswer?.plcyNo);
+    if (llmTab && visibleTabs.some((tab) => tab.key === llmTab)) {
+      setActiveTab(llmTab);
+    } else if (visibleTabs.length > 0 && !visibleTabs.some((tab) => tab.key === activeTab)) {
       setActiveTab(visibleTabs[0].key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -217,7 +240,7 @@ export default function RecommendationPage() {
 
                 {(results[activeTab] || []).length > 0 && (
                   <div className="flex flex-col gap-4">
-                    {groupByCategory(results[activeTab]).map(({ category, policies }) => {
+                    {groupByCategory(results[activeTab], results.llmAnswer?.plcyNo).map(({ category, policies }) => {
                       const collapsed = collapsedCategories.has(category);
                       return (
                         <div key={category}>
