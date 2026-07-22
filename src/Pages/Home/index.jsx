@@ -41,8 +41,8 @@ function getBannerDetail(item) {
 }
 
 const MENU = [
-  { label: '가능정책', path: '/recommendation/current', Icon: List },
-  { label: '미래준비', path: '/recommendation', Icon: Sparkles },
+  { label: '맞춤정책', path: '/recommendation/current', Icon: List },
+  { label: '상황매칭', path: '/recommendation', Icon: Sparkles },
   { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
   { label: '지원금알림', path: '/notification', Icon: BellRing },
