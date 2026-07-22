@@ -1,6 +1,3 @@
-import time
-from concurrent.futures import ThreadPoolExecutor
-
 from app.services.image_analyze.detection import DetectionService
 from app.services.image_analyze.ocr import OcrService
 from app.services.image_analyze.search import SearchService
@@ -137,17 +134,6 @@ class ImageAnalyzeService:
         if not matches:
             return self._empty_result(len(objects), MSG_NO_MATCH, extracted_text)
 
-        t6 = time.perf_counter()
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            summary_future = executor.submit(self.llm_service.summarize_svc, extracted_text, matches)
-            one_liner_future = executor.submit(self.llm_service.summarize_one_liners_svc, matches)
-            summary_text = summary_future.result()
-            one_liners = one_liner_future.result()
-        t7 = time.perf_counter()
-
-        print(
-            f"[timing] detection={t1 - t0:.2f}s ocr={t3 - t2:.2f}s "
-            f"search={t5 - t4:.2f}s llm={t7 - t6:.2f}s total={t7 - t0:.2f}s"
         with log_step(PIPELINE, "llm", match_count=len(matches)):
             summary_text = self.llm_service.summarize_svc(extracted_text, matches)
             one_liners = self.llm_service.summarize_one_liners_svc(matches)
