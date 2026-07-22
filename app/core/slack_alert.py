@@ -4,6 +4,7 @@ import httpx
 from fastapi import Request
 
 from app.core.settings import settings
+from app.core.request_context import get_request_id
 
 SERVICE_NAME = "bene_ai"
 
@@ -19,7 +20,7 @@ async def send_slack_alert(request: Request, exc: Exception) -> None:
     environment = settings.sentry_environment or settings.app_env
     text = (
         f":rotating_light: *[{SERVICE_NAME}/{environment}] {type(exc).__name__}: {exc}*\n"
-        f"`{request.method} {request.url.path}`\n"
+        f"`{request.method} {request.url.path}` · request_id=`{get_request_id()}`\n"
         f"```{tb}```"
     )
 

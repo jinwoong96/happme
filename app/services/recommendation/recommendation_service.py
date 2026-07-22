@@ -3,6 +3,9 @@ from typing import Any
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.policy_loader import PolicyLoaderService
 from app.services.recommendation.similarity_search import PolicySimilarityService
+from app.core.step_logger import log_step, log_event
+
+PIPELINE = "recommendation"
 
 # 신청기간 실패 사유에 따라 내부적으로는 "신청 마감"/"신청기간 종료"를 구분해 판정하지만,
 # 화면에는 굳이 나눌 필요가 없는 비슷한 내용이라 recommend_chat_svc의 최종 응답에서는 하나로 합친다.
@@ -111,7 +114,8 @@ class RecommendationService:
         self.similarity_service = similarity_service
 
     def recommend_svc(self, user_profile: dict) -> dict[str, Any]:
-        policies = self.policy_loader.get_policies()
+        with log_step(PIPELINE, "policy_load"):
+            policies = self.policy_loader.get_policies()
         return self._recommend_policies(user_profile, policies)
 
     def recommend_chat_svc(self, user_profile: dict, chat: str) -> dict[str, Any]:
@@ -122,7 +126,8 @@ class RecommendationService:
         3개로 나눠서 반환한다.
         chat이 빈 문자열이면 유사도 계산 없이 rule engine이 판정한 순서를 그대로 반환한다.
         """
-        policies = self.policy_loader.get_policies()
+        with log_step(PIPELINE, "policy_load"):
+            policies = self.policy_loader.get_policies()
         result = self._recommend_policies(user_profile, policies)
 
         available = result["available_policies"]
@@ -135,7 +140,8 @@ class RecommendationService:
         region_scope_by_plcyno = {str(p.get("plcyNo")): p.get("region_scope") for p in available}
 
         if chat and chat.strip():
-            matches = self.similarity_service.search(chat, available, top_k=None)
+            with log_step(PIPELINE, "similarity_search", candidate_count=len(available)):
+                matches = self.similarity_service.search(chat, available, top_k=None)
         else:
             # 채팅 텍스트가 없으면 유사도 계산을 생략하고 rule engine이 판정한 순서를 그대로 사용한다.
             # TODO: 추후 이 경우엔 유사도 대신 사용자 프로필 기반 우선순위로 대체 예정
@@ -169,49 +175,52 @@ class RecommendationService:
         # rule engine이 첫 실패 검사에서 바로 다음 정책으로 넘어가도록 해서 시간을 아낀다.
         full_detail = len(policies) <= FULL_DETAIL_MAX_POLICIES
 
-        for policy in policies:
-            match_result = self.eligibility_engine.evaluate(user, policy, full_detail=full_detail)
-            plcy_no = policy.get("plcyNo")
+        with log_step(PIPELINE, "eligibility_evaluate", policy_count=len(policies)):
+            for policy in policies:
+                match_result = self.eligibility_engine.evaluate(user, policy, full_detail=full_detail)
+                plcy_no = policy.get("plcyNo")
 
-            policy_result = {
-                "plcyNo": plcy_no,
-                "policy_name": policy.get("plcyNm"),
-                "policy_summary": policy.get("plcyExplnCn"),
+                policy_result = {
+                    "plcyNo": plcy_no,
+                    "policy_name": policy.get("plcyNm"),
+                    "policy_summary": policy.get("plcyExplnCn"),
 
-                # 등록기관명. 같은 이름의 정책이 지자체별로 여러 개 등록돼 있는 경우가 많아서
-                # (예: "전세보증금반환보증 보증료 지원"이 세종/광주/부산 등 기관마다 따로 있음)
-                # 화면에서 어느 기관/지역 정책인지 구분할 수 있도록 같이 내려준다.
-                "rgtrInstCdNm": policy.get("rgtrInstCdNm"),
+                    # 등록기관명. 같은 이름의 정책이 지자체별로 여러 개 등록돼 있는 경우가 많아서
+                    # (예: "전세보증금반환보증 보증료 지원"이 세종/광주/부산 등 기관마다 따로 있음)
+                    # 화면에서 어느 기관/지역 정책인지 구분할 수 있도록 같이 내려준다.
+                    "rgtrInstCdNm": policy.get("rgtrInstCdNm"),
 
-                "large_category": policy.get("lclsfNm", "기타"),
-                "middle_category": policy.get("mclsfNm", "기타"),
+                    "large_category": policy.get("lclsfNm", "기타"),
+                    "middle_category": policy.get("mclsfNm", "기타"),
 
-                # 유사도 계산용 필드 추가
-                "lclsfNm": policy.get("lclsfNm", ""),
-                "mclsfNm": policy.get("mclsfNm", ""),
-                "plcyKywdNm": policy.get("plcyKywdNm", ""),
-                "plcyExplnCn": policy.get("plcyExplnCn", ""),
-                "plcySprtCn": policy.get("plcySprtCn", ""),
+                    # 유사도 계산용 필드 추가
+                    "lclsfNm": policy.get("lclsfNm", ""),
+                    "mclsfNm": policy.get("mclsfNm", ""),
+                    "plcyKywdNm": policy.get("plcyKywdNm", ""),
+                    "plcyExplnCn": policy.get("plcyExplnCn", ""),
+                    "plcySprtCn": policy.get("plcySprtCn", ""),
 
-                "result": match_result["result"],
-                "details": match_result["details"],
-                # 조건을 만족한 정책만 이 값이 채워진다(region 체크까지 도달한 경우에만).
-                # 화면에서 전국급/시도범위/시군구범위 탭으로 나누는 데 쓰인다.
-                "region_scope": (match_result["details"].get("region") or {}).get("policy_value", {}).get("type"),
-            }
+                    "result": match_result["result"],
+                    "details": match_result["details"],
+                    # 조건을 만족한 정책만 이 값이 채워진다(region 체크까지 도달한 경우에만).
+                    # 화면에서 전국급/시도범위/시군구범위 탭으로 나누는 데 쓰인다.
+                    "region_scope": (match_result["details"].get("region") or {}).get("policy_value", {}).get("type"),
+                }
 
-            bucket = self._bucket_for(match_result)
-            buckets[bucket].append(policy_result)
-            plcyno_buckets[bucket].append(plcy_no)
+                bucket = self._bucket_for(match_result)
+                buckets[bucket].append(policy_result)
+                plcyno_buckets[bucket].append(plcy_no)
 
-            if bucket != "available_policies":
-                fail_reasons[str(plcy_no)] = match_result["details"]
+                if bucket != "available_policies":
+                    fail_reasons[str(plcy_no)] = match_result["details"]
 
-        print(
-            f"[RecommendationService] 조건만족 {len(buckets['available_policies'])} / "
-            f"신청마감 {len(buckets['closed_policies'])} / "
-            f"기간종료 {len(buckets['expired_policies'])} / "
-            f"조건불만족 {len(buckets['unavailable_policies'])} (전체 {len(policies)})"
+        log_event(
+            PIPELINE, "result",
+            available=len(buckets["available_policies"]),
+            closed=len(buckets["closed_policies"]),
+            expired=len(buckets["expired_policies"]),
+            unavailable=len(buckets["unavailable_policies"]),
+            total=len(policies),
         )
 
         return {

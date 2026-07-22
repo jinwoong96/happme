@@ -2,6 +2,9 @@ import re
 import asyncio
 
 from app.services.policy_summary.pdf_summary import PdfSummaryService
+from app.core.step_logger import log_step, log_event
+
+PIPELINE = "policy_summary"
 
 
 class WebSummaryService:
@@ -28,8 +31,10 @@ class WebSummaryService:
             if name.replace(" ", "") in text_clean and len(name.replace(" ", "")) > 10
         ]
         if len(direct_matches) == 1:
+            log_event(PIPELINE, "result", source="text", method="직접매칭")
             return {"matched_policy": direct_matches[0], "method": "직접매칭"}
         if len(direct_matches) > 1:
+            log_event(PIPELINE, "result", source="text", method="후보다수")
             return {"matched_policy": None, "method": "후보다수", "candidates": direct_matches[:5]}
 
         # 2) 키워드 점수 매칭
@@ -51,14 +56,16 @@ class WebSummaryService:
                 keyword_text += text[idx:idx + 100] + " "
         combined_text = text[:300] + " " + keyword_text
 
-        embedding = self.pdf.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
-        similarities = self.pdf._cosine_sim(embedding)
+        with log_step(PIPELINE, "embed", source="text", candidate_count=len(self.pdf.policy_names)):
+            embedding = self.pdf.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
+            similarities = self.pdf._cosine_sim(embedding)
         raw_best_score = float(similarities.max())
 
         top_indices = similarities.argsort()[::-1][:top_k_embed]
         top_names = [self.pdf.policy_names[i] for i in top_indices]
 
         if raw_best_score < raw_threshold_low and not scored:
+            log_event(PIPELINE, "result", source="text", method="매칭불가", raw_score=raw_best_score)
             return {"matched_policy": "해당 없음", "method": "매칭불가"}
 
         keyword_names = [name for _, name in scored[:top_k_keyword]]
@@ -68,19 +75,25 @@ class WebSummaryService:
             combined_results = list(dict.fromkeys(keyword_names + top_names))[:5]
 
         if raw_best_score >= raw_threshold_high:
+            log_event(PIPELINE, "result", source="text", method="임베딩매칭", raw_score=raw_best_score)
             return {"matched_policy": top_names[0], "method": "임베딩매칭"}
 
         if len(combined_results) == 1:
+            log_event(PIPELINE, "result", source="text", method="키워드+임베딩", raw_score=raw_best_score)
             return {"matched_policy": combined_results[0], "method": "키워드+임베딩"}
 
         if combined_results:
-            llm_result = self.pdf.verify_with_llm_svc(text, combined_results)
+            with log_step(PIPELINE, "llm_verify", source="text", candidate_count=len(combined_results)):
+                llm_result = self.pdf.verify_with_llm_svc(text, combined_results)
             is_none = llm_result == "없음" or llm_result not in self.pdf.policy_names
             if not is_none:
+                log_event(PIPELINE, "result", source="text", method="키워드+LLM", raw_score=raw_best_score)
                 return {"matched_policy": llm_result, "method": "키워드+LLM"}
+            log_event(PIPELINE, "result", source="text", method="후보다수", raw_score=raw_best_score)
             return {"matched_policy": None, "method": "후보다수", "candidates": combined_results}
 
-        return {"matched_policy": "해당 없음", "method": "매칭불가"}  
+        log_event(PIPELINE, "result", source="text", method="매칭불가", raw_score=raw_best_score)
+        return {"matched_policy": "해당 없음", "method": "매칭불가"}
 
     # ---------- URL 매칭 (Playwright) ----------
 
@@ -176,25 +189,31 @@ class WebSummaryService:
         if plcy_no:
             detail = self.get_policy_by_no_svc(plcy_no)
             if detail:
+                log_event(PIPELINE, "result", source="url", method="정책번호매칭")
                 return {"matched_policy": detail.get("plcyNm", ""), "method": "정책번호매칭",
                          "policy_detail": detail, "blocked": False}
 
-        combined_text, full_text, institution, title, blocked = asyncio.run(
-            self._extract_url_features_async(url)
-        )
+        with log_step(PIPELINE, "extract", source="url"):
+            combined_text, full_text, institution, title, blocked = asyncio.run(
+                self._extract_url_features_async(url)
+            )
         if blocked:
+            log_event(PIPELINE, "result", source="url", method="크롤링차단")
             return {"matched_policy": None, "method": "크롤링차단", "policy_detail": None, "blocked": True}
         if not combined_text:
+            log_event(PIPELINE, "result", source="url", method="텍스트추출실패")
             return {"matched_policy": None, "method": "텍스트추출실패", "policy_detail": None, "blocked": False}
 
         text_clean, title_clean = full_text.replace(" ", ""), title.replace(" ", "")
         for name in self.pdf.policy_names:
             nc = name.replace(" ", "")
             if nc == title_clean or (nc in title_clean and len(nc) > 10) or (nc in text_clean and len(nc) > 10):
+                log_event(PIPELINE, "result", source="url", method="직접매칭")
                 return {"matched_policy": name, "method": "직접매칭", "policy_detail": None, "blocked": False}
 
-        embedding = self.pdf.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
-        similarities = self.pdf._cosine_sim(embedding)
+        with log_step(PIPELINE, "embed", source="url", candidate_count=len(self.pdf.policy_names)):
+            embedding = self.pdf.embed_model.encode([f"query: {combined_text}"], show_progress_bar=False)
+            similarities = self.pdf._cosine_sim(embedding)
         raw_best_score = float(similarities.max())
 
         s_min, s_max = similarities.min(), similarities.max()
@@ -209,6 +228,7 @@ class WebSummaryService:
         best_match = top_names[0]
 
         if raw_best_score < raw_threshold_low:
+            log_event(PIPELINE, "result", source="url", method="매칭불가", raw_score=raw_best_score)
             return {
                 "matched_policy": "해당 없음",
                 "method": "매칭불가",
@@ -216,6 +236,7 @@ class WebSummaryService:
                 "policy_detail": None,
                 "blocked": False
             }
+        log_event(PIPELINE, "result", source="url", method="임베딩매칭", raw_score=raw_best_score)
         return {
             "matched_policy": best_match,
             "method": "임베딩매칭",
@@ -240,6 +261,7 @@ class WebSummaryService:
 
     def answer_question_svc(self, question: str, policy_detail: dict) -> str | None:
         if not policy_detail:
+            log_event(PIPELINE, "result", source="qa", method="정책정보없음")
             return None
 
         fields = {
@@ -270,8 +292,13 @@ class WebSummaryService:
 1~3문장으로 간결하게 답변하고, 지시문이나 예시 문구는 출력하지 마세요.
 
 답변:"""
+        policy_name = fields["정책명"]
         try:
-            return self.pdf.llm_model.generate_text(prompt=prompt).strip()
+            with log_step(PIPELINE, "llm_qa", source="qa", policy_name=policy_name, question_length=len(question)):
+                answer = self.pdf.llm_model.generate_text(prompt=prompt).strip()
+            log_event(PIPELINE, "result", source="qa", method="답변생성", policy_name=policy_name)
+            return answer
         except Exception as e:
             print(f"[WebSummaryService] 답변 생성 오류: {e}")
+            log_event(PIPELINE, "result", source="qa", method="답변생성실패", policy_name=policy_name, error=str(e))
             return None

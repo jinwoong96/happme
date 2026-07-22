@@ -108,6 +108,9 @@ class Settings(BaseSettings):
     sentry_environment: str = Field("", alias="SENTRY_ENVIRONMENT")
     slack_webhook_url: str = Field("", alias="SLACK_WEBHOOK_URL")
     log_dir: str = Field("./logs", alias="LOG_DIR")
+    # 날짜별로 로테이션된 로그(ai.log.YYYY-MM-DD, steps.jsonl.YYYY-MM-DD)를 업로드할 위치.
+    # 버킷은 모델/데이터와 같은 DATA_S3_BUCKET을 재사용하고, prefix만 분리한다.
+    log_s3_prefix: str = Field("ai-storage/logs", alias="LOG_S3_PREFIX")
 
     class Config:
         env_file = ".env"
