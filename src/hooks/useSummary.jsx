@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../utils/api';
 import useBookmarks from './useBookmarks';
 
@@ -75,6 +75,7 @@ export default function useSummary() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState(null);
   const [asking, setAsking] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
@@ -94,6 +95,11 @@ export default function useSummary() {
     setFiles([]);
     setResults(null);
     setError(null);
+    // input의 value(선택된 파일 경로)를 초기화하지 않으면, 브라우저가 "선택값이
+    // 안 바뀌었다"고 판단해서 같은 파일을 다시 골라도 onChange가 아예 안 일어난다.
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleTextChange = (e) => {
@@ -117,7 +123,7 @@ export default function useSummary() {
         setPolicyName(null);
         setPolicyId(null);
 
-        // ✅ 텍스트 추출 실패 처리
+        // 텍스트 추출 실패 처리
         if (first?.method === "텍스트추출실패") {
             setError("이미지 기반 PDF라 분석할 수 없어요. \n텍스트가 포함된 PDF를 업로드해주세요.");
             setResults(null);
@@ -214,6 +220,9 @@ export default function useSummary() {
     setPolicyName(null);
     setPolicyId(null);
     clearPersisted();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const clearSummarySession = clearPersisted;
@@ -228,6 +237,7 @@ export default function useSummary() {
     question,
     answer,
     asking,
+    fileInputRef,
     handleFileChange,
     handleRemoveFile,
     handleTextChange,

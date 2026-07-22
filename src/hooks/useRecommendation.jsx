@@ -36,6 +36,7 @@ export default function useRecommendation() {
         wide: data?.wide_policies || [],
         province: data?.province_policies || [],
         local: data?.local_policies || [],
+        llmAnswer: data?.llm_answer || null,
       });
     } catch (err) {
       setError(err.message || 'AI 분석에 실패했습니다.');
