@@ -81,10 +81,12 @@ async def lifespan(app: FastAPI):
     app.state.policy_loader = policy_loader
     policy_similarity_service = PolicySimilarityService()
     app.state.policy_similarity_service = policy_similarity_service
+    # watsonx 연결은 새로 만들지 않고 pdf_summary_service의 llm_model을 재사용한다.
     app.state.recommendation_service = RecommendationService(
         policy_loader=policy_loader,
         eligibility_engine=PolicyEligibilityEngine(region_matcher=RegionMatcher()),
         similarity_service=policy_similarity_service,
+        llm_service=app.state.pdf_summary_service,
     )
     # watsonx 연결은 새로 만들지 않고 pdf_summary_service의 llm_model을 재사용한다.
     app.state.income_eligibility_service = IncomeEligibilityService(

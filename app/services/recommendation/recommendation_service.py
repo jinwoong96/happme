@@ -1,9 +1,15 @@
+import re
 from typing import Any
 
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.policy_loader import PolicyLoaderService
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.core.step_logger import log_step, log_event
+
+# 상황 설명(chat)에 대한 LLM 정책 추천 답변을 만들 때, 유사도 상위 몇 개까지 후보로 넘길지.
+# (similarity_service.search()가 이미 settings.chat_similarity_min_score 미만은 걸러낸 뒤이므로,
+# 여기 candidates는 전부 "유사도 일정 이상" 정책이다.)
+LLM_PICK_CANDIDATE_COUNT = 10
 
 PIPELINE = "recommendation"
 
@@ -108,10 +114,12 @@ class RecommendationService:
         policy_loader: PolicyLoaderService,
         eligibility_engine: PolicyEligibilityEngine,
         similarity_service: PolicySimilarityService,
+        llm_service,
     ):
         self.policy_loader = policy_loader
         self.eligibility_engine = eligibility_engine
         self.similarity_service = similarity_service
+        self.llm_service = llm_service  # PdfSummaryService 인스턴스 (llm_model 재사용)
 
     def recommend_svc(self, user_profile: dict) -> dict[str, Any]:
         with log_step(PIPELINE, "policy_load"):
@@ -139,9 +147,12 @@ class RecommendationService:
         rgtr_inst_by_plcyno = {str(p.get("plcyNo")): p.get("rgtrInstCdNm") for p in available}
         region_scope_by_plcyno = {str(p.get("plcyNo")): p.get("region_scope") for p in available}
 
+        llm_answer = None
         if chat and chat.strip():
             with log_step(PIPELINE, "similarity_search", candidate_count=len(available)):
                 matches = self.similarity_service.search(chat, available, top_k=None)
+            with log_step(PIPELINE, "llm_pick_policy"):
+                llm_answer = self._llm_pick_policy(chat, matches[:LLM_PICK_CANDIDATE_COUNT])
         else:
             # 채팅 텍스트가 없으면 유사도 계산을 생략하고 rule engine이 판정한 순서를 그대로 사용한다.
             # TODO: 추후 이 경우엔 유사도 대신 사용자 프로필 기반 우선순위로 대체 예정
@@ -163,7 +174,104 @@ class RecommendationService:
             bucket_key = REGION_SCOPE_TO_BUCKET.get(scope, "local_policies")
             buckets[bucket_key].append(match)
 
-        return buckets
+        return {**buckets, "llm_answer": llm_answer}
+
+    def _llm_pick_policy(self, chat: str, candidates: list[dict]) -> dict[str, Any] | None:
+        """유사도 상위 후보(이미 similarity_search.search()에서 chat_similarity_min_score 이상만
+        걸러진 상태) 중 사용자 상황(chat)에 맞는 정책을 2단계로 찾는다.
+        1단계: 정책 '제목'만 보여주고 적절한 정책이 있는지 번호로 고르게 한다(_llm_select_candidate).
+        2단계: 선택된 정책의 상세정보를 다시 근거로 넣어 설명을 생성한다(_llm_explain_policy).
+        제목만 보고 고른 뒤 상세정보로 다시 설명하는 2단계 구조라, 후보 전체의 상세정보를
+        한 번에 다 프롬프트에 넣지 않아도 된다.
+        watsonx 클라이언트는 새로 만들지 않고 PdfSummaryService가 들고 있는 llm_model을 재사용한다
+        (income_eligibility.py의 _llm_judge와 동일한 기존 패턴)."""
+        if not candidates:
+            return None
+
+        selected = self._llm_select_candidate(chat, candidates)
+        if selected is None:
+            return {"policy_name": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
+
+        policy_detail = self.policy_loader.get_policy_by_plcyno(selected.get("plcyNo"))
+        if policy_detail is None:
+            return {"policy_name": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
+
+        answer = self._llm_explain_policy(chat, policy_detail)
+        return {"policy_name": policy_detail.get("plcyNm") or selected.get("policy_name"), "answer": answer}
+
+    def _llm_select_candidate(self, chat: str, candidates: list[dict]) -> dict | None:
+        """1단계: 후보 정책 제목만(상세정보 없이) 번호를 매겨 LLM에 보여주고, 사용자 상황에
+        맞는 정책이 있으면 번호를, 없으면 0을 답하게 한다. 정책명 문자열로 매칭하면 LLM이
+        정책명을 살짝 다르게 재현했을 때 못 찾을 수 있어, 번호로만 답하게 해 candidates 인덱스로
+        그대로 되짚어 찾는다."""
+        listing = "\n".join(f"{i}. {c.get('policy_name')}" for i, c in enumerate(candidates, start=1))
+
+        prompt = f"""당신은 청년 정책 목록에서 사용자 상황에 맞는 정책을 고르는 도우미입니다.
+
+[후보 정책 목록 (번호. 정책명)]
+{listing}
+
+[사용자 상황]
+{chat}
+
+규칙:
+1. 위 후보 정책 목록 중 사용자 상황에 실제로 도움이 될 만한 정책이 있으면 그 번호 하나만 답하세요.
+2. 적절한 정책이 없으면 0을 답하세요.
+3. 반드시 숫자 하나만 답하세요. 다른 말은 절대 하지 마세요.
+
+번호:"""
+
+        try:
+            raw = self.llm_service.llm_model.generate_text(prompt=prompt)
+        except Exception as e:
+            print(f"[RecommendationService] watsonx 호출 오류(1단계 선택): {e}")
+            return None
+
+        number_match = re.search(r"-?\d+", raw)
+        if not number_match:
+            return None
+
+        index = int(number_match.group())
+        if index < 1 or index > len(candidates):
+            return None
+
+        return candidates[index - 1]
+
+    def _llm_explain_policy(self, chat: str, policy: dict) -> str:
+        """2단계: 1단계에서 선택된 정책 하나의 상세정보(policy_loader 원본 필드)를 근거로 최종
+        설명을 생성한다. 04-hybrid-search/rag.py의 build_context/PROMPT 패턴(제공된 문서만
+        근거로 답변)을 참고했다."""
+        context = f"""정책명: {policy.get("plcyNm") or ""}
+정책 설명: {policy.get("plcyExplnCn") or ""}
+지원 내용: {policy.get("plcySprtCn") or ""}
+관련 키워드: {policy.get("plcyKywdNm") or ""}
+대상 연령: {policy.get("sprtTrgtMinAge") or ""}세 ~ {policy.get("sprtTrgtMaxAge") or ""}세
+신청 기간: {policy.get("aplyYmd") or ""}
+소득 조건: {policy.get("earnEtcCn") or "제한없음"}
+주관 기관: {policy.get("rgtrInstCdNm") or ""}"""
+
+        prompt = f"""당신은 제공된 정책 정보만을 근거로 질문에 답변하는 도우미입니다.
+
+규칙:
+1. 아래 정책 정보에 있는 내용만 사용하세요.
+2. 추측하거나 외부 지식을 추가하지 마세요.
+3. 이 정책이 사용자 상황에 왜/어떻게 도움이 되는지 한국어로 간결하게 설명하세요.
+
+[정책 정보]
+{context}
+
+[사용자 상황]
+{chat}
+
+[답변]"""
+
+        try:
+            raw = self.llm_service.llm_model.generate_text(prompt=prompt)
+        except Exception as e:
+            print(f"[RecommendationService] watsonx 호출 오류(2단계 설명): {e}")
+            return f"{policy.get('plcyNm') or ''} 정책이 사용자 상황에 적합해 보입니다."
+
+        return raw.strip()
 
     def _recommend_policies(self, user: dict, policies: list[dict]) -> dict[str, Any]:
         buckets: dict[str, list] = {key: [] for key in POLICY_BUCKET_KEYS}
