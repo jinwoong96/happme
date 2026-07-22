@@ -88,13 +88,17 @@ class RecommendationService:
     async def _attach_policy_cards(db: AsyncSession, result: dict) -> dict:
         """plcyNo 기준으로 PolicyService.get_policy_cards_svc의 카드 표시용 필드를 덧붙입니다. 버킷 키 구성과 무관하게 동작합니다."""
         plcy_nos = {
-            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+            str(policy.get("plcyNo"))
+            for policies in result.values() if isinstance(policies, list)
+            for policy in policies if policy.get("plcyNo") is not None
         }
 
         cards = await PolicyService.get_policy_cards_svc(db, list(plcy_nos))
         summaries = await PolicyCrud.get_summaries_by_plcyno(db, list(plcy_nos))
 
         for policies in result.values():
+            if not isinstance(policies, list):
+                continue
             for policy in policies:
                 plcy_no = str(policy.get("plcyNo"))
                 summary = summaries.get(plcy_no)
@@ -118,12 +122,16 @@ class RecommendationService:
     async def _attach_db_policy_ids(db: AsyncSession, result: dict) -> dict:
         """AI 응답의 plcyNo로 backend DB에서 실제 policy_id를 조회해 각 정책 dict에 붙입니다. 버킷 키 구성과 무관하게 동작합니다."""
         plcy_nos = {
-            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+            str(policy.get("plcyNo"))
+            for policies in result.values() if isinstance(policies, list)
+            for policy in policies if policy.get("plcyNo") is not None
         }
 
         plcyno_to_policy_id = await PolicyCrud.get_policy_ids_by_plcyno(db, list(plcy_nos))
 
         for policies in result.values():
+            if not isinstance(policies, list):
+                continue
             for policy in policies:
                 policy["policy_id"] = plcyno_to_policy_id.get(str(policy.get("plcyNo")))
 
@@ -137,12 +145,16 @@ class RecommendationService:
         프론트는 이 리스트가 비어있지 않을 때만 "소득계산" 버튼을 보여주면 됩니다.
         """
         plcy_nos = {
-            str(policy.get("plcyNo")) for policies in result.values() for policy in policies if policy.get("plcyNo") is not None
+            str(policy.get("plcyNo"))
+            for policies in result.values() if isinstance(policies, list)
+            for policy in policies if policy.get("plcyNo") is not None
         }
 
         required_fields_by_plcyno = await PolicyIncomeRequiredCrud.get_required_fields_by_plcyno(db, list(plcy_nos))
 
         for policies in result.values():
+            if not isinstance(policies, list):
+                continue
             for policy in policies:
                 policy["required_fields"] = required_fields_by_plcyno.get(str(policy.get("plcyNo")), [])
 
@@ -155,6 +167,8 @@ class RecommendationService:
         bookmarked_ids = {str(b.policy_id) for b in bookmarks}
 
         for policies in result.values():
+            if not isinstance(policies, list):
+                continue
             for policy in policies:
                 policy["is_bookmarked"] = str(policy.get("policy_id")) in bookmarked_ids
 
