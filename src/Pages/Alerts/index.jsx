@@ -22,6 +22,13 @@ function formatDate(iso) {
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+// "[전세보증금] 지원 가능한 공고문이 있어요" -> { tag: "[전세보증금]", rest: "지원 가능한 공고문이 있어요" }
+// 대괄호 태그로 시작하지 않는 제목(다른 알림 타입)은 그대로 rest에만 담아 기존과 동일하게 보인다.
+function parseAlertTitle(title) {
+  const match = /^(\[[^\]]+\])\s*(.*)$/.exec(title || '');
+  return match ? { tag: match[1], rest: match[2] } : { tag: null, rest: title };
+}
+
 export default function AlertsPage() {
   const navigate = useNavigate();
   const { alerts, loading, markRead, markAllRead, removeAlert } = useAlerts();
@@ -67,14 +74,17 @@ export default function AlertsPage() {
           <div className="flex flex-col gap-2.5">
             {alerts.map((a) => {
               const type = TYPE_LABEL[a.notify_type] || TYPE_LABEL.SYSTEM;
+              const isKeywordMatch = a.notify_type === 'KEYWORD_MATCH';
               return (
                 <div
                   key={a.notification_id}
                   onClick={() => handleOpenAlert(a)}
                   style={{
-                    display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
-                    backgroundColor: '#fff', borderRadius: 18, padding: '16px 44px 16px 18px',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+                    display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
+                    backgroundColor: isKeywordMatch ? '#f5f6ff' : '#fff', borderRadius: 18, padding: '16px 44px 16px 18px',
+                    boxShadow: isKeywordMatch ? '0 2px 10px rgba(99,102,241,0.15)' : '0 2px 10px rgba(0,0,0,0.06)',
+                    border: isKeywordMatch ? '1px solid #e0e3ff' : '1px solid transparent',
+                    borderLeft: isKeywordMatch ? '4px solid #6366f1' : '4px solid transparent',
                     position: 'relative',
                   }}
                 >
@@ -95,7 +105,17 @@ export default function AlertsPage() {
                     </span>
                     <span className="text-[11px] text-gray-400">{formatDate(a.created_at)}</span>
                   </div>
-                  <p className="mt-1.5 text-[14px] font-bold text-gray-900">{a.title}</p>
+                  {(() => {
+                    const { tag, rest } = parseAlertTitle(a.title);
+                    return tag ? (
+                      <div className="mt-1.5">
+                        <p className="text-[14px] font-bold text-gray-900">{tag}</p>
+                        {rest && <p className="mt-0.5 text-[12.5px] text-gray-400">{rest}</p>}
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-[14px] font-bold text-gray-900">{a.title}</p>
+                    );
+                  })()}
                   {a.content && <p className="mt-1 text-[12px] text-gray-500">{a.content}</p>}
                 </div>
               );
@@ -113,13 +133,36 @@ export default function AlertsPage() {
         onClose={closePolicy}
       />
 
-      <Modal isOpen={!!plainAlert} onClose={() => setPlainAlert(null)} title={plainAlert?.title}>
-        {plainAlert && (
-          <div>
-            <p className="text-[13px] text-gray-600" style={{ lineHeight: 1.6 }}>{plainAlert.content}</p>
-            <p className="mt-3 text-[12px] text-gray-400">연결된 공고문 정보를 더 이상 확인할 수 없어요.</p>
-          </div>
-        )}
+      <Modal isOpen={!!plainAlert} onClose={() => setPlainAlert(null)} maxWidth={320}>
+        {plainAlert && (() => {
+          const type = TYPE_LABEL[plainAlert.notify_type] || TYPE_LABEL.SYSTEM;
+          const { tag, rest } = parseAlertTitle(plainAlert.title);
+          return (
+            <div>
+              <div className="flex justify-center">
+                <span className="text-[11px] font-bold" style={{ padding: '3px 10px', borderRadius: 999, backgroundColor: type.bg, color: type.color }}>
+                  {type.label}
+                </span>
+              </div>
+              {tag ? (
+                <div className="mt-2.5 text-center">
+                  <p className="text-[15px] font-bold text-gray-900">{tag}</p>
+                  {rest && <p className="mt-0.5 text-[13px] text-gray-400">{rest}</p>}
+                </div>
+              ) : (
+                <h2 className="mt-2.5 text-[15px] font-bold text-gray-900 text-center" style={{ lineHeight: 1.4 }}>
+                  {plainAlert.title}
+                </h2>
+              )}
+              <p className="mt-3 text-[13.5px] text-gray-700" style={{ lineHeight: 1.7 }}>{plainAlert.content}</p>
+              <div className="mt-3" style={{ backgroundColor: '#f5f6fa', borderRadius: 10, padding: '10px 12px' }}>
+                <p className="text-[11.5px] text-gray-400" style={{ lineHeight: 1.5 }}>
+                  연결된 공고문 정보를 더 이상 확인할 수 없어요.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );
