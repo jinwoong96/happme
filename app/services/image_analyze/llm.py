@@ -2,6 +2,8 @@ import json
 import re
 from collections import OrderedDict
 
+import pymysql
+
 from app.core.settings import settings
 
 # 매칭된 정책 조합(policy_id 집합)이 같으면 사진이 달라도 LLM을 다시 호출하지
@@ -67,15 +69,76 @@ class LlmService:
 {policies_text}
 """
 
+    # ---------- 정책 조합 요약 DB 백업 (image_analyze_summary_cache 테이블) ----------
+    # 메모리 캐시(_summary_cache) 미스일 때만 조회한다. 서버 재시작으로 메모리가
+    # 비어도, 같은 policy_id 조합이 예전에 요약된 적 있으면 LLM을 다시 안 부른다.
+
+    @staticmethod
+    def _db_get_combo_summary(combo_key: str) -> str | None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT summary_text FROM image_analyze_summary_cache WHERE combo_key = %s",
+                    (combo_key,),
+                )
+                row = cursor.fetchone()
+                return row["summary_text"] if row else None
+        except Exception as e:
+            print(f"[LlmService] 조합 요약 DB 캐시 조회 오류: {e}")
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _db_set_combo_summary(combo_key: str, summary_text: str) -> None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO image_analyze_summary_cache (combo_key, summary_text)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        summary_text = VALUES(summary_text),
+                        last_used_at = CURRENT_TIMESTAMP
+                    """,
+                    (combo_key, summary_text),
+                )
+            conn.commit()
+        except Exception as e:
+            print(f"[LlmService] 조합 요약 DB 캐시 저장 오류: {e}")
+        finally:
+            conn.close()
+
     def summarize_svc(self, query_text: str, matches: list[dict]) -> str | None:
         if not self.enabled or not matches:
             return None
 
         cache_key = self._cache_key(matches)
+        combo_key = ",".join(str(pid) for pid in cache_key) if cache_key else None
+
         if cache_key and cache_key in self._summary_cache:
             self._summary_cache.move_to_end(cache_key)
-            print(f"[llm-cache] hit {cache_key} - LLM 재호출 없이 이전 요약 재사용")
+            print(f"[llm-cache] 메모리 hit {cache_key} - LLM 재호출 없이 이전 요약 재사용")
             return self._summary_cache[cache_key]
+
+        if combo_key:
+            db_summary = self._db_get_combo_summary(combo_key)
+            if db_summary:
+                print(f"[llm-cache] DB hit {cache_key} - LLM 재호출 없이 이전 요약 재사용, 메모리에 적재")
+                self._summary_cache[cache_key] = db_summary
+                self._summary_cache.move_to_end(cache_key)
+                if len(self._summary_cache) > _SUMMARY_CACHE_MAX_SIZE:
+                    self._summary_cache.popitem(last=False)
+                return db_summary
 
         prompt = self._build_prompt(query_text, matches)
         messages = [
@@ -97,6 +160,8 @@ class LlmService:
             self._summary_cache.move_to_end(cache_key)
             if len(self._summary_cache) > _SUMMARY_CACHE_MAX_SIZE:
                 self._summary_cache.popitem(last=False)
+            if combo_key:
+                self._db_set_combo_summary(combo_key, summary)
 
         return summary
 
@@ -125,6 +190,52 @@ class LlmService:
 {policies_text}
 """
 
+    # ---------- 정책 한줄요약 DB 백업 (ai_policy_one_liner_cache 테이블) ----------
+    # policy_id 단위라 매칭 조합/이미지와 무관하게 재사용된다.
+
+    @staticmethod
+    def _db_get_one_liner(policy_id: int) -> str | None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT one_liner FROM ai_policy_one_liner_cache WHERE policy_id = %s",
+                    (policy_id,),
+                )
+                row = cursor.fetchone()
+                return row["one_liner"] if row else None
+        except Exception as e:
+            print(f"[LlmService] 한줄요약 DB 캐시 조회 오류: {e}")
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _db_set_one_liner(policy_id: int, one_liner: str) -> None:
+        conn = pymysql.connect(
+            host=settings.db_host, port=settings.db_port, user=settings.db_user,
+            password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+        )
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO ai_policy_one_liner_cache (policy_id, one_liner)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE one_liner = VALUES(one_liner)
+                    """,
+                    (policy_id, one_liner),
+                )
+            conn.commit()
+        except Exception as e:
+            print(f"[LlmService] 한줄요약 DB 캐시 저장 오류: {e}")
+        finally:
+            conn.close()
+
     def summarize_one_liners_svc(self, matches: list[dict]) -> dict[int, str]:
         """
         각 match(match['policy_raw']에 policy_id/plcyNm/plcyExplnCn 포함)에 대해
@@ -146,6 +257,16 @@ class LlmService:
                 self._one_liner_cache.move_to_end(policy_id)
                 result[policy_id] = self._one_liner_cache[policy_id]
                 continue
+
+            db_one_liner = self._db_get_one_liner(policy_id)
+            if db_one_liner:
+                self._one_liner_cache[policy_id] = db_one_liner
+                self._one_liner_cache.move_to_end(policy_id)
+                if len(self._one_liner_cache) > _ONE_LINER_CACHE_MAX_SIZE:
+                    self._one_liner_cache.popitem(last=False)
+                result[policy_id] = db_one_liner
+                continue
+
             if not explain_text.strip():
                 result[policy_id] = ""
                 continue
@@ -193,6 +314,7 @@ class LlmService:
             self._one_liner_cache[pid] = summary
             self._one_liner_cache.move_to_end(pid)
             result[pid] = summary
+            self._db_set_one_liner(pid, summary)
 
         while len(self._one_liner_cache) > _ONE_LINER_CACHE_MAX_SIZE:
             self._one_liner_cache.popitem(last=False)
