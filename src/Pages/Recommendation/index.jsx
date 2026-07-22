@@ -167,6 +167,24 @@ export default function RecommendationPage() {
 
         {error && <p style={{ marginTop: 12, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>{error}</p>}
 
+        {results?.llmAnswer && (
+          <div className="flex gap-3 bg-blue-50 rounded-2xl" style={{ marginTop: 16, padding: '14px 16px' }}>
+            <div className="w-[34px] h-[34px] rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+              <Bot size={18} color="#fff" />
+            </div>
+            <div className="flex-1">
+              {results.llmAnswer.policy_name && (
+                <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: '#1d4ed8' }}>
+                  {results.llmAnswer.policy_name}
+                </p>
+              )}
+              <p className="text-[13px] text-gray-700 leading-relaxed" style={{ margin: 0 }}>
+                {results.llmAnswer.answer}
+              </p>
+            </div>
+          </div>
+        )}
+
         {results && (
           <div style={{ marginTop: 24 }}>
             <p className="mb-3 text-[16px] font-bold text-gray-900">추천 결과</p>
