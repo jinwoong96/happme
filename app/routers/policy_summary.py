@@ -1,11 +1,13 @@
 import asyncio
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, HTTPException, Request
 from pydantic import BaseModel
 
+from app.services.policy_summary import pdf_summary as pdf_summary_module
 from app.services.policy_summary.pdf_summary import PdfSummaryService
 from app.services.policy_summary.web_summary import WebSummaryService
+from app.services.policy_summary import policy_summary_builder
 
 router = APIRouter(prefix="/policy-summary", tags=["PolicySummary"])
 
@@ -21,6 +23,70 @@ class UrlRequest(BaseModel):
 class QuestionRequest(BaseModel):
     policy_name: str
     question: str
+
+
+class PolicyDetailInput(BaseModel):
+    plcyNm: str
+    plcyExplnCn: str = ""
+    plcySprtCn: str = ""
+    plcyAplyMthdCn: str = ""
+    aplyYmd: str = ""
+    bizPrdBgngYmd: str = ""
+    bizPrdEndYmd: str = ""
+    ptcpPrpTrgtCn: str = ""
+    earnEtcCn: str = ""
+    sprtTrgtMinAge: str = ""
+    sprtTrgtMaxAge: str = ""
+    aplyUrlAddr: str = ""
+    sprtSclCnt: str = ""
+
+
+class SummarizeRequest(BaseModel):
+    policies: list[PolicyDetailInput]
+
+
+class SummaryInput(BaseModel):
+    policy_name: str
+    summary: str
+
+
+class RecommendRequest(BaseModel):
+    summaries: list[SummaryInput]
+
+
+def _extract_recommendation(comparison: str) -> str | None:
+    """compare_policies_svc가 만드는 추천 텍스트에서 마크다운 문법(**)을 제거하고
+    '- ' 항목마다 줄바꿈해 순수 텍스트로 정리한다. '💡 추천' 표시가 있으면 그 뒤만 쓰고,
+    없으면(모델이 표시 없이 바로 답했을 때) 전체 텍스트를 그대로 쓴다."""
+    import re
+
+    match = re.search(r"\*{0,2}💡\s*추천\*{0,2}\s*:?\s*(.*)", comparison, re.S)
+    text = (match.group(1) if match else comparison).strip().replace("**", "")
+    text = re.sub(r"(다\.|요\.)\s+", r"\1\n", text)       # 문장이 끝날 때마다 줄바꿈
+    text = re.sub(r"(- [^:\n]+:)\s*", r"\1\n", text)     # 제목 뒤 콜론 다음 바로 줄바꿈
+    text = re.sub(r"\s+-\s+", "\n\n- ", text)            # 항목("- 제목")마다 빈 줄로 구분
+    text = re.sub(r"\n{3,}", "\n\n", text)               # 과도한 빈 줄 정리
+    text = text.strip()
+
+    # 모델이 안내 문구를 앞에 붙이거나 항목을 3개 이상 만드는 경우가 있어서,
+    # 첫 "-" 항목 앞은 잘라내고 최대 2개까지만 남긴다.
+    first_dash = text.find("- ")
+    if first_dash > 0:
+        text = text[first_dash:]
+    items = text.split("\n\n- ")
+    items = [item if i == 0 else f"- {item}" for i, item in enumerate(items)]
+    return "\n\n".join(items[:2]).strip()
+
+
+def _parse_summary_fields(summary: str) -> dict:
+    import re
+
+    labels = ["한줄요약", "지원대상", "지원내용", "신청방법", "신청기간", "사업기간", "신청URL", "지원규모"]
+    pattern = re.compile(
+        rf"\*{{0,2}}({'|'.join(labels)})\*{{0,2}}\s*:\s*(.*?)(?=\*{{0,2}}(?:{'|'.join(labels)})\*{{0,2}}\s*:|$)",
+        re.S,
+    )
+    return {label: value.strip() for label, value in pattern.findall(summary)}
 
 
 def get_pdf_service(request: Request) -> PdfSummaryService:
@@ -131,6 +197,45 @@ async def analyze_pdf(request: Request, files: List[UploadFile] = File(...)):
     comparison = pdf_service.compare_policies_svc(matched_results) if len(matched_results) >= 2 else None
 
     return {"mode": "compare", "results": results, "comparison": comparison}
+
+
+# 이미 정책이 확정된 상태(예: 즐겨찾기 비교)에서 여러 정책을 짧게 요약 + 비교, 매칭 불필요
+# 정책 dict 리스트(1개 이상)를 받아 각각 짧게 요약만 한다. 매칭/비교 없음 - 캐시 미스분만 여기로 보내면 됨.
+@router.post("/summarize-policies")
+async def summarize_policies(request: Request, payload: SummarizeRequest):
+    if len(payload.policies) == 0:
+        raise HTTPException(status_code=400, detail="요약할 정책이 1개 이상 필요합니다")
+
+    pdf_service = get_pdf_service(request)
+
+    def process_one(detail: dict):
+        summary = pdf_service.summarize_policy_svc(detail)
+        return {
+            "policy_name": detail.get("plcyNm"),
+            "summary": summary,
+            "fields": _parse_summary_fields(summary) if summary else {},
+        }
+
+    results = await asyncio.gather(*[
+        asyncio.to_thread(process_one, p.model_dump()) for p in payload.policies
+    ])
+
+    return {"results": results}
+
+
+# 이미 요약이 있는 정책들(캐시 hit + 방금 요약한 것 합친 전체)을 받아 비교 추천 문장만 만든다.
+@router.post("/recommend")
+async def recommend(request: Request, payload: RecommendRequest):
+    if len(payload.summaries) < 2:
+        raise HTTPException(status_code=400, detail="비교할 정책이 2개 이상 필요합니다")
+
+    pdf_service = get_pdf_service(request)
+    summaries = [s.model_dump() for s in payload.summaries]
+
+    comparison = await asyncio.to_thread(pdf_service.compare_policies_svc, summaries)
+    recommendation = _extract_recommendation(comparison) if comparison else None
+
+    return {"recommendation": recommendation}
 
 
 # 공고문 텍스트 직접 입력 → 매칭 + 요약
@@ -277,6 +382,44 @@ async def ask(request: Request, payload: QuestionRequest):
     if answer is None:
         raise HTTPException(status_code=500, detail="답변 생성에 실패했습니다")
     return {"answer": answer}
+
+
+# DB에 summary가 비어있는 정책만 골라 policy.summary를 채우는 백그라운드 작업을 시작한다.
+# LLM 호출이 정책 수만큼 걸릴 수 있어 백그라운드로 실행하고, 바로 상태만 응답한다.
+# search_docs.py의 /search-docs/rebuild와 동일한 패턴 (관리자 "최신화" 흐름에서 트리거됨).
+@router.post("/rebuild")
+async def rebuild_policy_summaries(background_tasks: BackgroundTasks):
+    if policy_summary_builder.get_status()["running"]:
+        return {"status": "already_running"}
+
+    new_policies = policy_summary_builder.get_new_policies()
+    if not new_policies:
+        return {"status": "up_to_date", "new_count": 0}
+
+    background_tasks.add_task(policy_summary_builder.run_rebuild, new_policies)
+    return {"status": "started", "new_count": len(new_policies)}
+
+
+@router.get("/rebuild/status")
+async def rebuild_status():
+    return policy_summary_builder.get_status()
+
+
+# PdfSummaryService(공고문 PDF/텍스트/URL 매칭)가 들고 있는 정책 목록/임베딩 캐시를 DB 최신
+# 상태로 갱신한다. reload_policies_svc()가 신규/변경분만 재임베딩하므로, 서버 재시작 없이도
+# "최신화"로 들어온 정책이 이 매칭 기능에 반영되도록 트리거하는 용도.
+@router.post("/pdf-cache/rebuild")
+async def rebuild_pdf_cache(request: Request, background_tasks: BackgroundTasks):
+    if pdf_summary_module.get_rebuild_status()["running"]:
+        return {"status": "already_running"}
+
+    background_tasks.add_task(pdf_summary_module.run_rebuild, request.app.state.pdf_summary_service)
+    return {"status": "started"}
+
+
+@router.get("/pdf-cache/rebuild/status")
+async def get_pdf_cache_rebuild_status():
+    return pdf_summary_module.get_rebuild_status()
 
 
 # 헬스체크

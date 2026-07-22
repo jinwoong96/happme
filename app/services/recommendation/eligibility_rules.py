@@ -6,7 +6,7 @@ from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
 
 SBIZ_USER_CHECK = {
-    "중소기업": lambda u: u.get("company_type") == "중소기업",
+    "중소기업": lambda u: u.get("sme_employment") is True,
     "여성": lambda u: u.get("gender") == "여",
     "기초생활수급자": lambda u: u.get("basic_livelihood") is True,
     "한부모가정": lambda u: u.get("single_parent") is True,
@@ -25,17 +25,33 @@ class PolicyEligibilityEngine:
     def __init__(self, region_matcher: RegionMatcher):
         self.region_matcher = region_matcher
 
-    def evaluate(self, user: dict, policy: dict) -> dict:
-        checks = {
-            "apply_period": self._match_apply_period(user, policy),
-            "age": self._match_age(user, policy),
-            "region": self.region_matcher.match(user, policy),
-            "marriage": self._match_marriage(user, policy),
-            "school_status": self._match_school_status(user, policy),
-            "major": self._match_major(user, policy),
-            "sbiz": self._match_sbiz(user, policy),
-            "job": self._match_job(user, policy),
+    # apply_period은 _bucket_for가, region은 지역 규모 탭 분류가 항상 필요로 하므로 순서상
+    # 앞쪽에 둔다 - full_detail=False로 중간에 멈추더라도 이 둘은 이미 계산되어 있다.
+    _CHECK_ORDER = ("apply_period", "age", "region", "marriage", "school_status", "major", "sbiz", "job")
+
+    def evaluate(self, user: dict, policy: dict, full_detail: bool = True) -> dict:
+        """
+        full_detail=False면 조건 하나라도 불만족하는 순간 나머지 검사는 건너뛴다(조건 불만족
+        사유를 상세히 보여줄 필요가 없을 때 - 예: 전체 정책 카탈로그처럼 대상이 많은 경우 -
+        속도를 위해). full_detail=True면 지금까지처럼 8개 검사를 전부 실행해서 완전한 사유를
+        남긴다(대상이 15~20개 이하로 적어서 왜 불만족인지가 실제로 보여질 수 있는 경우).
+        """
+        checkers = {
+            "apply_period": lambda: self._match_apply_period(user, policy),
+            "age": lambda: self._match_age(user, policy),
+            "region": lambda: self.region_matcher.match(user, policy),
+            "marriage": lambda: self._match_marriage(user, policy),
+            "school_status": lambda: self._match_school_status(user, policy),
+            "major": lambda: self._match_major(user, policy),
+            "sbiz": lambda: self._match_sbiz(user, policy),
+            "job": lambda: self._match_job(user, policy),
         }
+
+        checks = {}
+        for key in self._CHECK_ORDER:
+            checks[key] = checkers[key]()
+            if not full_detail and not checks[key]["match"]:
+                break
 
         is_matched = all(v["match"] for v in checks.values())
 
@@ -248,8 +264,7 @@ class PolicyEligibilityEngine:
             "basic_livelihood": user.get("basic_livelihood"),
             "single_parent": user.get("single_parent"),
             "employment_status": user.get("employment_status"),
-            "occupation": user.get("occupation"),
-            "company_type": user.get("company_type"),
+            "sme_employment": user.get("sme_employment"),
         }
 
         for code in policy_sbiz_codes:
@@ -291,10 +306,6 @@ class PolicyEligibilityEngine:
                 return make_result(True, "취업 상태 제한 없음", user_status, policy_job)
 
             policy_values.append({"code": code, "name": allowed_value})
-
-            if code == "0013006":
-                if user.get("startup_interest") is True or user.get("occupation") == "창업자":
-                    return make_result(True, "창업 관련 조건 충족", user_status, policy_values)
 
             if job_check_status == allowed_value:
                 return make_result(True, "취업 상태 조건 충족", user_status, policy_values)

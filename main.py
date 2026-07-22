@@ -1,7 +1,34 @@
+import os
+import sys
+
+# pip로 설치된 nvidia-cublas-cu13 등은 site-packages 안에 DLL을 두지만 Windows PATH에는
+# 자동으로 잡히지 않아 paddlepaddle-gpu가 cublas64_13.dll 등을 못 찾는 문제가 생긴다.
+# paddle 내부 로더는 os.add_dll_directory가 아니라 PATH 환경변수를 직접 참조하므로
+# GPU 관련 모듈(paddleocr 등)을 import하기 전에 PATH에 해당 DLL 폴더를 추가해준다.
+# if sys.platform == "win32":
+#     try:
+#         import nvidia
+#         _nvidia_dir = os.path.dirname(nvidia.__file__)
+#         _dll_dirs = [
+#             os.path.join(_nvidia_dir, *_sub.split("/"))
+#             for _sub in ("cu13/bin/x86_64", "cudnn/bin")
+#         ]
+#         _dll_dirs = [d for d in _dll_dirs if os.path.isdir(d)]
+#         if _dll_dirs:
+#             os.environ["PATH"] = os.pathsep.join(_dll_dirs) + os.pathsep + os.environ["PATH"]
+#     except ImportError:
+#         pass
+
 import uvicorn
-from fastapi import FastAPI
+import sentry_sdk
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.concurrency import asynccontextmanager
+from app.core.settings import settings
+from app.core.logging_config import setup_logging
+from app.core.slack_alert import send_slack_alert
+from app.core.request_context import set_request_id, new_request_id, REQUEST_ID_HEADER
 from app.core.model_downloader import ensure_models_downloaded
 from app.core.data_downloader import ensure_data_downloaded
 
@@ -27,9 +54,19 @@ from app.routers.policy_summary import router as policy_summary_router
 from app.routers.image_analyze import router as image_analyze_router
 from app.routers.recommendation import router as recommendation_router
 from app.routers.policy_dedup import router as policy_dedup_router
+from app.routers.search_docs import router as search_docs_router
+from app.routers.policy_cache import router as policy_cache_router
 
 from app.routers.schedule import router as schedule_router
 
+setup_logging(settings.log_dir)
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment or settings.app_env,
+        traces_sample_rate=1.0,
+    )
 
 
 @asynccontextmanager
@@ -58,6 +95,7 @@ async def lifespan(app: FastAPI):
     # app.state.schedule_service = ScheduleService()
 
     policy_loader = PolicyLoaderService()
+    app.state.policy_loader = policy_loader
     policy_similarity_service = PolicySimilarityService()
     app.state.policy_similarity_service = policy_similarity_service
     app.state.recommendation_service = RecommendationService(
@@ -88,11 +126,34 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """backend가 호출할 때 넘겨준 X-Request-Id를 그대로 이어받아서, backend->ai로
+    넘어오는 하나의 요청 흐름을 로그로 계속 따라갈 수 있게 한다. 헤더가 없으면(직접
+    호출 등) 새로 하나 만든다."""
+    request_id = request.headers.get(REQUEST_ID_HEADER) or new_request_id()
+    set_request_id(request_id)
+    sentry_sdk.set_tag("request_id", request_id)
+    response = await call_next(request)
+    response.headers[REQUEST_ID_HEADER] = request_id
+    return response
+
+
 app.include_router(image_analyze_router)
 app.include_router(recommendation_router)
 app.include_router(schedule_router)
 app.include_router(policy_summary_router)
 app.include_router(policy_dedup_router)
+app.include_router(search_docs_router)
+app.include_router(policy_cache_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
+    await send_slack_alert(request, exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)
