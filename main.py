@@ -1,23 +1,6 @@
 import os
 import sys
 
-# pip로 설치된 nvidia-cublas-cu13 등은 site-packages 안에 DLL을 두지만 Windows PATH에는
-# 자동으로 잡히지 않아 paddlepaddle-gpu가 cublas64_13.dll 등을 못 찾는 문제가 생긴다.
-# paddle 내부 로더는 os.add_dll_directory가 아니라 PATH 환경변수를 직접 참조하므로
-# GPU 관련 모듈(paddleocr 등)을 import하기 전에 PATH에 해당 DLL 폴더를 추가해준다.
-# if sys.platform == "win32":
-#     try:
-#         import nvidia
-#         _nvidia_dir = os.path.dirname(nvidia.__file__)
-#         _dll_dirs = [
-#             os.path.join(_nvidia_dir, *_sub.split("/"))
-#             for _sub in ("cu13/bin/x86_64", "cudnn/bin")
-#         ]
-#         _dll_dirs = [d for d in _dll_dirs if os.path.isdir(d)]
-#         if _dll_dirs:
-#             os.environ["PATH"] = os.pathsep.join(_dll_dirs) + os.pathsep + os.environ["PATH"]
-#     except ImportError:
-#         pass
 
 import uvicorn
 import sentry_sdk
