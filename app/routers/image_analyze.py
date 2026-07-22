@@ -1,10 +1,12 @@
 import hashlib
+import json
 import logging
 import os
 import time
 import uuid
 from collections import OrderedDict
 
+import pymysql
 from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 
 from app.core.settings import settings
@@ -38,6 +40,55 @@ def _cache_set(key: str, value: dict):
         _analyze_cache.popitem(last=False)  # 가장 오래된 항목 제거
 
 
+# 메모리 캐시 미스일 때만 확인하는 DB 백업 계층 (image_analyze_cache 테이블).
+# 서버 재시작으로 메모리 캐시가 비어도, DB에 이미 있던 이미지는 파이프라인을
+# 다시 돌리지 않고 여기서 채워서 반환한다.
+
+def _db_cache_get(image_hash: str) -> dict | None:
+    conn = pymysql.connect(
+        host=settings.db_host, port=settings.db_port, user=settings.db_user,
+        password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor,
+    )
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT result_json FROM image_analyze_cache WHERE image_hash = %s",
+                (image_hash,),
+            )
+            row = cursor.fetchone()
+            return json.loads(row["result_json"]) if row else None
+    except Exception as e:
+        print(f"[image_analyze] DB 캐시 조회 오류: {e}")
+        return None
+    finally:
+        conn.close()
+
+
+def _db_cache_set(image_hash: str, result: dict) -> None:
+    conn = pymysql.connect(
+        host=settings.db_host, port=settings.db_port, user=settings.db_user,
+        password=settings.db_password, db=settings.db_name, charset="utf8mb4",
+    )
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO image_analyze_cache (image_hash, result_json)
+                VALUES (%s, %s)
+                ON DUPLICATE KEY UPDATE
+                    result_json = VALUES(result_json),
+                    last_used_at = CURRENT_TIMESTAMP
+                """,
+                (image_hash, json.dumps(result, ensure_ascii=False)),
+            )
+        conn.commit()
+    except Exception as e:
+        print(f"[image_analyze] DB 캐시 저장 오류: {e}")
+    finally:
+        conn.close()
+
+
 def get_image_analyze_service(request: Request) -> ImageAnalyzeService:
     return request.app.state.image_analyze_service
 
@@ -63,8 +114,14 @@ async def analyze_image(request: Request, file: UploadFile = File(...)):
         image_hash = hashlib.sha256(content).hexdigest()
         cached = _cache_get(image_hash)
         if cached is not None:
-            print(f"[cache] hit ({image_hash[:8]}...) - 파이프라인 재실행 없이 즉시 반환")
+            print(f"[cache] 메모리 hit ({image_hash[:8]}...) - 파이프라인 재실행 없이 즉시 반환")
             return cached
+
+        db_cached = _db_cache_get(image_hash)
+        if db_cached is not None:
+            print(f"[cache] DB hit ({image_hash[:8]}...) - 파이프라인 재실행 없이 즉시 반환, 메모리에 적재")
+            _cache_set(image_hash, db_cached)
+            return db_cached
 
         with open(tmp_path, "wb") as f:
             f.write(content)
@@ -74,6 +131,7 @@ async def analyze_image(request: Request, file: UploadFile = File(...)):
         print(f"[cache] miss ({image_hash[:8]}...) - 새로 분석함 ({time.perf_counter() - t0:.2f}s), 캐시에 저장")
 
         _cache_set(image_hash, result)
+        _db_cache_set(image_hash, result)
         return result
 
     except InvalidImageError:
