@@ -46,7 +46,10 @@ class PolicySimilarityService:
         """
         query_text: 사용자 채팅
         candidate_policies: rule engine을 통과한 정책 dict 목록 (plcyNo 키 사용)
-        top_k=None이면 개수 제한 없이 전부 유사도 순으로 반환한다.
+        top_k=None이면 개수 제한 없이 전부 유사도 순으로 반환한다. 다만 settings.
+        chat_similarity_min_score보다 낮은 점수는 top_k와 무관하게 먼저 걸러낸다 - 그렇지
+        않으면(특히 top_k=None일 때) 자격조건만 통과했을 뿐 쿼리와 사실상 무관한 정책까지
+        순위만 매겨져 그대로 결과에 섞여 나온다.
         반환: 유사도 상위 top_k개의 {plcyNo, policy_name, policy_summary}
               (policy_name/policy_summary는 policy_search_docs.json 기준)
         """
@@ -63,7 +66,8 @@ class PolicySimilarityService:
         query_embedding = self._encode_query(query_text)
         scores = query_embedding @ self.embeddings[candidate_indices].T
 
-        ranked_indices = [idx for idx, _ in sorted(zip(candidate_indices, scores), key=lambda x: x[1], reverse=True)]
+        ranked = sorted(zip(candidate_indices, scores), key=lambda x: x[1], reverse=True)
+        ranked_indices = [idx for idx, score in ranked if score >= settings.chat_similarity_min_score]
         if top_k is not None:
             ranked_indices = ranked_indices[:top_k]
 

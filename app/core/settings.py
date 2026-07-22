@@ -67,6 +67,11 @@ class Settings(BaseSettings):
         "./data/embeddings/search_docs_full_text_embeddings.npy", alias="SIMILARITY_EMBEDDINGS_PATH"
     )
     similarity_docs_path: str = Field("./data/policy_search_docs.json", alias="SIMILARITY_DOCS_PATH")
+    # recommend_chat(채팅/상황 기반 추천)의 유사도 검색 최소 커트라인. 이보다 낮으면 결과에서
+    # 제외한다. debug_similarity_score.py로 실측한 결과, "월세가 비싸서 이사...행복주택"
+    # 질의에서 실제로 관련 있는 매치는 0.54 이상이었고, 무관한 "노숙인" 계열 정책들은
+    # top_k=None(개수 제한 없음)이라 전부 결과에 섞여 나왔는데 전부 0.49 이하였다.
+    chat_similarity_min_score: float = Field(0.5, alias="CHAT_SIMILARITY_MIN_SCORE")
 
     # OCR
     ocr_lang: str = Field("korean", alias="OCR_LANG")
