@@ -287,3 +287,30 @@ CREATE TABLE pdf_summary_match (
     FOREIGN KEY (pdf_id)    REFERENCES pdf_summary(pdf_id),
     FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
+
+-- image_analyze 파이프라인 캐시 (bene_ai가 메모리 캐시 미스 시에만 조회/기록하는
+-- DB 백업 계층. 서버 재시작으로 메모리 캐시가 비어도 여기서 다시 채워진다.)
+
+-- 완전히 동일한 이미지(바이트 sha256) 재업로드 시 detection/OCR/search/LLM 전체를 스킵.
+CREATE TABLE image_analyze_cache (
+    image_hash   CHAR(64)  PRIMARY KEY,
+    result_json  JSON      NOT NULL,
+    created_at   DATETIME  DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 이미지는 달라도 매칭된 policy_id 조합(정렬 후 ',' join)이 같으면 LLM 종합요약을 재사용.
+CREATE TABLE image_analyze_summary_cache (
+    combo_key    VARCHAR(255) PRIMARY KEY,
+    summary_text TEXT      NOT NULL,
+    created_at   DATETIME  DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 정책 한 줄 요약은 policy_id 단위로 독립적으로 캐시 (매칭 조합과 무관).
+CREATE TABLE ai_policy_one_liner_cache (
+    policy_id    BIGINT       PRIMARY KEY,
+    one_liner    VARCHAR(200) NOT NULL,
+    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+);
