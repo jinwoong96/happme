@@ -70642,5 +70642,1046 @@
         "wlfareInfoReldNm": "이천시 1인 자영업자 등 출산급여 지원에 관한 조례"
       }
     }
+  },
+  {
+    "servId": "WLF00006682",
+    "summary": {
+      "aplyMtdNm": "인터넷, 방문",
+      "bizChrDeptNm": "경상남도 진주시 보건소 건강증진과",
+      "ctpvNm": "경상남도",
+      "inqNum": "8",
+      "intrsThemaNmArray": "서민금융, 임신·출산",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년, 임신 · 출산, 중장년",
+      "servDgst": "출산가정의 경제적 부담안화 및 산모와 신생아의 건강을 증진함으로써 출산 친화적 환경을 조성하고 저출생 대응에 기여",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006682&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006682",
+      "servNm": "산후조리비지원",
+      "sggNm": "진주시",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006682",
+      "servNm": "산후조리비지원",
+      "enfcBgngYmd": "20201230",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경상남도 진주시 보건소 건강증진과",
+      "ctpvNm": "경상남도",
+      "sggNm": "진주시",
+      "servDgst": "출산가정의 경제적 부담안화 및 산모와 신생아의 건강을 증진함으로써 출산 친화적 환경을 조성하고 저출생 대응에 기여",
+      "lifeNmArray": "청년, 중장년, 임신 · 출산",
+      "intrsThemaNmArray": "임신·출산, 서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문, 인터넷",
+      "sprtTrgtCn": "- 사업 대상 : 출생아의 출생일 기준 90일 전부터 진주시에 주민등록을 두고 거주하고 있는 부 또는 모 - 신청기간: 출생일로 부터 180일이내- 지원금액 :  출산 당 1회 50만원 지원",
+      "slctCritCn": "진주시에 출생신고를 한 가정 중 출산일 기준 3개월(90일) 전부터  관내 주민등록을 두고 거주하는 부 또는 모",
+      "alwServCn": "진주시에 출생신고를 한 가정 중 출산일 기준 3개월(90일) 전부터  관내 주민등록을 두고 거주하는 부 또는 모출산당 1회 50만원 지급",
+      "aplyMtdCn": "신청방법: 읍면동 주민센터 방문, 온라인 (행복출산원스톱신청)- 출선서비스 통합처리 신청서 작성",
+      "inqNum": "8",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "055-749-5764",
+        "wlfareInfoReldNm": "진주시보건소 건강증진과(모자보건팀)"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "진주시 출산장려 등 지원조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006681",
+    "summary": {
+      "aplyMtdNm": "인터넷, E-mail",
+      "bizChrDeptNm": "서울특별시 성동구 도시관리국 주거정비과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "17",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "2019년부터 한양대학생을 대상으로 운영 중인 ‘성동 한양 상생학사’를 관내 거주 청년 1인 가구 포함하여 경제적 어려움을 겪고 있는 청년층의 경제적 자립 및 주거안정에 도움이 되고자 함.",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006681&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006681",
+      "servNm": "성동청년 상생학사 운영",
+      "sggNm": "성동구",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006681",
+      "servNm": "성동청년 상생학사 운영",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 성동구 도시관리국 주거정비과",
+      "ctpvNm": "서울특별시",
+      "sggNm": "성동구",
+      "servDgst": "2019년부터 한양대학생을 대상으로 운영 중인 ‘성동 한양 상생학사’를 관내 거주 청년 1인 가구 포함하여 경제적 어려움을 겪고 있는 청년층의 경제적 자립 및 주거안정에 도움이 되고자 함.",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷, E-mail",
+      "sprtTrgtCn": "□ 상생학사 지원대상: 한양대학교 서울캠퍼스 2026-1, 2학기 재학예정자로 1년 거주 가능자□ 청년 월세 지원대상: 성동구 주민등록되어 있는 19세~39세 무주택 청년 1인 가구",
+      "slctCritCn": "□ 상생학사 지원대상: 한양대학교 서울캠퍼스 2026-1, 2학기 재학예정자로 1년 거주 가능자    ○ 선발 방법: 심사기준에 따라 고득점 순으로 선정 ※’25년 입주학생 지원 가능      ① 소득 기준: 2025학년도 1학기 소득분위(0~8분위)대상자      ② 성적 기준: 직전학기 평균 평점 2.5점 이상      ③ 거주지 제한: 공고일 현재 부모(양친) 모두 주민등록상 서울 지역 외 거주자□ 청년 월세 지원대상: 성동구 주민등록되어 있는 19세~39세 무주택 청년 1인 가구    ○ 선발 방법: 기준충족자 중 전산으로 무작위 추첨      ① 거주기준: 보증금 8천만원 이하 및 월차임 70만원 이하      ② 소득기준: 기준 중위소득 150% 이하  ※ 1인 가구 3,846,357원      ③ 재산기준: 일반재산* 1억 3,000만원 이하     *토지과세표준액, 건물과세표준액, 임차보증금, 차량시가표준액 등 포함      ④ 국토부, 서울시 월세지원사업 수혜자는 지원 종료 후 신청 가능",
+      "alwServCn": "□ 상생학사 지원 내용   ○ LH 공사: 보증금 2,900만 원 지원(출처: 주택도시기금)   ○ 성동구∙한양대: 월세 20만 원 지원(각 10만 원)   ○ 학생부담금: 보증금 100만 원, 월세 20~30만 원, 관리비, 기금 보증금 대출이자(1.2%, 월 29,000원)  □ 청년 월세 지원 내용: 월임차료 최대 20만 원, 최대 12개월 (성동구 구비 100%)",
+      "aplyMtdCn": "○ 신청방법: 온라인 신청(성동구청 홈페이지 - 신속예약)",
+      "inqNum": "17",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "02-2286-6585",
+        "wlfareInfoReldNm": "성동구청 주거정비과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울특별시 성동구 청년 기본 조례 제15조"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006678",
+    "summary": {
+      "aplyMtdNm": "E-mail",
+      "bizChrDeptNm": "서울특별시 종로구 기획경제국 일자리정책과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "7",
+      "intrsThemaNmArray": "서민금융, 일자리",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "취업난으로 어려움을 겪는 관내 미취업 청년들에게 취업능력개발 유도를 통해 취업 동기를 부여하고, 경제적 부담을 완화 시킴으로써 청년들의 구직활동을 돕고자 함.",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006678&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006678",
+      "servNm": "미취업청년 자격시험 응시료 지원사업",
+      "sggNm": "종로구",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006678",
+      "servNm": "미취업청년 자격시험 응시료 지원사업",
+      "enfcBgngYmd": "20250701",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 종로구 기획경제국 일자리정책과",
+      "ctpvNm": "서울특별시",
+      "sggNm": "종로구",
+      "servDgst": "취업난으로 어려움을 겪는 관내 미취업 청년들에게 취업능력개발 유도를 통해 취업 동기를 부여하고, 경제적 부담을 완화 시킴으로써 청년들의 구직활동을 돕고자 함.",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "E-mail",
+      "sprtTrgtCn": "종로구에 거주하는 미취업 청년(만19~39세)을 대상으로 지원합니다.",
+      "slctCritCn": "종로구에 거주하는 미취업 청년(만19~39세)을 대상으로 지원합니다.ㅇ 사업자등록사실 없음ㅇ 건강보험 직장가입사실 없음ㅇ 종로구 거주",
+      "alwServCn": "당해연도 응시한 시험 대상 1인 연1회 최대 10만원 실비 지원",
+      "aplyMtdCn": "종로구청 홈페이지에서 관련 양식 다운로드 및 작성 후 담당자 이메일로 제출",
+      "inqNum": "7",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "02-2148-2312",
+        "wlfareInfoReldNm": "종로구청 일자리정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울특별시 종로구 청년발전 및 지원 기본조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006675",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "경기도 양평군 문화복지국 가족복지과",
+      "ctpvNm": "경기도",
+      "inqNum": "5",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "양평군에 거주하며 근로중인 청년의 자립 및 미래 설계 기반 마련을 지원하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006675&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006675",
+      "servNm": "양평 청년 근로지원금 지원 사업",
+      "sggNm": "양평군",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006675",
+      "servNm": "양평 청년 근로지원금 지원 사업",
+      "enfcBgngYmd": "20190101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 양평군 문화복지국 가족복지과",
+      "ctpvNm": "경기도",
+      "sggNm": "양평군",
+      "servDgst": "양평군에 거주하며 근로중인 청년의 자립 및 미래 설계 기반 마련을 지원하고자 함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": " (사업대상) 아래 ①~④ 자격 요건을 모두 충족하는 자   ① (연  령) 공고일 기준 18세 이상 ~ 39세 이하 청년(`85년생~`07년생)   ② (거주지) 공고일 기준 주민등록상 주소지가 양평군인 자   ③ (근  로) 공고일 기준 양평군 소재 사업장에 주 36시간 이상 근무하며 3개월(90일) 이상 재직 중인 자 ※공고일 기준 3개월 전 근무이력 必    ④ (소  득) 월 과세급여 250만원 이하인 자      - 건강보험공단에서 부과한 공고일 직전 달 포함 3개월분의 건강보험료 평균이 88,620원 이하인 자 ※`25년 건강보험요율 근로자 3.545% 적용",
+      "slctCritCn": " (심사선정) 접수 시 구비서류 완비 여부 확인, 자격 적격(연령, 거주지, 근로기간, 근로시간 등)여부 확인, 심사표에 의한 점수 산정(고득점 순 선정)   ※ ‘양평군청’과 근로계약을 맺은 자(공무원·공무직, 양평군 기간제 근로자 등)는 전체 인원의 20% 이내 선발",
+      "alwServCn": " (사업내용)   - 양평군 거주 근로 청년이 매월 20만원 저축시 동일 금액을 군에서 매칭 적립   - 모집인원: 30명   - 저축기간: 1년 / 2025. 12. ~ 2026. 11. (12개월)   - 저 축 액: 매월 20만원(본인 20만원, 군 20만원)  ※군: 3개월 주기 입금   - 만기저축액 : 480만원(본인 240만원, 근로지원금 240만원) + 이자",
+      "aplyMtdCn": "- 잡아바어플라이 온라인신청",
+      "inqNum": "5",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-770-2626",
+        "wlfareInfoReldNm": "양평군청 가족복지과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "양평군 청년 근로지원금 지급 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006674",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "경기도 양평군 문화복지국 가족복지과",
+      "ctpvNm": "경기도",
+      "inqNum": "7",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "- 양평군 청년 신혼부부 주거자금 대출이자 지원 사업을 시행하여 청년 신혼부부의 정주 여건을 개선하고자 함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006674&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006674",
+      "servNm": "청년신혼부부 주거자금 대출 이자 지원사업",
+      "sggNm": "양평군",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006674",
+      "servNm": "청년신혼부부 주거자금 대출 이자 지원사업",
+      "enfcBgngYmd": "20230701",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 양평군 문화복지국 가족복지과",
+      "ctpvNm": "경기도",
+      "sggNm": "양평군",
+      "servDgst": "- 양평군 청년 신혼부부 주거자금 대출이자 지원 사업을 시행하여 청년 신혼부부의 정주 여건을 개선하고자 함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "❍ 지원대상: 공고일 기준, 아래 조건을 모두 충족하는 자  ▪ 기본요건   - 혼인신고일로부터 7년 이내인 부부   - 부부 중 1명 이상이 18~39세 해당  ▪ 대상주택   - 전용면적 85㎡ 이하   - 주택매매가 4억 2천만원 이하, 전월세보증금 3억 원 이하의 양평군 소재 주택     ※ 주택: 아파트, 주거용 오피스텔, 연립주택, 다세대, 다가구, 단독주택 등  ▪ 거주요건: 위 「대상주택」에 부부 모두 주민등록상 주소를 두고 거주  ▪ 주택소유 여부    · (매입) 세대구성원 모두 합해 전국 기준 부부명의의 양평군 거주 1주택만 소유    · (전월세) 세대구성원 전원 전국 기준 무주택      ※ 배우자, 자녀는 주민등록을 달리해도 세대원 포함       ※ 분양권, 입주권은 주택 보유로 간주  ▪ 소득조건: 부부 합산 연소득 8천만원 이하(※ 소득 기준연도 : 2024년)  ▪ 대출기준: 금융권에서 신혼부부 명의 주택 매입자금, 주택 전월세자금 대출을 받은 자     ※ 자금 대출용도에 ‘주택’, ‘임차’, ‘전세’, ‘월세’ 등 표기      ※ 신용대출의 경우 지원 대상자에서 제외(신용대출자금으로 받아 주거자금  용도로 사용했다 하더라도 ‘신용‧일반대출’용도는 지원 제외) ❍ 지원 제외 대상  ▪ 기초생활보장수급자(생계‧의료‧주거급여 수급자)  ▪ 공공임대주택(국민임대주택,영구임대주택,행복주택,LH 매입임대주택,LH 전세임대주택) 거주자  ▪ 다른 기관 및 지자체의 유사사업으로 지원을 받고 있거나 받은 이력이 있는 경우  ▪ 신청인 부부의 직계존비속인 자와 임대차계약을 체결한 경우  ▪ 불법건축물 등 건축물대장상 주택이 아닌 경우  ▪ 거짓이나 그 밖에 부정한 방법으로 지원을 받은 경우에 해당되어 청년 신혼부부 주거자금 대출이자 지원금이 환수된 이력이 있는 경우  ▪ 그 밖에 군수가 정하는 선정기준에 부적격인 경우",
+      "slctCritCn": "□ 경합시 우선순위 결정 기준 ❍ 평가항목 별 배점에 따라 아래 기준으로 선정  ▪ 평가항목(하단 배점표 참조)      ① 주택매입 또는 임차보증금 금액 / ②자녀 수 / ③ 부부합산 소득수준 / ④ 장애인·다문화 가구  ▪ 선정 기준   - 평가항목 합산 총점 순으로 선정하고 총점이 같을 경우 각 평가항목의 순서에 따라 높은 점수 순으로 선정   - 총점 및 각 평가항목의 점수가 동일할 경우 부부합산 연 소득금액이 적은 순으로 선정",
+      "alwServCn": "-입력한 통장으로 현금 지급",
+      "aplyMtdCn": "- 잡아바어플라이 온라인 신청",
+      "inqNum": "7",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-770-2229",
+        "wlfareInfoReldNm": "양평군청 가족복지과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "양평군 청년 신혼부부 주거자금 대출이자 지원 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006673",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "대구광역시 남구 복지환경국 복지지원과",
+      "ctpvNm": "대구광역시",
+      "inqNum": "5",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "노년, 청년, 중장년",
+      "servDgst": "IOT․ICT 등 첨단기술을 활용한 24시간 생활밀착 서비스를 제공으로 고독사 위험군 관리 및 고독사 예방",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006673&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006673",
+      "servNm": "대구 남구 스마트빌리지 보급 및 확산 사업",
+      "sggNm": "남구",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현물대여"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006673",
+      "servNm": "대구 남구 스마트빌리지 보급 및 확산 사업",
+      "enfcBgngYmd": "20260223",
+      "enfcEndYmd": "20291231",
+      "bizChrDeptNm": "대구광역시 남구 복지환경국 복지지원과",
+      "ctpvNm": "대구광역시",
+      "sggNm": "남구",
+      "servDgst": "IOT․ICT 등 첨단기술을 활용한 24시간 생활밀착 서비스를 제공으로 고독사 위험군 관리 및 고독사 예방",
+      "lifeNmArray": "청년, 중장년, 노년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현물대여",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "1인 위기 가구 1,000세대",
+      "slctCritCn": "대구광역시 남구에 거주하는 1인 위기 가구",
+      "alwServCn": "댁내 ICT 기기 설치를 통한 고독사 예방 및 일상생활 지원",
+      "aplyMtdCn": "1인 위기가구 댁내 ICT기기 설치 24시간 스마트 케어",
+      "inqNum": "5",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "053-664-2739",
+        "wlfareInfoReldNm": "대구광역시 남구청 복지지원과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "2026년 과학기술정보통신부 스마트빌리지 보급 및 확산 사업 공모 선정"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006670",
+    "summary": {
+      "aplyMtdNm": "E-mail, 인터넷, 방문, 전화",
+      "bizChrDeptNm": "부산광역시 청년산학국 청년정책과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "5",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "부산지역 기업에 취업한 청년들에게 취업성공, 직장적응, 고용유지까지 성장단계별 패키지 지원으로 취업활성화 및 안정적 정착 유도",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006670&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006670",
+      "servNm": "부산청년 취업성공풀패키지 지원",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006670",
+      "servNm": "부산청년 취업성공풀패키지 지원",
+      "enfcBgngYmd": "20250101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 청년산학국 청년정책과",
+      "ctpvNm": "부산광역시",
+      "servDgst": "부산지역 기업에 취업한 청년들에게 취업성공, 직장적응, 고용유지까지 성장단계별 패키지 지원으로 취업활성화 및 안정적 정착 유도",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "분기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문, 전화, 인터넷, E-mail",
+      "sprtTrgtCn": "ㅇ 부산시에 주민 등록이 되어있는 만 39세이하 청년-부산시 소재 중소 중견기업에 정규직으로 취업 후 근속한 청년- 고용보험에 가입된 자로서 주 소정근로시간이 30시간 이상인자- 최저임금법에 따라 정하는 임금의 100% 이상을 받는자 ('26년 2,152,700원)ㅇ 제외대상-사업주의 배우자 또는 직계 존비속, 형제자매 관계가 있는자-중앙부처 또는 지방정부 지원사업에 참여중이거나 명칭에 관계없이 임금 외 취업유지지원금을 받고 있는 자- 채용일 기준 대학, 고등학교 재학 중인자(졸업예정자 가능)- 인력 공급업, 경비경호업, 사업시설 관리 서비스업 기업에서 파견, 용역 근로자 등 간접고용형태로 취업한 청년- 중소기업 인력지원 특별법 제3조의 지원 제외 업체에 취업한 자",
+      "slctCritCn": "(선정기준 상세내용)  ㅇ 신청자격 : 권역별 전문상담사를 통한 매칭 청년(18세~39세 이하) 중 채용기준일 부산시 소재      주민등록이 되어 있는 자 ㅇ 참여조건 : ‘부산청년취업성공패키지’ 사업의 성장 단계별 사업 참여 조건(취업후 1년간 관리)   - (1단계) 구인 수요 기업 발굴 및 권역별 취업 상담기관의 운영을 통한 기업- 지역청년 매칭   - (2단계) 부산내 중소,중견기업에 정규직 취업 시 ‘청년취업도약지원금’ 지원 (1년간 최대 100만원 ※ 부산시)   - (3단계) 입사초기 직장적응 지원   - (4단계) 고용노동부 청년일자리도약장려금 지원",
+      "alwServCn": "정규직 채용 조건, 3개월 이상 근속 50만원, 9개월 이상 근속 25만원, 12개월 근속 시 25만원 지원으로 최대 100만원 현금지급",
+      "aplyMtdCn": "방문, 전화, 인터넷사이트신청, EMAIL 신청서 접수 및 문의",
+      "inqNum": "5",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": [
+        {
+          "wlfareInfoDtlCd": "010",
+          "wlfareInfoReldCn": "051-316-7411",
+          "wlfareInfoReldNm": "부산경영자총협회"
+        },
+        {
+          "wlfareInfoDtlCd": "010",
+          "wlfareInfoReldCn": "051-600-1354",
+          "wlfareInfoReldNm": "부산경제진흥원"
+        },
+        {
+          "wlfareInfoDtlCd": "010",
+          "wlfareInfoReldCn": "051-888-7885",
+          "wlfareInfoReldNm": "부산광역시 청년산학국 청년정책과"
+        }
+      ],
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "부산광역시 청년일자리 창출 지원 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006656",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "서울특별시 관악구 보건소 지역보건과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "4",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "자연임신을 원하는 원인불명의 난임부부를 위한 첩약 치료비용 지원",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006656&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006656",
+      "servNm": "관악구 한의약 난임치료 지원 사업",
+      "sggNm": "관악구",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "기타"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006656",
+      "servNm": "관악구 한의약 난임치료 지원 사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 관악구 보건소 지역보건과",
+      "ctpvNm": "서울특별시",
+      "sggNm": "관악구",
+      "servDgst": "자연임신을 원하는 원인불명의 난임부부를 위한 첩약 치료비용 지원",
+      "lifeNmArray": "청년",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "기타",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "- 원인불명의 난임을 진단받은 부부(사실혼 부부 포함)- 여성 나이 기준 없음- 부부 공동치료, 단독치료 가능- 신청일 기준 부부 한 명 이상이 대한민국 국적이면서 주민등록상 관악구민- 소득, 재산 기준 없음",
+      "slctCritCn": "- 원인불명의 난임 진단자 (N979)- 여성 나이 기준 없음- 신청일 기준 부부 한 명 이상이 대한민국 국적이면서 주민등록상 관악구민- 소득, 재산 기준 없음",
+      "alwServCn": "지정한의원 첩약 치료비용의 본인부담금 10% 직접 결제90%(120만원)는 지정한의원에서 보건소로 의료비 청구",
+      "aplyMtdCn": "- 집중 치료 최소 1개월 이상, 최대 3개월 한약 비용의 90% 지원(1인 120만원), 10% 본인 부담 ※ 기초생활수급자 및 차상위 계층 100% 전액 지원- 치료기간: 3개월(집중 치료)+2개월(관찰 기간)- 지원횟수: 신청일 기준 1인 연 1회(생애 2회)- 관악구 한의약 난임치료 지정한의원 이용 가능- 관악구보건소 방문신청(사전 연락 필수)- 신청기간: 예산 소진까지 상시 접수",
+      "inqNum": "4",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "02-879-7153",
+        "wlfareInfoReldNm": "관악구보건소"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "서울시 관악구 한방난임치료 지원에 관한 조례 제 1472호"
+      },
+      "basfrmList": [
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260721UUWBM0937590201821904&atcflSn=1",
+          "wlfareInfoReldNm": "관악형 한의약 난임치료 지원 신청서 및 개인정보동의서.hwpx"
+        },
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260721UUWBM0940250201822196&atcflSn=1",
+          "wlfareInfoReldNm": "한의약 난임치료 동의서(사실혼관계).hwpx"
+        },
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260721UUWBM0932500201821120&atcflSn=1",
+          "wlfareInfoReldNm": "서울특별시 관악구 한방난임치료 지원에 관한 조례.pdf"
+        }
+      ]
+    }
+  },
+  {
+    "servId": "WLF00006653",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "서울특별시 시민건강국 건강관리과",
+      "ctpvNm": "서울특별시",
+      "inqNum": "4",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "일정 조건을 충족하는 민간산후조리원에 사업비 및 이용료 보전 등 지원을 통해 합리적 가격으로 양질의 산후조리 서비스 제공",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006653&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006653",
+      "servNm": "서울형 안심 산후조리원 운영 시범사업",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "감면",
+      "trgterIndvdlNmArray": "저소득, 장애인, 다문화·탈북민, 다자녀, 보훈대상자, 한부모·조손"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006653",
+      "servNm": "서울형 안심 산후조리원 운영 시범사업",
+      "enfcBgngYmd": "20260608",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "서울특별시 시민건강국 건강관리과",
+      "ctpvNm": "서울특별시",
+      "servDgst": "일정 조건을 충족하는 민간산후조리원에 사업비 및 이용료 보전 등 지원을 통해 합리적 가격으로 양질의 산후조리 서비스 제공",
+      "lifeNmArray": "청년",
+      "trgterIndvdlNmArray": "다문화·탈북민, 다자녀, 보훈대상자, 장애인, 저소득, 한부모·조손",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "감면",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "서울시 1년 이상 거주 임산부",
+      "slctCritCn": "서울시 거주 1년 이상 거주 임산부 중 이용순위에 따라 대상 선정  - 1순위 : 기초생활수급자, 차상위계층  - 2순위 : 5·18민주유공자 및 그 유족 산모, 국가유공자 및 그 유족 산모, 북한이탈주민 보호대상 산모, 다문화 가족의 산모              장애인 산모, 한부모 가족의 산모, 삼둥이 이상 출산모, 셋째아 이상 출산모  - 3순위 :  쌍둥이 출산모, 둘째 출산모  - 4순위 : 1~3순위 외 산모",
+      "alwServCn": "서울형 안심 산후조리원 2주 이용 시 표준이용금액 390만원 - 이용순위별 본인부담금(이용대상에 따라 감면 혜택 적용)    1순위 : 무료    2순위 : 125만원    3,4순위 : 250만원",
+      "aplyMtdCn": "1. 출산 예정월 6개월 전 서울특별시 공공서비스 예약 사이트에서 1차 사전 예약 신청 2. 온라인 신청자 대상 1~4순위자 순, 동일 순위내 접수시간 순으로 1차 예약 배정 3. 1차 예약 배정자 대상 산후조리원으로 순차적으로 개별 연락 및 방문 상담 후 최종 예약 확정",
+      "inqNum": "4",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "2133-9486",
+        "wlfareInfoReldNm": "서울특별시 건강관리과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "보건의료기본법 제44조(보건의료 시범사업)"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006652",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "경상남도 진주시 인구청년정책관",
+      "ctpvNm": "경상남도",
+      "inqNum": "8",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청소년, 청년",
+      "servDgst": "- 지방을 생활권으로 하는 교통 취약지역 청년층의 이동 문제 개선\n - 사회초년생의 원활한 사회 진출 지원 및 지역 정착 촉진\n - 운전면허 취득비용 일부 지원으로 경제적 부담 완화\n - 청년 인구 유출 완화 및 지역 경제 활성화 기여",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006652&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006652",
+      "servNm": "진주시 사회초년생 운전면허 취득비용 지원사업",
+      "sggNm": "진주시",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "지역화폐"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006652",
+      "servNm": "진주시 사회초년생 운전면허 취득비용 지원사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경상남도 진주시 인구청년정책관",
+      "ctpvNm": "경상남도",
+      "sggNm": "진주시",
+      "servDgst": "- 지방을 생활권으로 하는 교통 취약지역 청년층의 이동 문제 개선\n - 사회초년생의 원활한 사회 진출 지원 및 지역 정착 촉진\n - 운전면허 취득비용 일부 지원으로 경제적 부담 완화\n - 청년 인구 유출 완화 및 지역 경제 활성화 기여",
+      "lifeNmArray": "청소년, 청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "지역화폐",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "① 18~19세[2007년생 ~ 2008년생]② 2025.12.31.(이전)부터 지급일까지 계속 진주시에 주소를 두고 있는자③ 2026.1.1. 이후 자동차 운전면허(1·2종 보통) 취득자(소지자)   ※ 단, ‘25.11.13. 이전부터 계속하여 진주시에 주소를 두고 있는 자가 ‘25.11.13.(수능일) 이후 운전면허를 취득한 경우 소급 지원(첫 시행 감안)④ 취득기한: [2007년생] 2026.12.31.까지/[2008년생] 2027.12.31.까지",
+      "slctCritCn": "① 18~19세[2007년생 ~ 2008년생]② 2025.12.31.(이전)부터 지급일까지 계속 진주시에 주소를 두고 있는자③ 2026.1.1. 이후 자동차 운전면허(1·2종 보통) 취득자(소지자)   ※ 단, ‘25.11.13. 이전부터 계속하여 진주시에 주소를 두고 있는 자가 ‘25.11.13.(수능일) 이후 운전면허를 취득한 경우 소급 지원(첫 시행 감안)④ 취득기한: [2007년생] 2026.12.31.까지/[2008년생] 2027.12.31.까지",
+      "alwServCn": "1인당 10만 원 모바일 진주사랑상품권 지원(생애 1회) ※ 면허 취득비용이 10만원 미만인 경우, 5천원(미만 절사) 단위로 실비 지원",
+      "aplyMtdCn": "진주시 청년온라인 플랫폼(https://young.jinju.go.kr/young/)에서 신청가능합니다.",
+      "inqNum": "8",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "055-749-8114",
+        "wlfareInfoReldNm": "진주시 인구청년정책관"
+      },
+      "inqplHmpgReldList": {
+        "wlfareInfoDtlCd": "020",
+        "wlfareInfoReldCn": "https://young.jinju.go.kr/young/",
+        "wlfareInfoReldNm": "진주시 인구청년정책관"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "진주시 청년 기본 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006651",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "경상북도 문경시 보건소 건강관리과",
+      "ctpvNm": "경상북도",
+      "inqNum": "5",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년, 청소년, 중장년",
+      "servDgst": "문경시 출산 산모에게 산후조리비를 지원하여 출산가정의 경제적 부담 완화를 통해 건전한 출산 환경을 조성하고 산모의 건강관리를 도모",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006651&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006651",
+      "servNm": "문경시 임산부 산후조리비 지원",
+      "sggNm": "문경시",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006651",
+      "servNm": "문경시 임산부 산후조리비 지원",
+      "enfcBgngYmd": "20241016",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경상북도 문경시 보건소 건강관리과",
+      "ctpvNm": "경상북도",
+      "sggNm": "문경시",
+      "servDgst": "문경시 출산 산모에게 산후조리비를 지원하여 출산가정의 경제적 부담 완화를 통해 건전한 출산 환경을 조성하고 산모의 건강관리를 도모",
+      "lifeNmArray": "청소년, 청년, 중장년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "1회성",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "❍ 대    상 : 문경시 관내 출산가정 산모    - 출생아가 관내 출생신고가 되어 있고, 주민등록상 주소가 문경시로 신청일 기준 6개월 이상인 산모(결혼이민자 및 영주의 체류자격을 취득한 외국인 산모 포함)❍ 지원내용 : 산후조리 관련 본인부담금 최대 150만원 지원     ※ 2026년 이전 출산가정은 최대 50만원 지원",
+      "slctCritCn": "❍ 대    상 : 문경시 관내 출산가정 산모    - 출생아가 관내 출생신고가 되어 있고, 주민등록상 주소가 문경시로 신청일 기준 6개월 이상인 산모(결혼이민자 및 영주의 체류자격을 취득한 외국인 산모 포함)",
+      "alwServCn": "❍ 지원내용 : 산후조리 관련 본인부담금 최대 150만원 지원     ※ 2026년 이전 출산가정은 최대 50만원 지원",
+      "aplyMtdCn": "2층 모자보건실 방문접수",
+      "inqNum": "5",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "054-550-8061",
+        "wlfareInfoReldNm": "문경시 보건소 건강관리과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "문경시 산후조리비 지원 조례"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006650",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청북도 옥천군 미래전략국 성장정책과",
+      "ctpvNm": "충청북도",
+      "inqNum": "4",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "청년들의 경제적·심리적 부담을 덜어 자립과 지역 정착을 유도하고, 안정적인 사회 진입 및 실질적인 생활기반을 지원하기 위함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006650&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006650",
+      "servNm": "옥천군 청년지원 수당",
+      "sggNm": "옥천군",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "지역화폐"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006650",
+      "servNm": "옥천군 청년지원 수당",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청북도 옥천군 미래전략국 성장정책과",
+      "ctpvNm": "충청북도",
+      "sggNm": "옥천군",
+      "servDgst": "청년들의 경제적·심리적 부담을 덜어 자립과 지역 정착을 유도하고, 안정적인 사회 진입 및 실질적인 생활기반을 지원하기 위함",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "수시",
+      "srvPvsnNm": "지역화폐",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "옥천군에 주민등록을 두고 거주하는 19~39세 청년  - 2026. 1. 1. 이후 관내 중소기업에 취업하여 6개월 이상 근속시 50만원 지급",
+      "slctCritCn": "① 옥천군에 거주하며 재직 중인 19 ~ 39세 청년② 옥천군 소재 사업장 재직 및 근속(취업수당)- 옥천군 소재 사업장 6개월 이상 재직- 근로계약 체결 및 4대보험 가입(근속수당)- 옥천군 소재 사업장 1년 이상 재직- 근로계약 체결 및 4대보험 가입",
+      "alwServCn": "옥천군에 주민등록을 두고 거주하는 19~39세 청년  - 2026. 1. 1. 이후 관내 중소기업에 취업하여 6개월 이상 근속시 50만원 지급(지역화폐)  - 2026. 1. 1. 이후 관내 중소기업에 취업하여 12개월 이상 근속시 50만원 지급(지역화폐)",
+      "aplyMtdCn": "■ 신청기간 내 옥천군청 성장정책과에 방문 신청합니다.",
+      "inqNum": "4",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "043-730-3783",
+        "wlfareInfoReldNm": "옥천군 성장정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "옥천군 청년 기본 조례"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260720UUWBM1824140201764351&atcflSn=1",
+        "wlfareInfoReldNm": "옥천군 청년 기본 조례.hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006646",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "부산광역시 남구 주민복지국 주민복지과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "3",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년, 중장년",
+      "servDgst": "부산광역시 남구에 거주하는 장애인가정의 안정적 출산과 양육환경을 조성하기 위함",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006646&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006646",
+      "servNm": "부산광역시 남구 장애인가정 출산 및 양육지원 사업",
+      "sggNm": "남구",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "trgterIndvdlNmArray": "장애인"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006646",
+      "servNm": "부산광역시 남구 장애인가정 출산 및 양육지원 사업",
+      "enfcBgngYmd": "20250101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 남구 주민복지국 주민복지과",
+      "ctpvNm": "부산광역시",
+      "sggNm": "남구",
+      "servDgst": "부산광역시 남구에 거주하는 장애인가정의 안정적 출산과 양육환경을 조성하기 위함",
+      "lifeNmArray": "청년, 중장년",
+      "trgterIndvdlNmArray": "장애인",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "출산지원금-부가 등록장애인인 가정(출생일 기준 1년전부터 남구 거주)양육지원금-부 또는 모가 등록 장애인인 가정(신청일 기준 1년전부터 남구거주, 36개월 이하 영유아 양육)",
+      "slctCritCn": "◯ 출산지원금 : 출생아 출생일을 기준으로 1년 전부터 신청일 현재까지 계속하여 부산광역시 남구에 주민등록을 두고 거주하는 장애인 가정(보건복지부 여성장애인 출산비용지원사업과 중복지원 제외)◯ 양육지원금 : 36개월 이하 영유아를 양육하면서 신청일 기준으로 1년 전부터 계속하여 부산광역시 남구에 주민등록을 두고 거주하는 장애인 가정",
+      "alwServCn": "출산지원금 1회 1,000천원양육지원금 월 100천원, 최대 36개월 지급",
+      "aplyMtdCn": "주소지 동 행정복지센터 방문 신청",
+      "inqNum": "3",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "051 607 4336",
+        "wlfareInfoReldNm": "남구청 주민복지과 장애인복지팀"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "장애인복지법 제9조(국가와 지방자치단체의 책임), 부산광역시 남구 장애인 가정 출산 및 양육지원 조례"
+      },
+      "basfrmList": [
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260720UUWBM1505410201705529&atcflSn=1",
+          "wlfareInfoReldNm": "신청서 서식.hwp"
+        },
+        {
+          "wlfareInfoDtlCd": "040",
+          "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260720UUWBM1548280201721291&atcflSn=1",
+          "wlfareInfoReldNm": "홍보자료(2).jpg"
+        }
+      ]
+    }
+  },
+  {
+    "servId": "WLF00006629",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 논산시 인구복지국 인구청년교육과",
+      "ctpvNm": "충청남도",
+      "inqNum": "4",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "청년의 주거안정 및 정주여건을 향상시키고, 청년이 정착하여 살기 좋은 도시환경 조성을 위한 사업입니다.",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006629&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006629",
+      "servNm": "논산시 청년 전세자금 대출이자 지원 사업",
+      "sggNm": "논산시",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006629",
+      "servNm": "논산시 청년 전세자금 대출이자 지원 사업",
+      "enfcBgngYmd": "20260101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 논산시 인구복지국 인구청년교육과",
+      "ctpvNm": "충청남도",
+      "sggNm": "논산시",
+      "servDgst": "청년의 주거안정 및 정주여건을 향상시키고, 청년이 정착하여 살기 좋은 도시환경 조성을 위한 사업입니다.",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "반기",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "논산시에 주소를 두고 전세자금 대출을 이용 중인 청년 중 아래의 조건을 모두 만족하는 만19세 이상 ~ 45세 이하 자    1. 무주택 세대주이면서 세대원(배우자 및 자녀) 전원 무주택자    2. 가구소득인정액이 기준중위소득 180%* 이하인 청년",
+      "slctCritCn": "공통 : 공고일 현재 논산시 임차 대상 주소지에 주민등록 등재 및 실제 거주 * 기혼자의 경우 공고일 기준 부부 모두 해당 주소지에 주민등록 등재 및 실제 거주 ■ 신혼가구 : 신청자와 그 배우자의 혼인 신고일이 공고일로부터 7년이 경과하지 않은 경우 ■ 육아가구 : 신청자의 직계비속으로서 공고일 기준 민법상 미성년자인 자녀가 있는 경우",
+      "alwServCn": "2026년 1월 이후 본인이 납입한 대출이자의 50% 지원   - 신혼부부 및 육아가구 : 年 최대 2,000천원   - 그 외 청년 : 年 최대 1,500천원",
+      "aplyMtdCn": "신청방법 : 직접 방문 신청(논산시청 인구청년교육과)",
+      "inqNum": "4",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-746-5764",
+        "wlfareInfoReldNm": "논산시청 인구청년교육과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "「청년기본법」제20조, 「논산시 청년지원 기본 조례」제19조의4"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006623",
+    "summary": {
+      "bizChrDeptNm": "경기도 화성시 성평등가족국 청년청소년과",
+      "ctpvNm": "경기도",
+      "inqNum": "5",
+      "intrsThemaNmArray": "서민금융, 일자리",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "현장실습을 통한 실질적인 직무 역량 강화 및 일경험 기회 제공",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006623&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006623",
+      "servNm": "화성청년 취업역량강화",
+      "sggNm": "화성시",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006623",
+      "servNm": "화성청년 취업역량강화",
+      "enfcBgngYmd": "20240101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "경기도 화성시 성평등가족국 청년청소년과",
+      "ctpvNm": "경기도",
+      "sggNm": "화성시",
+      "servDgst": "현장실습을 통한 실질적인 직무 역량 강화 및 일경험 기회 제공",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "일자리, 서민금융",
+      "sprtCycNm": "월",
+      "srvPvsnNm": "현금지급",
+      "sprtTrgtCn": "화성시에 거주하는 19~39세 미취업 청년",
+      "slctCritCn": "미래기술학교 수료생 대상, 참여기업 자체 심사(매칭)을 통해 현장실습 대상자 확정",
+      "alwServCn": "-월급: 시급*1일 근로시간*일 근로일수-주휴수당: 일급*월 만근 주 수-임금기준: 2026년 생활임금(12,090원)",
+      "aplyMtdCn": "직접 지원(별도 신청사항 없음)",
+      "inqNum": "5",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "031-5189-3146",
+        "wlfareInfoReldNm": "화성시 청년청소년정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "청년고용촉진 특별법 제3조(국가 및 지방자치단체 등의 책무) 및 제8조의2(청년에 대한 직장체험 기회 제공)"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260721UUWBM1523030201905492&atcflSn=1",
+        "wlfareInfoReldNm": "청년고용촉진 특별법(법률)(제19940호)(20231231).hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006622",
+    "summary": {
+      "aplyMtdNm": "인터넷",
+      "bizChrDeptNm": "인천광역시 도시계획국 주택정책과",
+      "ctpvNm": "인천광역시",
+      "inqNum": "7",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "신생아 출생가구의 주거비 부담 완화를 통해 내집 마련 기회를 제공함으로써 주거안정을 도모하여 저출생 및 인구감소 문제 해결\n내집마련 주택담보대출 잔액에 0.4%~최대 1% 이자 지원",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006622&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006622",
+      "servNm": "1.0 이자지원(내집마련 대출)",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006622",
+      "servNm": "1.0 이자지원(내집마련 대출)",
+      "enfcBgngYmd": "20250909",
+      "enfcEndYmd": "20341231",
+      "bizChrDeptNm": "인천광역시 도시계획국 주택정책과",
+      "ctpvNm": "인천광역시",
+      "servDgst": "신생아 출생가구의 주거비 부담 완화를 통해 내집 마련 기회를 제공함으로써 주거안정을 도모하여 저출생 및 인구감소 문제 해결\n내집마련 주택담보대출 잔액에 0.4%~최대 1% 이자 지원",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "인터넷",
+      "sprtTrgtCn": "❍ 신청대상: 2025년 이후 출생한 자녀가 있는 ‘내 집 마련 대출’ 가구   - 소득요건 : 부부합산 1억 3,000만원 이하   - 주택요건 : 부부 소유 1가구 1주택    (인천시 소재 / 전용면적 85㎡ 이하 / 실거래 6억원 이하 주거용 주택)   - 거주요건 : 공고일 기준 구입주택에 부부 및 자녀 모두 전입 및 실거주",
+      "slctCritCn": "- 소득요건 : 부부합산 1억 3,000만원 이하   - 주택요건 : 부부 소유 1가구 1주택    (인천시 소재 / 전용면적 85㎡ 이하 / 실거래 6억원 이하 주거용 주택)",
+      "alwServCn": "주택담보대출잔액의 최대 1.0% 이자 지원(연 최대 300만원/월 25만원 이내)",
+      "aplyMtdCn": "인천주거포털 내 접수시스템",
+      "inqNum": "7",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "032-440-4759",
+        "wlfareInfoReldNm": "인천광역시청 주택정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "주기기본법 제15조(주거비 보조)"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260722UUWBM1124300202027766&atcflSn=1",
+        "wlfareInfoReldNm": "1.0대출 세부추진계획(최종).hwpx"
+      }
+    }
+  },
+  {
+    "servId": "WLF00006621",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "부산광역시 부산진구 도시관리국 토지정보과",
+      "ctpvNm": "부산광역시",
+      "inqNum": "8",
+      "intrsThemaNmArray": "서민금융",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청년",
+      "servDgst": "-청년층의 주거부담 완화\n-전세사기 피해예방 강화 및 안전한 주거 정착 기여",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00006621&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00006621",
+      "servNm": "청년 전월세 중개보수 지원",
+      "sggNm": "부산진구",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00006621",
+      "servNm": "청년 전월세 중개보수 지원",
+      "enfcBgngYmd": "20250101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "부산광역시 부산진구 도시관리국 토지정보과",
+      "ctpvNm": "부산광역시",
+      "sggNm": "부산진구",
+      "servDgst": "-청년층의 주거부담 완화\n-전세사기 피해예방 강화 및 안전한 주거 정착 기여",
+      "lifeNmArray": "청년",
+      "intrsThemaNmArray": "서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "❍ 지원대상 : 2026년 전월세 안심계약 매니저 서비스 이용자 중    - (연      령) 19세 ~ 39세 청년    - (거주기준) 상담 후 임대차계약 및 전입신고를 한 자    - (소득기준) 중위 소득 140% 이하(연소득 43백만원)    - (대상주택) 거래금액 1억 원(전월세 환산 중개수수료 산출 기준) 이하 주거용 주택",
+      "slctCritCn": "❍ 지원대상 : 2026년 전월세 안심계약 매니저 서비스 이용자 중    - (연      령) 19세 ~ 39세 청년    - (거주기준) 상담 후 임대차계약 및 전입신고를 한 자    - (소득기준) 중위 소득 140% 이하(연소득 43백만원)    - (대상주택) 거래금액 1억 원(전월세 환산 중개수수료 산출 기준) 이하 주거용 주택",
+      "alwServCn": "❍ (사업기간)   2026년 1월 ~ 사업비 소진 시까지 ❍ (사업비/규모)  15백만 원(구비) / 약 130명 이상 ❍ 지원대상 : 2026년 전월세 안심계약 매니저 서비스 이용자 중    - (연      령) 19세 ~ 39세 청년    - (거주기준) 상담 후 임대차계약 및 전입신고(부산진구)를 한 자    - (소득기준) 중위 소득 140% 이하(연소득 43백만원)    - (대상주택) 거래금액 1억 원(전월세 환산 중개수수료 산출 기준) 이하 주거용 주택 ❍ (지원내용)  부동산 전월세 중개보수 납부액의 50%(최대 165천원) 또는 임차인이 부담하는 입주청소비(최대 100천원)",
+      "aplyMtdCn": "❍ 이용방법 : 전월세 안심계약 이용후 임대차거래 및 전입신고 완료❍ 신청방법 : 부산진구청 토지정보과(부동산관리계) 방문 접수",
+      "inqNum": "8",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "051-605-4762",
+        "wlfareInfoReldNm": "부산광역시 부산진구 토지정보과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "부산진구 전월세 사기 예방지원 조례 제5조 1항(지원사업)"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260721UUWBM1016010201832529&atcflSn=1",
+        "wlfareInfoReldNm": "부산광역시 부산진구 전ㆍ월세 사기 피해 예방 지원 조례.hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00003546",
+    "summary": {
+      "aplyMtdNm": "방문, 전화",
+      "bizChrDeptNm": "충청북도 진천군 복지행정국 가족친화과",
+      "ctpvNm": "충청북도",
+      "inqNum": "1413",
+      "intrsThemaNmArray": "임신·출산",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "중장년, 노년, 임신 · 출산, 청년",
+      "servDgst": "여성장애인의 임신·출산·육아 및 가사활동 지원과 관련한 종합적인 서비스를 제공하여 여성장애인들의 일상생활을 지원하고 사회참여 확대",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00003546&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00003546",
+      "servNm": "여성장애인 가사도우미 사업",
+      "sggNm": "진천군",
+      "sprtCycNm": "주",
+      "srvPvsnNm": "프로그램/서비스(서비스)",
+      "trgterIndvdlNmArray": "장애인"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00003546",
+      "servNm": "여성장애인 가사도우미 사업",
+      "enfcBgngYmd": "20170101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청북도 진천군 복지행정국 가족친화과",
+      "ctpvNm": "충청북도",
+      "sggNm": "진천군",
+      "servDgst": "여성장애인의 임신·출산·육아 및 가사활동 지원과 관련한 종합적인 서비스를 제공하여 여성장애인들의 일상생활을 지원하고 사회참여 확대",
+      "lifeNmArray": "청년, 중장년, 노년, 임신 · 출산",
+      "trgterIndvdlNmArray": "장애인",
+      "intrsThemaNmArray": "임신·출산",
+      "sprtCycNm": "주",
+      "srvPvsnNm": "프로그램/서비스(서비스)",
+      "aplyMtdNm": "방문, 전화",
+      "sprtTrgtCn": "장애인복지법 제32조에 의한 등록장애인임신, 출산 또는 영유아 자녀를 둔 여성장애인중증 및 고령의 독거 여성장애인",
+      "slctCritCn": "장애인복지법 제32조에 의한 등록장애인임신, 출산 또는 영유아 자녀를 둔 여성장애인중증 및 고령의 독거 여성장애인",
+      "alwServCn": "서비스(가사 출산, 양육 등 지원)",
+      "aplyMtdCn": "내방 및 전화문의",
+      "inqNum": "1413",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "043-539-3943",
+        "wlfareInfoReldNm": "진천군청 가족친화과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "장애인복지법"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260720UUWBM1723130201750251&atcflSn=1",
+        "wlfareInfoReldNm": "여성장애인가사도우미 지원사업 업무지침(2026.8.1.시행).hwp"
+      }
+    }
+  },
+  {
+    "servId": "WLF00000156",
+    "summary": {
+      "aplyMtdNm": "방문",
+      "bizChrDeptNm": "충청남도 인구전략국 여성가족정책과",
+      "ctpvNm": "충청남도",
+      "inqNum": "12261",
+      "intrsThemaNmArray": "서민금융, 교육",
+      "lastModYmd": "20260723",
+      "lifeNmArray": "청소년, 청년",
+      "servDgst": "대학 등록금 지원을 통한 대학 입학에 따른 저소득 한부모가족의 경제적 부담 경감하고, 균등한 교육 기회 제공",
+      "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00000156&wlfareInfoReldBztpCd=02",
+      "servId": "WLF00000156",
+      "servNm": "한부모가족 자녀 대학등록금 등 지원",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "trgterIndvdlNmArray": "한부모·조손"
+    },
+    "detail": {
+      "resultCode": "0",
+      "resultMessage": "SUCCESS",
+      "servId": "WLF00000156",
+      "servNm": "한부모가족 자녀 대학등록금 등 지원",
+      "enfcBgngYmd": "20160101",
+      "enfcEndYmd": "99991231",
+      "bizChrDeptNm": "충청남도 인구전략국 여성가족정책과",
+      "ctpvNm": "충청남도",
+      "servDgst": "대학 등록금 지원을 통한 대학 입학에 따른 저소득 한부모가족의 경제적 부담 경감하고, 균등한 교육 기회 제공",
+      "lifeNmArray": "청소년, 청년",
+      "trgterIndvdlNmArray": "한부모·조손",
+      "intrsThemaNmArray": "교육, 서민금융",
+      "sprtCycNm": "년",
+      "srvPvsnNm": "현금지급",
+      "aplyMtdNm": "방문",
+      "sprtTrgtCn": "저소득 한부모가족 자녀 중 ‘26년 대학 입학자(1인당 1회 제한)",
+      "slctCritCn": "- 대학입학일 기준 충청남도에서 저소득 한부모가족(중위소득 65%) 해당자이면서, 접수기간 내 한부모가 충남도에 주소를 둔 자에 한하여 지원 가능  ※ 접수기간 내에 한부모가족 자격이 중지된 경우 지원 불가- 단, 접수기간 내 충남도에 전입 온 자에 한하여 지원 가능- 입학학교 및 타 기관·단체에서 입학금·등록금을 감면 또는 면제받는 자는 2026학년도 1학기 등록금 총액에서 그 감면 범위에 해당하는 금액을 제외한 차액분 지원(- 생활비 명목의 학자금 및 근로에 대한 대가성 장학금, 1회성 포상 성격의 지원금은 중복범위에서 제외- 계절학기, 학생회비, 기숙사비, 생활비, 교통비 등 지원 불가- 도 양성평등기금에서 지원하는 대학입학금은 1인당 1회 지원- 지원자가 많을 경우 예산 범위 내에서 지원 대상자별 지원금 균등배분",
+      "alwServCn": "한부모가족 자녀 대학 신입생 입학 및 등록금 지원",
+      "aplyMtdCn": "시군조사 → 거주지 시군에 신청 → 대상자 선정 → 지원",
+      "inqNum": "12261",
+      "lastModYmd": "20260723",
+      "inqplCtadrList": {
+        "wlfareInfoDtlCd": "010",
+        "wlfareInfoReldCn": "041-635-2982",
+        "wlfareInfoReldNm": "충청남도 인구전략국 여성가족정책과"
+      },
+      "baslawList": {
+        "wlfareInfoDtlCd": "030",
+        "wlfareInfoReldNm": "충청남도 양성평등 기본 조례"
+      },
+      "basfrmList": {
+        "wlfareInfoDtlCd": "040",
+        "wlfareInfoReldCn": "https://www.bokjiro.go.kr/ssis-tbu/CmmFileUtil/siteQnaInfoDownload.do?atcflId=20260722UUWBM0928390201996544&atcflSn=1",
+        "wlfareInfoReldNm": "★ 2026년 저소득 한부모가족 신입생 자녀 대학등록금 등 지원 안내.hwp"
+      }
+    }
   }
 ]

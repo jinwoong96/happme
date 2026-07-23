@@ -17,7 +17,10 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
     plcyAplyMthdCn = aplyMtdCn (없으면 aplyMtdNm)
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
-    sprtTrgtMinAge/MaxAge = 19/39 고정값 (복지로 API 자체를 lifeArray=004 청년으로만 조회했으므로)
+    sprtTrgtMinAge/MaxAge/sprtTrgtAgeLmtYn = age_resolver.resolve_age() 참고. 본문(sprtTrgtCn)에서
+    정확한 나이 범위를 뽑을 수 있으면 그 값을, 못 뽑으면 lifeNmArray(생애주기) 기반값을 쓴다.
+    sbizCd = sbiz_resolver.resolve_sbiz() 참고. trgterIndvdlNmArray(장애인/한부모·조손 등)와
+    lifeNmArray(임신·출산->여성)를 기존 ONTONG 코드(SBIZ_MAP)와 매핑되는 것만 채운다.
     지역(ctpvNm+sggNm) -> policy_region.zip_code는 zipcd 테이블(load_zipcd_mapping.py로 적재)로 매칭
     (예: ctpvNm="경기도", sggNm="파주시" -> sido_name="경기도" & sigungu_name="파주시"인 시군구코드로 매핑.
      sggNm이 비어있으면(광역 단위 정책) ctpvNm과 sido_name이 일치하는 시군구코드 전부를 매핑)
@@ -49,6 +52,9 @@ from datetime import datetime
 import pymysql
 from dotenv import load_dotenv
 
+from age_resolver import resolve_age
+from sbiz_resolver import resolve_sbiz
+
 load_dotenv()
 
 DB_CONFIG = {
@@ -69,8 +75,8 @@ COLUMNS = [
     "plcySprtCn", "source", "rgtrInstCdNm", "sprvsnInstCdNm", "sprvsnInstPicNm", "operInstCdNm", "operInstPicNm",
     "bizPrdBgngYmd", "bizPrdEndYmd", "bizPrdEtcCn", "plcyAplyMthdCn", "srngMthdCn", "aplyUrlAddr",
     "sbmsnDcmntCn", "aplyYmd", "refUrlAddr1", "refUrlAddr2", "etcMttrCn",
-    "sprtSclCnt", "sprtTrgtMinAge", "sprtTrgtMaxAge", "earnMinAmt", "earnMaxAmt",
-    "earnEtcCn", "earnCndSeCd", "addAplyQlfcCndCn", "ptcpPrpTrgtCn", "mrgSttsCd",
+    "sprtSclCnt", "sprtTrgtMinAge", "sprtTrgtMaxAge", "sprtTrgtAgeLmtYn", "earnMinAmt", "earnMaxAmt",
+    "earnEtcCn", "earnCndSeCd", "addAplyQlfcCndCn", "ptcpPrpTrgtCn", "mrgSttsCd", "sbizCd",
     "inqCnt", "frstRegDt", "lastMdfcnDt",
 ]
 
@@ -211,6 +217,11 @@ def transform_record(record: dict) -> tuple:
     trgt_cn = clean(detail.get("sprtTrgtCn"))
     slct_cn = clean(detail.get("slctCritCn"))
     apply_url = build_apply_url(detail)
+    min_age, max_age, age_lmt_yn = resolve_age(detail.get("lifeNmArray"), trgt_cn)
+    sbiz_cd = resolve_sbiz(
+        detail.get("trgterIndvdlNmArray"), detail.get("lifeNmArray"),
+        detail.get("servNm"), trgt_cn, slct_cn,
+    )
 
     values = {
         "plcyNo": PLCYNO_PREFIX + serv_id,
@@ -238,8 +249,9 @@ def transform_record(record: dict) -> tuple:
         "refUrlAddr2": None,
         "etcMttrCn": build_etc_matter(detail),
         "sprtSclCnt": None,
-        "sprtTrgtMinAge": 19,
-        "sprtTrgtMaxAge": 39,
+        "sprtTrgtMinAge": min_age,
+        "sprtTrgtMaxAge": max_age,
+        "sprtTrgtAgeLmtYn": age_lmt_yn,
         "earnMinAmt": None,
         "earnMaxAmt": None,
         "earnEtcCn": trgt_cn or "-",
@@ -247,6 +259,7 @@ def transform_record(record: dict) -> tuple:
         "addAplyQlfcCndCn": slct_cn or "-",
         "ptcpPrpTrgtCn": trgt_cn or "-",
         "mrgSttsCd": None,
+        "sbizCd": sbiz_cd,
         "inqCnt": parse_int(detail.get("inqNum")) or 0,
         "frstRegDt": None,
         "lastMdfcnDt": parse_ymd(detail.get("lastModYmd")),
