@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
-import { clearCurrentPoliciesCache } from '../utils/currentPoliciesCache';
 
 const EMPTY_FORM = {
   birth_date: '',
@@ -95,9 +94,6 @@ export default function useRecommendationProfile() {
 
       // 프로필이 있으면 수정, 없으면 생성 (백엔드에서 통합 처리)
       await api.put('/profiles/me', payload);
-
-  // 프로필이 바뀌었으니 "가능정책" 캐시는 다음 진입 시 새로 계산되게 지운다.
-      clearCurrentPoliciesCache();
 
       const destination = from === 'mypage' ? '/mypage' : from === 'current' ? '/recommendation/current' : '/recommendation';
       navigate(destination);
