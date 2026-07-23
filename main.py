@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.concurrency import asynccontextmanager
 from app.core.settings import settings
 from app.core.logging_config import setup_logging
-from app.core.slack_alert import send_slack_alert
+from app.core.slack_alert import send_slack_alert, send_slack_status_alert
 from app.core.request_context import set_request_id, new_request_id, REQUEST_ID_HEADER
 from app.core.model_downloader import ensure_models_downloaded
 from app.core.data_downloader import ensure_data_downloaded
@@ -113,6 +113,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def slack_alert_middleware(request: Request, call_next):
+    """라우터에서 명시적으로 raise한 HTTPException(5xx)처럼, 전역 Exception 핸들러까지
+    올라오지 않고 정상 응답으로 처리되는 5xx도 놓치지 않도록 상태 코드를 검사해 알린다.
+    request_id_middleware보다 먼저 등록해 그 안쪽에 위치시켜, request_id contextvar가
+    이미 설정된 상태에서 읽도록 한다."""
+    response = await call_next(request)
+    if response.status_code >= 500:
+        await send_slack_status_alert(request, response.status_code)
+    return response
 
 
 @app.middleware("http")
