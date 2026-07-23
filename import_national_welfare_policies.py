@@ -19,8 +19,9 @@ import_welfare_policies.py(지자체용)와 같은 구조이지만, 중앙부처
     ptcpPrpTrgtCn / earnEtcCn     = tgtrDtlCn (지원대상 상세 - 지자체 API에 없던 필드라 여기선
                                      sprtTrgtCn 대신 이걸 씀. 소득 조건이 이 텍스트 안에 섞여
                                      있는 경우가 많아 earnEtcCn에도 재사용)
-    sprtTrgtMinAge/MaxAge/sprtTrgtAgeLmtYn = age_resolver.resolve_age() 참고. 본문(tgtrDtlCn)에서
-    정확한 나이 범위를 뽑을 수 있으면 그 값을, 못 뽑으면 lifeArray(생애주기) 기반값을 쓴다.
+    sprtTrgtMinAge/MaxAge = age_resolver.resolve_age() 참고. 본문(tgtrDtlCn)에서 정확한 나이
+    범위를 뽑을 수 있으면 그 값을, 못 뽑으면 lifeArray(생애주기) 기반값을 쓴다. 전연령은 (0, 0)
+    으로 통일(sprtTrgtAgeLmtYn은 원본 오류가 많아 더 이상 채우지 않고 NULL로 둠).
     sbizCd = sbiz_resolver.resolve_sbiz() 참고. trgterIndvdlArray(장애인/한부모·조손 등)와
     lifeArray(임신·출산->여성)를 기존 ONTONG 코드(SBIZ_MAP)와 매핑되는 것만 채운다.
     지역(policy_region) = 전국 매핑. 중앙부처 사업은 시도명(ctpvNm) 자체가 응답에 없어서 지자체
@@ -247,7 +248,7 @@ def transform_record(record: dict) -> tuple:
 
     tgtr_cn = clean(detail.get("tgtrDtlCn"))
     slct_cn = clean(detail.get("slctCritCn"))
-    min_age, max_age, age_lmt_yn = resolve_age(detail.get("lifeArray"), tgtr_cn)
+    min_age, max_age = resolve_age(detail.get("lifeArray"), tgtr_cn)
     sbiz_cd = resolve_sbiz(
         detail.get("trgterIndvdlArray"), detail.get("lifeArray"),
         detail.get("servNm"), tgtr_cn, slct_cn,
@@ -281,7 +282,7 @@ def transform_record(record: dict) -> tuple:
         "sprtSclCnt": None,
         "sprtTrgtMinAge": min_age,
         "sprtTrgtMaxAge": max_age,
-        "sprtTrgtAgeLmtYn": age_lmt_yn,
+        "sprtTrgtAgeLmtYn": None,
         "earnMinAmt": None,
         "earnMaxAmt": None,
         "earnEtcCn": tgtr_cn or "-",

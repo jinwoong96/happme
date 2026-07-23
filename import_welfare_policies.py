@@ -17,8 +17,9 @@ welfare_data_detail.json은 fetch_welfare_detail.py로 만든 파일이며,
     plcyAplyMthdCn = aplyMtdCn (없으면 aplyMtdNm)
     srngMthdCn / addAplyQlfcCndCn = slctCritCn (선정기준)
     ptcpPrpTrgtCn / earnEtcCn     = sprtTrgtCn (복지로엔 소득조건이 따로 없어 지원대상 원문 재사용)
-    sprtTrgtMinAge/MaxAge/sprtTrgtAgeLmtYn = age_resolver.resolve_age() 참고. 본문(sprtTrgtCn)에서
-    정확한 나이 범위를 뽑을 수 있으면 그 값을, 못 뽑으면 lifeNmArray(생애주기) 기반값을 쓴다.
+    sprtTrgtMinAge/MaxAge = age_resolver.resolve_age() 참고. 본문(sprtTrgtCn)에서 정확한 나이
+    범위를 뽑을 수 있으면 그 값을, 못 뽑으면 lifeNmArray(생애주기) 기반값을 쓴다. 전연령은 (0, 0)
+    으로 통일(sprtTrgtAgeLmtYn은 원본 오류가 많아 더 이상 채우지 않고 NULL로 둠).
     sbizCd = sbiz_resolver.resolve_sbiz() 참고. trgterIndvdlNmArray(장애인/한부모·조손 등)와
     lifeNmArray(임신·출산->여성)를 기존 ONTONG 코드(SBIZ_MAP)와 매핑되는 것만 채운다.
     지역(ctpvNm+sggNm) -> policy_region.zip_code는 zipcd 테이블(load_zipcd_mapping.py로 적재)로 매칭
@@ -217,7 +218,7 @@ def transform_record(record: dict) -> tuple:
     trgt_cn = clean(detail.get("sprtTrgtCn"))
     slct_cn = clean(detail.get("slctCritCn"))
     apply_url = build_apply_url(detail)
-    min_age, max_age, age_lmt_yn = resolve_age(detail.get("lifeNmArray"), trgt_cn)
+    min_age, max_age = resolve_age(detail.get("lifeNmArray"), trgt_cn)
     sbiz_cd = resolve_sbiz(
         detail.get("trgterIndvdlNmArray"), detail.get("lifeNmArray"),
         detail.get("servNm"), trgt_cn, slct_cn,
@@ -251,7 +252,7 @@ def transform_record(record: dict) -> tuple:
         "sprtSclCnt": None,
         "sprtTrgtMinAge": min_age,
         "sprtTrgtMaxAge": max_age,
-        "sprtTrgtAgeLmtYn": age_lmt_yn,
+        "sprtTrgtAgeLmtYn": None,
         "earnMinAmt": None,
         "earnMaxAmt": None,
         "earnEtcCn": trgt_cn or "-",

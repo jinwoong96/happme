@@ -1,6 +1,9 @@
 """
-복지로(지자체/중앙부처) 정책 임포트 스크립트 공용 모듈 - 지원 연령(sprtTrgtMinAge/MaxAge)과
-연령제한없음 플래그(sprtTrgtAgeLmtYn)를 결정한다.
+복지로(지자체/중앙부처) 정책 임포트 스크립트 공용 모듈 - 지원 연령(sprtTrgtMinAge/MaxAge)을
+결정한다. sprtTrgtAgeLmtYn(연령제한없음 플래그)은 원본 데이터 오류가 너무 많아 더 이상 쓰지 않고,
+eligibility_rules.py의 _match_age도 이제 이 필드를 보지 않는다 - 대신 전연령 정책은 min/max를
+둘 다 0으로 통일해서 넣는다(0은 is_empty_or_unlimited가 "제한없음"으로 보므로 자연스럽게 무제한
+판정됨).
 
 import_welfare_policies.py(지자체)/import_national_welfare_policies.py(중앙부처)가 이 모듈의
 resolve_age()를 공통으로 호출한다. 두 소스는 생애주기 필드명만 다르고("lifeNmArray" vs
@@ -39,22 +42,19 @@ def _parse_life_categories(life_value: str | None) -> list[str]:
     return [c.strip() for c in life_value.split(",") if c.strip() and c.strip() != PREGNANCY_LABEL]
 
 
-def _life_base(life_value: str | None) -> tuple[int, int, str | None]:
-    """lifeNmArray/lifeArray 값으로 (min, max, age_lmt_yn) base를 계산한다.
-    임신·출산을 뺀 6개 생애주기가 전부 있으면 사실상 전연령 대상이므로 age_lmt_yn='Y'를 반환한다
-    (min/max 컬럼은 NOT NULL이라 0/99를 채워두지만, eligibility_rules.py의 _match_age는
-    sprtTrgtAgeLmtYn='Y'면 이 값들을 아예 보지 않는다)."""
+def _life_base(life_value: str | None) -> tuple[int, int]:
+    """lifeNmArray/lifeArray 값으로 (min, max) base를 계산한다.
+    임신·출산을 뺀 6개 생애주기가 전부 있으면 사실상 전연령 대상이므로 (0, 0)을 반환한다."""
     categories = _parse_life_categories(life_value)
     known = [c for c in categories if c in LIFE_STAGE_BOUNDS]
 
     if known and set(known) == set(LIFE_ORDER):
-        return 0, 99, "Y"
+        return 0, 0
 
     if ANCHOR not in known:
         # WELFARE.py/WELFARE2.py가 lifeArray=004(청년)로 필터링해서 받아온 데이터라 실제로는
         # 항상 청년이 포함되지만, 방어적으로 청년 단독 범위를 기본값으로 둔다.
-        lo, hi = LIFE_STAGE_BOUNDS[ANCHOR]
-        return lo, hi, None
+        return LIFE_STAGE_BOUNDS[ANCHOR]
 
     idx_set = {LIFE_ORDER.index(c) for c in known}
     anchor_idx = LIFE_ORDER.index(ANCHOR)
@@ -68,7 +68,7 @@ def _life_base(life_value: str | None) -> tuple[int, int, str | None]:
 
     min_age = LIFE_STAGE_BOUNDS[LIFE_ORDER[start]][0]
     max_age = LIFE_STAGE_BOUNDS[LIFE_ORDER[end]][1]
-    return min_age, max_age, None
+    return min_age, max_age
 
 
 # --- 본문 텍스트 나이 추출 ---
@@ -134,11 +134,11 @@ def _extract_from_text(text: str) -> tuple[int | None, int | None]:
     return text_min, text_max
 
 
-def resolve_age(life_value: str | None, text: str | None) -> tuple[int, int, str | None]:
-    """(sprtTrgtMinAge, sprtTrgtMaxAge, sprtTrgtAgeLmtYn)을 반환한다."""
-    base_min, base_max, lmt_yn = _life_base(life_value)
-    if lmt_yn == "Y":
-        return base_min, base_max, "Y"
+def resolve_age(life_value: str | None, text: str | None) -> tuple[int, int]:
+    """(sprtTrgtMinAge, sprtTrgtMaxAge)를 반환한다. 전연령은 (0, 0)으로 통일한다."""
+    base_min, base_max = _life_base(life_value)
+    if base_min == 0 and base_max == 0:
+        return 0, 0
 
     text_min, text_max = _extract_from_text(text or "")
 
@@ -150,4 +150,4 @@ def resolve_age(life_value: str | None, text: str | None) -> tuple[int, int, str
         # "65세 이상") 텍스트를 버리고 생애주기 기반값으로 되돌린다.
         final_min, final_max = base_min, base_max
 
-    return final_min, final_max, None
+    return final_min, final_max
