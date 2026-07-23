@@ -8,6 +8,7 @@ from app.db.models.inquiry import Inquiry
 
 
 class InquiryService:
+    """일반 문의 생성/조회/답변/삭제."""
 
     @staticmethod
     async def create_inquiry_svc(db: AsyncSession, data: InquiryCreate) -> Inquiry:
@@ -37,6 +38,7 @@ class InquiryService:
 
     @staticmethod
     async def answer_inquiry_svc(db: AsyncSession, inquiry_id: int, answer: str) -> Inquiry:
+        """문의에 답변을 등록하고, 작성자가 있으면(비로그인 문의가 아니면) 답변 알림도 함께 만든다."""
         inquiry = await InquiryCrud.get_inquiry(db, inquiry_id)
         if not inquiry:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="문의를 찾을 수 없습니다.")

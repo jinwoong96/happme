@@ -5,6 +5,7 @@ from app.db.scheme.simulation_result import SimulationResultCreate
 
 
 class SimulationResultCrud:
+    """정책 시뮬레이션 결과(simulation_result) 저장/조회/삭제."""
 
     @staticmethod
     async def create_result(db: AsyncSession, data: SimulationResultCreate) -> SimulationResult:

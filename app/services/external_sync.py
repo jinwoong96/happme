@@ -95,10 +95,13 @@ _status: dict = {
 
 
 def get_status() -> dict:
+    """최신화 작업의 현재 진행 상태(전체/단계별)를 반환한다."""
     return _status
 
 
 def _init_steps() -> list[dict]:
+    """이번 실행에서 거칠 모든 단계(스크립트 3체인 + AI 재구축 3개 + 캐시 반영 + 키워드 알림)를
+    "pending" 상태로 초기화한다."""
     subprocess_steps = [
         {"key": s["key"], "label": s["label"], "status": "pending", "output": "", "total": None} for s in STEPS
     ]
@@ -116,6 +119,7 @@ def _init_steps() -> list[dict]:
 
 
 def _steps_by_chain() -> dict:
+    """STEPS를 chain(온통청년/복지로-지자체/복지로-중앙부처)별로 묶는다."""
     chains: dict[str, list[dict]] = {}
     for s in STEPS:
         chains.setdefault(s["chain"], []).append(s)
@@ -198,10 +202,12 @@ def _run_script_blocking(script: str, timeout: int, step: dict) -> tuple[bool, s
 
 
 async def _run_script(script: str, timeout: int, step: dict) -> tuple[bool, str]:
+    """_run_script_blocking을 별도 스레드에서 돌려서 asyncio 이벤트 루프를 막지 않게 한다."""
     return await asyncio.to_thread(_run_script_blocking, script, timeout, step)
 
 
 def _error_detail(e: Exception) -> str:
+    """FastAPI HTTPException이면 detail을, 아니면 예외 메시지를 그대로 문자열로 꺼낸다."""
     return str(getattr(e, "detail", None) or e)
 
 
@@ -246,6 +252,9 @@ async def _run_ai_rebuild(trigger_fn, status_fn, step: dict) -> tuple[bool, str]
 
 
 async def run_refresh_all():
+    """관리자 "최신화" 버튼의 진입점. 3개 수집 체인을 순서대로 실행하고, 이어서 bene_ai
+    재구축(요약/검색문서/PDF캐시), 정책 메모리 캐시 반영, 알림 키워드 매칭까지 전부 수행한다.
+    이미 실행 중이면 아무것도 하지 않는다(중복 실행 방지)."""
     if _status["running"]:
         return
 

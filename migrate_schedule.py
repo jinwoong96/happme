@@ -39,6 +39,8 @@ async def get_already_migrated_plcy_nos(session) -> set:
 
 
 async def migrate():
+    """캐시 JSON의 일정을 policy_schedule 테이블로 옮긴다. policy 테이블에 없는 plcyNo,
+    이미 마이그레이션된 plcyNo, 에러 항목, 허용되지 않은 타입은 각각 세어서 건너뛴다."""
     if not JSON_PATH.exists():
         print(f"파일을 찾을 수 없습니다: {JSON_PATH.resolve()}")
         print("JSON_PATH 변수를 실제 파일 위치로 수정해주세요.")

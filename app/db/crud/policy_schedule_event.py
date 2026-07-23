@@ -5,6 +5,7 @@ from app.db.models.policy_ai_tip import PolicyAiTip
 
 
 class PolicyScheduleEventCrud:
+    """정책 일정(policy_schedule_event)과 AI 준비 팁(policy_ai_tip) 조회/생성."""
 
     @staticmethod
     async def get_by_policy(db: AsyncSession, policy_id: int) -> list[PolicyScheduleEvent]:
@@ -15,6 +16,7 @@ class PolicyScheduleEventCrud:
 
     @staticmethod
     async def bulk_create(db: AsyncSession, policy_id: int, events: list[dict]) -> list[PolicyScheduleEvent]:
+        """bene_ai가 추출한 일정 목록(type/date/raw_text dict)을 한 번에 저장한다."""
         rows = [
             PolicyScheduleEvent(
                 policy_id=policy_id,

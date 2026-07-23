@@ -19,6 +19,8 @@ Base = declarative_base()
 
 
 async def get_db():
+    """요청마다 DB 세션을 하나 열어주는 FastAPI 의존성. 예외가 나면 롤백하고,
+    요청이 끝나면 세션을 닫는다."""
     session = AsyncSessionLocal()
     try:
         yield session

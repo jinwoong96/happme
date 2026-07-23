@@ -6,7 +6,6 @@ from app.db.database import get_db
 from app.db.scheme.user import UserRead
 from app.core.settings import settings
 from app.services.google_auth import GoogleAuthService as google_svc
-from app.core.settings import settings
 
 router = APIRouter(prefix="/auth/google", tags=["GoogleAuth"])
 

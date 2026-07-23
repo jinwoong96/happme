@@ -10,6 +10,7 @@ from app.db.models.notice import Notice
 
 
 class NotificationService:
+    """사용자 알림 생성/전체발송/조회/읽음처리/삭제."""
 
     @staticmethod
     async def create_notification_svc(db: AsyncSession, data: NotificationCreate) -> Notification:
@@ -26,6 +27,7 @@ class NotificationService:
 
     @staticmethod
     async def broadcast_svc(db: AsyncSession, admin_id: int, data: NotificationBroadcastCreate) -> Notice:
+        """공지사항을 하나 만들고, 전체 회원에게 같은 내용으로 알림도 발송한다."""
         try:
             notice = await NoticeCrud.create_notice(db, NoticeCreate(
                 admin_id=admin_id, title=data.title, content=data.content, is_pinned=data.is_pinned,

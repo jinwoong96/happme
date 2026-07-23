@@ -13,9 +13,12 @@ GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
 
 class GoogleAuthService:
+    """구글 소셜 로그인. OAuth 인가 URL 생성, 콜백에서 받은 code로 사용자 정보를 받아
+    최초 로그인이면 회원가입까지 처리한다."""
 
     @staticmethod
     def get_auth_url() -> str:
+        """구글 로그인 동의 화면으로 보낼 URL을 만든다."""
         params = (
             f"client_id={settings.google_client_id}"
             f"&redirect_uri={settings.google_redirect_uri}"
@@ -27,6 +30,8 @@ class GoogleAuthService:
 
     @staticmethod
     async def _get_google_user_info(code: str) -> dict:
+        """콜백으로 받은 인가 코드를 구글 access token으로 교환하고, 그 토큰으로 사용자
+        정보(이메일/이름)를 조회한다."""
         async with httpx.AsyncClient() as client:
             token_res = await client.post(GOOGLE_TOKEN_URL, data={
                 "code": code,
@@ -51,6 +56,8 @@ class GoogleAuthService:
 
     @staticmethod
     async def google_login_svc(db: AsyncSession, code: str):
+        """구글 계정으로 로그인한다. 처음 로그인이면 계정을 새로 만들고, 이름이 바뀌었으면
+        갱신한 뒤, 우리 서비스용 access/refresh 토큰을 발급한다."""
         user_info = await GoogleAuthService._get_google_user_info(code)
 
         email = user_info.get("email")

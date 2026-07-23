@@ -59,6 +59,7 @@ def find_record_list(data):
 
 
 def load_records(path: Path) -> list:
+    """경로가 파일이면 그 파일 하나를, 폴더면 아래 모든 JSON 파일을 읽어 정책 레코드로 모은다."""
     files = [path] if path.is_file() else sorted(path.rglob("*.json"))
     if not files:
         sys.exit(f"'{path}' 에서 JSON 파일을 찾지 못했습니다.")
@@ -78,6 +79,7 @@ def load_records(path: Path) -> list:
 
 
 def build_plcyno_to_id_map(conn) -> dict:
+    """전체 정책의 plcyNo -> policy_id 매핑을 만든다."""
     with conn.cursor() as cur:
         cur.execute("SELECT policy_id, plcyNo FROM policy")
         rows = cur.fetchall()
@@ -85,6 +87,7 @@ def build_plcyno_to_id_map(conn) -> dict:
 
 
 def build_region_pairs(records: list, plcyno_map: dict):
+    """레코드의 zipCd(쉼표구분)를 policy_id와 짝지은 (policy_id, zip_code) 쌍 목록으로 만든다."""
     pairs = []
     missing_policy = 0
     empty_zip = 0
@@ -111,6 +114,7 @@ def build_region_pairs(records: list, plcyno_map: dict):
 
 
 def insert_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
+    """(policy_id, zip_code) 쌍들을 policy_region 테이블에 배치로 삽입한다(중복은 무시)."""
     if not pairs:
         return 0
 
@@ -126,6 +130,7 @@ def insert_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
 
 
 def main():
+    """원본 JSON에서 정책별 zipCd를 읽어 policy_region 테이블을 채운다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", required=True, help="원본 JSON 파일 또는 폴더 경로")
     args = parser.parse_args()

@@ -6,12 +6,13 @@ from app.services.email_verification import EmailVerificationService
 from app.db.scheme.user import UserCreate, UserUpdate, UserLogin, UserPasswordUpdate, UserRead
 from app.db.models.user import User
 from app.core.jwt_handle import create_access_token, create_refresh_token, get_password_hash, verify_password
-from app.services.email_verification import EmailVerificationService
 
 class UserService:
+    """회원가입/조회/수정/비밀번호 변경/탈퇴/로그인/로그아웃."""
 
     @staticmethod
     async def create_user_svc(db: AsyncSession, data: UserCreate) -> User:
+        """일반(local) 회원가입. 이메일 인증이 완료된 계정만 가입할 수 있다."""
         data.provider = "local"  # 클라이언트가 무엇을 보내든 일반 회원가입은 항상 local로 고정
         if await UserCrud.get_by_email_and_provider(db, data.email, "local"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 이메일입니다.")
@@ -54,6 +55,7 @@ class UserService:
 
     @staticmethod
     async def update_password_svc(db: AsyncSession, current_user: User, data: UserPasswordUpdate) -> dict:
+        """현재 비밀번호 확인 -> 새 비밀번호 확인 일치 -> 기존과 동일한지 확인 순으로 검증한 뒤 변경한다."""
         if not verify_password(data.current_password, current_user.password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="현재 비밀번호가 올바르지 않습니다.")
         if data.new_password != data.confirm_password:
@@ -83,6 +85,7 @@ class UserService:
 
     @staticmethod
     async def login_svc(db: AsyncSession, data: UserLogin):
+        """이메일/비밀번호로 로그인하고 access/refresh 토큰을 발급한다."""
         user = await UserCrud.get_by_email_and_provider(db, data.email, "local")
         if not user or not verify_password(data.password, user.password):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="잘못된 이메일 혹은 비밀번호입니다.")
@@ -95,5 +98,6 @@ class UserService:
 
     @staticmethod
     async def logout_svc(db: AsyncSession, user_id: int) -> None:
+        """저장된 refresh_token을 지워서 재발급을 막는다."""
         await UserCrud.update_refresh_token(db, user_id, None)
         await db.commit()

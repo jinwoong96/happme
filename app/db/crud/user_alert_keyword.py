@@ -5,6 +5,7 @@ from app.db.scheme.user_alert_keyword import UserAlertKeywordCreate
 
 
 class UserAlertKeywordCrud:
+    """사용자가 등록한 알림 키워드(user_alert_keyword) 조회/생성/삭제."""
 
     @staticmethod
     async def create_keyword(db: AsyncSession, data: UserAlertKeywordCreate) -> UserAlertKeyword:

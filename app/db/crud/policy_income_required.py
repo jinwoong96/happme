@@ -4,6 +4,7 @@ from app.db.models.policy_income_required import PolicyIncomeRequired
 
 
 class PolicyIncomeRequiredCrud:
+    """정책별 소득 확인 시 물어봐야 할 필드 목록(policy_income_required) 조회."""
 
     @staticmethod
     async def get_required_fields_by_plcyno(db: AsyncSession, plcy_nos: list[str]) -> dict[str, list[str]]:

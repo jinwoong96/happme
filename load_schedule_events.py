@@ -60,6 +60,7 @@ def find_record_list(data):
 
 
 def build_plcyno_to_id_map(conn) -> dict:
+    """전체 정책의 plcyNo -> policy_id 매핑을 만든다."""
     with conn.cursor() as cur:
         cur.execute("SELECT policy_id, plcyNo FROM policy")
         rows = cur.fetchall()
@@ -77,6 +78,7 @@ def ensure_srng_mthd_column(conn) -> None:
 
 
 def backfill_srng_mthd(conn, raw_json_path: Path, plcyno_map: dict) -> int:
+    """원본 API JSON에서 심사방법(srngMthdCn)을 읽어 policy 테이블에 채운다."""
     print(f"[1/2] {raw_json_path.name} 에서 srngMthdCn 백필 중...")
     ensure_srng_mthd_column(conn)
     with open(raw_json_path, encoding="utf-8") as f:
@@ -108,6 +110,7 @@ def backfill_srng_mthd(conn, raw_json_path: Path, plcyno_map: dict) -> int:
 
 
 def load_events(conn, cache_path: Path, plcyno_map: dict) -> int:
+    """AI가 미리 추출해둔 일정 캐시(plcyNo -> 일정 목록)를 policy_schedule_event 테이블에 적재한다."""
     print(f"[2/2] {cache_path.name} 에서 일정 캐시 적재 중...")
     with open(cache_path, encoding="utf-8") as f:
         cache = json.load(f)
@@ -143,6 +146,7 @@ def load_events(conn, cache_path: Path, plcyno_map: dict) -> int:
 
 
 def main():
+    """심사방법 백필과 일정 캐시 적재를 순서대로 실행한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw-json", default=str(DEFAULT_RAW_JSON), help="온통청년 원본 API 응답 JSON 경로")
     parser.add_argument("--cache", default=str(DEFAULT_CACHE_JSON), help="AI 일정 추출 캐시 JSON 경로")

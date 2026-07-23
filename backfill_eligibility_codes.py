@@ -59,6 +59,7 @@ def ensure_columns(conn) -> None:
 
 
 def load_source_policies(path: str) -> list[dict]:
+    """온통청년 원본 API 응답 JSON을 읽어 정책 리스트로 반환한다(구조가 몇 가지 형태일 수 있음)."""
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -73,6 +74,8 @@ def load_source_policies(path: str) -> list[dict]:
 
 
 def backfill(conn, source_policies: list[dict], dry_run: bool) -> None:
+    """DB에 이미 있는 정책들 중 원본 파일에서 plcyNo가 매칭되는 것만 골라 6개 자격조건
+    코드 컬럼을 채운다. dry_run이면 DB에 반영하지 않고 미리보기만 출력한다."""
     ensure_columns(conn)
 
     with conn.cursor() as cur:
@@ -115,6 +118,7 @@ def backfill(conn, source_policies: list[dict], dry_run: bool) -> None:
 
 
 def main():
+    """CLI 진입점: 옵션을 파싱하고 DB에 연결해 backfill을 실행한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="DB에 반영하지 않고 결과만 미리보기")
     parser.add_argument("--input", default=DEFAULT_INPUT_FILE, help="온통청년 원본 JSON 경로")

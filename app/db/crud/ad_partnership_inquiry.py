@@ -6,6 +6,7 @@ from app.db.scheme.ad_partnership_inquiry import AdPartnershipInquiryCreate
 
 
 class AdPartnershipInquiryCrud:
+    """광고/제휴 문의(ad_partnership_inquiry) 테이블에 대한 생성/조회/답변/삭제."""
 
     @staticmethod
     async def create_inquiry(db: AsyncSession, data: AdPartnershipInquiryCreate) -> AdPartnershipInquiry:

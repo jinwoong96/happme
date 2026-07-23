@@ -118,13 +118,17 @@ _SUMMARY_FIELD_PATTERN = re.compile(
 
 
 def _parse_summary_fields(summary: str) -> dict:
+    """"**한줄요약**: ..." 형태로 캐시된 요약 텍스트를 라벨별 dict로 쪼갠다."""
     return {label: value.strip() for label, value in _SUMMARY_FIELD_PATTERN.findall(summary)}
 
 
 class PolicyService:
+    """정책 생성/조회/검색/수정/삭제와 bene_ai(캐시/검색문서/키워드알림) 동기화,
+    홈 배너 구성, 정책 카드(policy_cards.json) 표시 데이터 조립."""
 
     @staticmethod
     async def _require_policy(db: AsyncSession, policy_id: int) -> Policy:
+        """정책을 조회하고, 없으면 404 에러를 던진다."""
         policy = await PolicyCrud.get_policy(db, policy_id)
         if not policy:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"policy_id '{policy_id}'에 해당하는 정책이 없습니다.")
@@ -132,6 +136,8 @@ class PolicyService:
 
     @staticmethod
     async def create_policy_svc(db: AsyncSession, data: PolicyCreate) -> Policy:
+        """정책을 생성하고, bene_ai 메모리 캐시를 즉시 갱신한 뒤, 검색문서 재생성과
+        알림 키워드 매칭 체크는 백그라운드로 예약한다."""
         try:
             policy = await PolicyCrud.create_policy(db, data)
             await db.commit()
@@ -154,6 +160,8 @@ class PolicyService:
 
     @staticmethod
     async def get_policy_svc(db: AsyncSession, policy_id: int) -> dict:
+        """정책 상세를 조회하면서 조회수(inqCnt)를 올리고, 정책 카드(신청기간/대상)
+        표시 필드를 함께 붙여 반환한다."""
         policy = await PolicyService._require_policy(db, policy_id)
         await PolicyCrud.increment_inq_cnt(db, policy)
         await db.commit()
@@ -425,6 +433,8 @@ class PolicyService:
 
     @staticmethod
     async def update_policy_svc(db: AsyncSession, policy_id: int, data: PolicyUpdate) -> Policy:
+        """정책을 수정하고, create_policy_svc와 동일하게 bene_ai 캐시 즉시 갱신 +
+        검색문서 재생성/알림 매칭은 백그라운드로 예약한다."""
         policy = await PolicyService._require_policy(db, policy_id)
         try:
             updated = await PolicyCrud.update_policy(db, policy, data)
@@ -529,6 +539,8 @@ class PolicyService:
 
     @staticmethod
     async def _post_save_ai_sync(policy_id: int) -> None:
+        """_schedule_post_save_ai_sync가 백그라운드로 띄우는 실제 작업. 별도 DB 세션을
+        새로 열어 정책을 다시 읽고, 검색문서 재생성 + 알림 키워드 매칭을 순서대로 수행한다."""
         from app.db.database import AsyncSessionLocal
 
         try:
@@ -552,6 +564,7 @@ class PolicyService:
 
     @staticmethod
     async def delete_policy_svc(db: AsyncSession, policy_id: int) -> dict:
+        """정책을 삭제하고 bene_ai 메모리 캐시에서도 제거한다."""
         policy = await PolicyService._require_policy(db, policy_id)
         try:
             await PolicyCrud.delete_policy(db, policy)
@@ -641,10 +654,12 @@ class PolicyService:
 
     @staticmethod
     async def get_category_list_svc(db: AsyncSession) -> list[str]:
+        """필터 드롭다운에 쓸 정책 중분류(mclsfNm) 전체 목록을 반환한다."""
         return await PolicyCrud.get_distinct_mclsf(db)
 
     @staticmethod
     async def add_region_svc(db: AsyncSession, policy_id: int, zip_code: str) -> dict:
+        """정책에 지역 코드를 하나 추가한다."""
         await PolicyService._require_policy(db, policy_id)
         try:
             await PolicyCrud.add_region(db, policy_id, zip_code)
@@ -671,6 +686,7 @@ class PolicyService:
 
     @staticmethod
     def _load_policy_cards() -> dict[str, dict]:
+        """policy_cards.json을 최초 1회만 읽어 메모리에 캐싱하고, 이후엔 캐시를 재사용한다."""
         global _policy_cards_cache
         if _policy_cards_cache is None:
             with open(settings.policy_cards_path, encoding="utf-8") as f:
@@ -680,6 +696,7 @@ class PolicyService:
 
     @staticmethod
     def _truncate(text: Optional[str], max_length: int) -> Optional[str]:
+        """텍스트가 너무 길면 max_length에서 잘라내고 "..."을 붙인다."""
         if not text or len(text) <= max_length:
             return text
         return text[:max_length].rstrip() + "..."
@@ -698,6 +715,7 @@ class PolicyService:
 
     @staticmethod
     def _to_display_card(card: dict) -> dict:
+        """policy_cards.json 원본 항목을 화면에 보여줄 형태(제목/신청기간/대상/링크)로 다듬는다."""
         return {
             "policy_name": PolicyService._truncate(card.get("title"), CARD_TITLE_MAX_LENGTH),
             "apply_period_type": card.get("apply_period_type"),

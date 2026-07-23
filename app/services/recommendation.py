@@ -21,9 +21,12 @@ TEST_PROFILE_FIELDS = (
 
 
 class RecommendationService:
+    """맞춤형 정책 추천(bene_ai 호출) 결과에 카드 표시 필드/DB policy_id/소득확인 필요
+    필드/즐겨찾기 여부를 붙여서 반환한다."""
 
     @staticmethod
     async def get_recommendations_svc(db: AsyncSession, user_id: int) -> dict:
+        """사용자 프로필 기반 맞춤형 정책 추천을 받는다."""
         user_profile_payload = await RecommendationService._get_user_profile_payload(db, user_id)
 
         # TODO(1차 테스트 이후): 추천 결과 DB 저장, updated_at 비교를 통한 캐시 재사용 로직 추가
@@ -35,6 +38,7 @@ class RecommendationService:
 
     @staticmethod
     async def get_chat_recommendations_svc(db: AsyncSession, user_id: int, chat: str) -> dict:
+        """사용자 프로필 + 채팅 상황 설명을 함께 사용한 맞춤형 정책 추천을 받는다."""
         user_profile_payload = await RecommendationService._get_user_profile_payload(db, user_id)
         result = await AiClient.recommend_chat(user_profile_payload, chat)
         result = await RecommendationService._attach_policy_cards(db, result)
@@ -79,6 +83,7 @@ class RecommendationService:
 
     @staticmethod
     async def _get_user_profile_payload(db: AsyncSession, user_id: int) -> dict:
+        """추천 요청에 넘길 사용자 프로필 dict를 만든다. 프로필이 없으면 404 에러."""
         profile = await UserProfileCrud.get_profile(db, user_id)
         if not profile:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="프로필을 먼저 등록해주세요.")

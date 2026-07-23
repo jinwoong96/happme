@@ -6,6 +6,7 @@ from app.db.scheme.ocr_result import OcrResultCreate, OcrMatchCreate
 
 
 class OcrResultCrud:
+    """이미지(공고문) OCR 분석 결과(ocr_result)와 매칭된 정책(ocr_result_match) 조회/생성/삭제."""
 
     @staticmethod
     async def create_ocr(db: AsyncSession, data: OcrResultCreate) -> OcrResult:

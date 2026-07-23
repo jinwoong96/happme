@@ -9,6 +9,8 @@ from app.db.scheme.bookmark import BookmarkCreate, BookmarkUpdate
 
 
 class BookmarkCrud:
+    """즐겨찾기(bookmark) 테이블에 대한 생성/조회/수정/삭제. 정책 즐겨찾기와
+    지역 프로그램 즐겨찾기를 하나의 테이블로 같이 다룬다."""
 
     @staticmethod
     async def create_bookmark(db: AsyncSession, data: BookmarkCreate) -> Bookmark:

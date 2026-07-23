@@ -5,6 +5,7 @@ from app.db.scheme.user import UserCreate, UserUpdate
 
 
 class UserCrud:
+    """사용자(user) 테이블에 대한 생성/조회/수정/삭제 및 refresh token 갱신."""
 
     @staticmethod
     async def create_user(db: AsyncSession, data: UserCreate) -> User:

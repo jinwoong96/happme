@@ -4,6 +4,7 @@ from app.db.models.code_master import CodeMaster
 
 
 class CodeMasterCrud:
+    """코드값-이름 매핑 테이블(code_master) 조회. 예: 취업상태 코드 -> "재직자" 같은 표시명."""
 
     @staticmethod
     async def get_by_group(db: AsyncSession, code_group: str) -> list[CodeMaster]:

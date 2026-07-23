@@ -85,6 +85,7 @@ def as_list(val):
 
 
 def clean(val):
+    """값을 문자열로 바꾸고 공백을 지운다. 비어있으면 None."""
     if val is None:
         return None
     val = str(val).strip()
@@ -92,6 +93,7 @@ def clean(val):
 
 
 def parse_int(val):
+    """값을 정수로 변환한다. 실패하면 None."""
     try:
         return int(str(val).strip())
     except (ValueError, TypeError):
@@ -99,6 +101,7 @@ def parse_int(val):
 
 
 def parse_ymd(val):
+    """"YYYYMMDD" 문자열을 datetime으로 변환한다. 실패하면 None."""
     val = clean(val)
     if not val:
         return None
@@ -109,6 +112,8 @@ def parse_ymd(val):
 
 
 def build_apply_period(detail: dict) -> str:
+    """신청기간(aplyYmd) 문자열을 만든다: 수시모집이면 "상시(수시)", 기간이 있으면 범위,
+    없으면 지원주기명 또는 "상시"."""
     cyc = clean(detail.get("sprtCycNm"))
     bgn = clean(detail.get("enfcBgngYmd"))
     end = clean(detail.get("enfcEndYmd"))
@@ -120,6 +125,7 @@ def build_apply_period(detail: dict) -> str:
 
 
 def build_submission_docs(detail: dict) -> str:
+    """제출서류 목록(basfrmList)을 줄바꿈으로 나열한 텍스트로 만든다."""
     lines = []
     for item in as_list(detail.get("basfrmList")):
         if not isinstance(item, dict):
@@ -134,6 +140,7 @@ def build_submission_docs(detail: dict) -> str:
 
 
 def build_etc_matter(detail: dict):
+    """근거법령/문의처 정보를 합쳐 기타사항(etcMttrCn) 텍스트로 만든다."""
     lines = []
     laws = [clean(i.get("wlfareInfoReldNm")) for i in as_list(detail.get("baslawList")) if isinstance(i, dict)]
     laws = [l for l in laws if l]
@@ -155,6 +162,7 @@ def build_etc_matter(detail: dict):
 
 
 def build_apply_url(detail: dict):
+    """신청 URL 목록에서 http로 시작하는 첫 번째 링크를 찾는다."""
     for item in as_list(detail.get("inqplHmpgReldList")):
         if not isinstance(item, dict):
             continue
@@ -182,6 +190,7 @@ def build_sprvsn_dept(detail: dict) -> str:
 
 
 def build_keyword(detail: dict) -> str:
+    """정책 키워드(plcyKywdNm)를 관심주제 또는 생애주기명에서 뽑는다. 둘 다 없으면 "청년"."""
     return clean(detail.get("intrsThemaNmArray")) or clean(detail.get("lifeNmArray")) or "청년"
 
 
@@ -194,6 +203,7 @@ def build_mclsf(detail: dict) -> str:
 
 
 def transform_record(record: dict) -> tuple:
+    """복지로 원본 레코드(목록+상세) 하나를 policy 테이블 COLUMNS 순서의 튜플로 변환한다."""
     serv_id = record["servId"]
     summary = record.get("summary") or {}
     detail = record.get("detail") or {}
@@ -245,6 +255,7 @@ def transform_record(record: dict) -> tuple:
 
 
 def load_records() -> list:
+    """상세정보 파일을 읽어, servId와 detail이 둘 다 있는 레코드만 반환한다."""
     with open(DETAIL_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
     if not isinstance(data, list):
@@ -257,6 +268,7 @@ def load_records() -> list:
 
 
 def insert_batch(conn, rows: list):
+    """정책 배치를 삽입한다. plcyNo가 이미 있으면 나머지 컬럼을 최신 값으로 덮어쓴다(upsert)."""
     if not rows:
         return
     col_list = ", ".join(f"`{c}`" for c in COLUMNS)
@@ -311,6 +323,7 @@ def zip_codes_for_region(ctpv_nm: str, sgg_nm: str, mapping: list) -> list:
 
 
 def build_plcyno_to_id_map(conn) -> dict:
+    """이 스크립트로 적재된(plcyNo가 "BOKJIRO-"로 시작하는) 정책들의 plcyNo -> policy_id 매핑을 만든다."""
     with conn.cursor() as cur:
         cur.execute("SELECT policy_id, plcyNo FROM policy WHERE plcyNo LIKE %s", (f"{PLCYNO_PREFIX}%",))
         rows = cur.fetchall()
@@ -318,6 +331,7 @@ def build_plcyno_to_id_map(conn) -> dict:
 
 
 def insert_region_pairs(conn, pairs: list, batch_size: int = 1000) -> int:
+    """(policy_id, zip_code) 쌍들을 policy_region 테이블에 배치로 삽입한다(중복은 무시)."""
     if not pairs:
         return 0
     sql = "INSERT IGNORE INTO policy_region (policy_id, zip_code) VALUES (%s, %s)"
@@ -346,6 +360,7 @@ def delete_region_pairs(conn, policy_ids: list) -> int:
 
 
 def run_region_mapping(conn, records: list):
+    """이번에 적재한 정책들의 시도/시군구 정보로 policy_region을 다시 계산해 채운다."""
     mapping = load_zipcd_mapping(conn)
     if not mapping:
         return
@@ -381,6 +396,7 @@ def run_region_mapping(conn, records: list):
 
 
 def main():
+    """상세정보 파일 전체를 policy 테이블 형식으로 변환해 upsert하고, 지역 매핑까지 갱신한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--peek", action="store_true", help="1건만 변환 결과 미리보기 (DB 저장 안 함)")
     parser.add_argument("--skip-region", action="store_true", help="policy_region 매핑 생략")

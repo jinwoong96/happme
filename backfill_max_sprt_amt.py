@@ -85,6 +85,7 @@ INCOME_DEDUCTION_WORD = "소득공제"
 
 
 def amount_to_won(amount_str, unit):
+    """숫자 문자열과 단위(억원/백만원/만원/원)를 원 단위 정수로 변환한다."""
     try:
         value = float(amount_str.replace(",", ""))
     except ValueError:
@@ -95,7 +96,11 @@ def amount_to_won(amount_str, unit):
     return None
 
 
+# 아래 is_*_context 함수들은 app/services/policy.py의 PolicyService._is_*_context와
+# 동일 로직이다(대출원금/본인부담/기업대상/소득공제 문맥이면 지원금 후보에서 제외).
+
 def is_loan_principal_context(text, match_start):
+    """매치 앞에 "대출"/"융자"가 있으면 대출 원금/한도/잔액 자체를 가리키는지 확인한다."""
     start = max(0, match_start - LOAN_CONTEXT_WINDOW)
     context = text[start:match_start]
     last_end = -1
@@ -108,11 +113,13 @@ def is_loan_principal_context(text, match_start):
 
 
 def is_loan_principal_after_context(text, match_end):
+    """매치 바로 뒤에 "대출 지원"/"융자 지급"이 이어지면 지원 대상 자체가 대출 원금인지 확인한다."""
     after = text[match_end:match_end + LOAN_AFTER_WINDOW]
     return bool(LOAN_AFTER_RE.match(after))
 
 
 def is_self_payment_context(text, match_start, match_end):
+    """매치 앞에 "본인부담"/"자기부담"이 있고 뒤에 "지원/지급"이 없으면 본인이 내는 돈인지 확인한다."""
     before = text[max(0, match_start - SELF_PAY_BEFORE_WINDOW):match_start]
     if not any(word in before for word in SELF_PAY_WORDS):
         return False
@@ -121,6 +128,7 @@ def is_self_payment_context(text, match_start, match_end):
 
 
 def is_business_subject_context(text, match_start):
+    """같은 문장에서 기업/업체/사업체가 주어로 쓰였으면(개인이 아닌 기업이 받는 돈인지) 확인한다."""
     before = text[:match_start]
     cut = max(before.rfind("다."), before.rfind("\n"))
     scoped = before[cut + 1:] if cut != -1 else before
@@ -128,6 +136,7 @@ def is_business_subject_context(text, match_start):
 
 
 def is_income_deduction_context(text, match_start, match_end):
+    """같은 문장/줄에 "소득공제"가 있으면(실제 지원금이 아닌 세제 혜택 한도인지) 확인한다."""
     before_cut = max(text.rfind("다.", 0, match_start), text.rfind("\n", 0, match_start))
     start = before_cut + 1 if before_cut != -1 else 0
     after_dot = text.find("다.", match_end)
@@ -138,6 +147,8 @@ def is_income_deduction_context(text, match_start, match_end):
 
 
 def extract_max_support_amount(text):
+    """지원내용 텍스트에서 "최대 지원 금액"(원)을 뽑아낸다. 대출원금/본인부담/기업대상/
+    소득공제 문맥이면 후보에서 제외하고, 후보가 여러 개면 최댓값을 쓴다."""
     if not text:
         return None
     candidates = []
@@ -170,6 +181,8 @@ def ensure_max_sprt_amt_column(conn) -> None:
 
 
 def backfill(conn, dry_run: bool) -> None:
+    """전체 정책의 지원내용에서 최대 지원금액을 추출해 maxSprtAmt 컬럼에 채운다.
+    재실행해도 결과가 일관되도록 먼저 전부 NULL로 초기화한 뒤 다시 채운다."""
     ensure_max_sprt_amt_column(conn)
 
     with conn.cursor() as cur:
@@ -212,6 +225,7 @@ def backfill(conn, dry_run: bool) -> None:
 
 
 def main():
+    """CLI 진입점: 옵션을 파싱하고 DB에 연결해 backfill을 실행한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="DB에 반영하지 않고 추출 결과만 미리보기")
     args = parser.parse_args()

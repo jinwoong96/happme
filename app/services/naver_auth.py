@@ -14,9 +14,12 @@ NAVER_USERINFO_URL = "https://openapi.naver.com/v1/nid/me"
 
 
 class NaverAuthService:
+    """네이버 소셜 로그인. OAuth 인가 URL 생성, 콜백에서 받은 code로 사용자 정보를 받아
+    최초 로그인이면 회원가입까지 처리한다."""
 
     @staticmethod
     def get_auth_url() -> str:
+        """네이버 로그인 동의 화면으로 보낼 URL을 만든다. CSRF 방지용 state 값을 매번 새로 만든다."""
         state = secrets.token_urlsafe(16)
         params = (
             f"client_id={settings.naver_client_id}"
@@ -28,6 +31,8 @@ class NaverAuthService:
 
     @staticmethod
     async def _get_naver_user_info(code: str, state: str) -> dict:
+        """콜백으로 받은 인가 코드를 네이버 access token으로 교환하고, 그 토큰으로 사용자
+        정보(이메일/이름)를 조회한다."""
         async with httpx.AsyncClient() as client:
             # 코드 → 토큰 교환
             token_res = await client.post(NAVER_TOKEN_URL, params={
@@ -56,6 +61,8 @@ class NaverAuthService:
 
     @staticmethod
     async def naver_login_svc(db: AsyncSession, code: str, state: str):
+        """네이버 계정으로 로그인한다. 이메일 제공에 동의 안 했으면 네이버 id로 임시
+        이메일을 만들고, 처음 로그인이면 계정을 새로 만든 뒤 우리 서비스용 토큰을 발급한다."""
         user_info = await NaverAuthService._get_naver_user_info(code, state)
 
         response = user_info.get("response", {})

@@ -6,6 +6,7 @@ from app.db.scheme.inquiry import InquiryCreate
 
 
 class InquiryCrud:
+    """일반 문의(inquiry) 테이블에 대한 생성/조회/답변/삭제."""
 
     @staticmethod
     async def create_inquiry(db: AsyncSession, data: InquiryCreate) -> Inquiry:

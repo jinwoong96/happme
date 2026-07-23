@@ -5,6 +5,7 @@ from app.db.scheme.notice import NoticeCreate, NoticeUpdate
 
 
 class NoticeCrud:
+    """공지사항(notice) 테이블에 대한 생성/조회/수정/삭제."""
 
     @staticmethod
     async def create_notice(db: AsyncSession, data: NoticeCreate) -> Notice:

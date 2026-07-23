@@ -6,6 +6,7 @@ from app.db.models.corporate_support_inquiry import CorporateSupportInquiry
 
 
 class CorporateSupportInquiryService:
+    """기업지원금 제휴 문의 생성/조회/답변/삭제."""
 
     @staticmethod
     async def create_inquiry_svc(db: AsyncSession, data: CorporateSupportInquiryCreate) -> CorporateSupportInquiry:

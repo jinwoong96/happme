@@ -45,6 +45,7 @@ SLEEP_SEC = 0.2
 
 
 def load_summary_list() -> list:
+    """WELFARE.py가 만든 목록 파일(welfare_data.json)에서 상세조회 대상 목록을 읽는다."""
     with open(LIST_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
     try:
@@ -67,6 +68,8 @@ def extract_detail(raw: dict) -> dict:
 
 
 def fetch_detail(serv_id: str, max_retries: int = 3) -> dict:
+    """servId 하나의 상세정보를 API로 조회한다. 네트워크 오류는 재시도하고,
+    파싱 실패는 재시도해도 똑같을 가능성이 높아 바로 포기한다."""
     params = {"serviceKey": API_KEY, "servId": serv_id}
     last_error = None
     for attempt in range(1, max_retries + 1):
@@ -102,11 +105,14 @@ def load_existing_output() -> dict:
 
 
 def save_output(records: list):
+    """지금까지 모은 상세정보 레코드를 파일에 저장한다(중간 저장/최종 저장 공용)."""
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
 
 
 def main():
+    """목록 파일을 순회하며 servId별 상세정보를 조회해 저장한다. 이미 완료된 servId는
+    건너뛰므로 API 일일 호출 한도로 중간에 멈춰도 재실행하면 이어서 진행된다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--peek", action="store_true", help="1건만 호출해서 응답 구조 확인")
     parser.add_argument("--start-index", type=int, default=0, help="이 인덱스부터 강제로 다시 시작 (기본: 이어서 진행)")

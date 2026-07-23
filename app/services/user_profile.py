@@ -8,9 +8,11 @@ from app.db.models.user import User
 
 
 class UserProfileService:
+    """사용자 프로필(추천에 쓰이는 나이/지역/학력 등) 생성/조회/수정/삭제."""
 
     @staticmethod
     async def _require_user(db: AsyncSession, user_id: int) -> User:
+        """유저를 조회하고, 없으면 404 에러를 던진다."""
         user = await UserCrud.get_user(db, user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"user_id '{user_id}'에 해당하는 유저가 없습니다.")
@@ -18,6 +20,8 @@ class UserProfileService:
 
     @staticmethod
     async def create_profile_svc(db: AsyncSession, data: UserProfileCreate) -> UserProfile:
+        """프로필을 생성하고, 유저의 profile_completed 플래그를 True로 올린다.
+        이미 프로필이 있으면 막는다(수정 API를 쓰도록 안내)."""
         await UserProfileService._require_user(db, data.user_id)
         if await UserProfileCrud.get_profile(db, data.user_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 프로필이 존재합니다. 수정을 사용하세요.")
@@ -56,6 +60,7 @@ class UserProfileService:
 
     @staticmethod
     async def upsert_profile_svc(db: AsyncSession, user_id: int, data: UserProfileUpdate) -> UserProfile:
+        """프로필이 있으면 수정하고, 없으면 새로 만든다(그 경우 profile_completed도 True로 올린다)."""
         await UserProfileService._require_user(db, user_id)
         profile = await UserProfileCrud.get_profile(db, user_id)
         try:

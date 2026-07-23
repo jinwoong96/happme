@@ -58,6 +58,7 @@ ADMIN_PASSWORD = "admin1234!"
 
 
 async def seed_code_master(session: AsyncSession):
+    """CODE_DATA에 정의된 코드값들을 code_master 테이블에 채운다(이미 있는 코드는 건너뜀)."""
     for code_group, code_value, code_label, sort_order in CODE_DATA:
         result = await session.execute(
             select(CodeMaster).where(
@@ -75,6 +76,7 @@ async def seed_code_master(session: AsyncSession):
 
 
 async def seed_admin_user(session: AsyncSession):
+    """기본 관리자 계정이 없으면 하나 만든다."""
     if await UserCrud.get_by_email_and_provider(session, ADMIN_EMAIL, "local") is None:
         session.add(User(
             name="관리자",
@@ -87,5 +89,6 @@ async def seed_admin_user(session: AsyncSession):
 
 
 async def run_all_seeds(session: AsyncSession):
+    """앱 시작 시 필요한 초기 데이터(코드값, 관리자 계정)를 전부 채운다."""
     await seed_code_master(session)
     await seed_admin_user(session)

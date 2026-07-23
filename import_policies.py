@@ -70,6 +70,7 @@ NOT_NULL_TEXT_DEFAULTS = {
 
 
 def parse_int(value):
+    """API 응답 값을 정수로 변환한다. 비어있거나 변환 불가면 None."""
     if value in (None, "", "null"):
         return None
     try:
@@ -144,6 +145,7 @@ def extract_items(raw: dict) -> list:
 
 
 def get_total_count(raw: dict) -> int:
+    """응답에서 전체 공고 건수를 읽는다. 못 찾으면 -1(알 수 없음)을 반환한다."""
     try:
         return int(raw["result"]["pagging"]["totCount"])
     except (KeyError, TypeError, ValueError):
@@ -151,6 +153,7 @@ def get_total_count(raw: dict) -> int:
 
 
 def transform_value(col: str, val):
+    """API 원본 값을 컬럼별 DB 저장 형식(정수/날짜/기본값 처리)으로 변환한다."""
     if col == "source":
         return "ONTONG"  # 이 스크립트로 적재되는 건 전부 온통청년 API 출처
     if col in ("sprtSclCnt", "sprtTrgtMinAge", "sprtTrgtMaxAge",
@@ -166,10 +169,12 @@ def transform_value(col: str, val):
 
 
 def row_from_item(item: dict) -> tuple:
+    """API 응답 항목 하나를 COLUMNS 순서에 맞는 DB INSERT용 튜플로 변환한다."""
     return tuple(transform_value(col, item.get(col)) for col in COLUMNS)
 
 
 def insert_batch(conn, rows: list):
+    """정책 배치를 삽입한다. plcyNo가 이미 있으면 나머지 컬럼을 최신 값으로 덮어쓴다(upsert)."""
     if not rows:
         return
 
@@ -246,6 +251,8 @@ def run_backfill(conn, columns: list, start_page: int = 1):
 
 
 def main():
+    """전체 페이지를 순회하며 정책을 upsert하고, 끝나면 policy_region(지역코드)도
+    함께 동기화한다. --backfill-columns를 주면 전체 재적재 대신 지정 컬럼만 갱신한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--peek", action="store_true", help="1페이지만 조회해서 원본 응답 구조 출력")
     parser.add_argument(

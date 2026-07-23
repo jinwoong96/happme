@@ -6,6 +6,7 @@ from app.db.scheme.corporate_support_inquiry import CorporateSupportInquiryCreat
 
 
 class CorporateSupportInquiryCrud:
+    """기업지원 문의(corporate_support_inquiry) 테이블에 대한 생성/조회/답변/삭제."""
 
     @staticmethod
     async def create_inquiry(db: AsyncSession, data: CorporateSupportInquiryCreate) -> CorporateSupportInquiry:

@@ -13,6 +13,7 @@ from app.db.crud.policy_summary_cache import PolicySummaryCacheCrud
 AI_SERVICE_URL = settings.ai_service_url
 
 class PdfSummaryService:
+    """공고문 PDF/텍스트/URL 매칭·요약 결과 생성/조회/삭제 및 bene_ai 연동."""
 
     @staticmethod
     async def create_pdf_svc(db: AsyncSession, data: PdfSummaryCreate) -> PdfSummary:
@@ -66,6 +67,7 @@ class PdfSummaryService:
 
     @staticmethod
     async def _find_policy_id(db: AsyncSession, policy_name: str) -> int | None:
+        """정책명으로 backend DB의 policy_id를 찾는다(bene_ai는 정책명만 알고 PK는 모르므로)."""
         result = await db.execute(
             select(Policy.policy_id).where(Policy.plcyNm == policy_name).limit(1)
         )
@@ -73,6 +75,9 @@ class PdfSummaryService:
 
     @staticmethod
     async def _save_ai_result_svc(db: AsyncSession, user_id: int, ai_result: dict) -> dict:
+        """bene_ai가 반환한 매칭/요약 결과를 DB에 저장한다: 매칭된 정책들의 요약을 pdf_summary
+        1건으로 묶어 저장하고, 정책별 매칭 기록과 요약 캐시도 함께 남긴다. 매칭된 게 없으면
+        저장 없이 원본 결과만 그대로 반환한다."""
         results = ai_result.get("results", [])
 
         # 매칭 안 된 후보 정책들에도 즐겨찾기용 policy_id를 붙여줌
@@ -114,6 +119,7 @@ class PdfSummaryService:
 
     @staticmethod
     async def analyze_pdf_svc(db: AsyncSession, user_id: int, files: list[tuple[str, bytes]]) -> dict:
+        """PDF 파일들을 bene_ai에 보내 매칭/요약시키고, 캐시된 요약이 있으면 먼저 채운 뒤 결과를 저장한다."""
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 multipart = [("files", (filename, content, "application/pdf")) for filename, content in files]
@@ -138,6 +144,7 @@ class PdfSummaryService:
 
     @staticmethod
     async def analyze_text_svc(db: AsyncSession, user_id: int, text: str) -> dict:
+        """공고문 텍스트를 bene_ai에 보내 매칭/요약시키고 결과를 저장한다."""
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/text", json={"text": text})
@@ -161,6 +168,7 @@ class PdfSummaryService:
 
     @staticmethod
     async def analyze_url_svc(db: AsyncSession, user_id: int, url: str) -> dict:
+        """공고문 URL을 bene_ai에 보내 크롤링 후 매칭/요약시키고 결과를 저장한다."""
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(f"{AI_SERVICE_URL}/policy-summary/url", json={"url": url})
@@ -184,6 +192,7 @@ class PdfSummaryService:
 
     @staticmethod
     async def ask_svc(policy_name: str, question: str) -> dict:
+        """매칭된 정책에 대한 추가 질문을 bene_ai에 그대로 위임한다(DB 저장 없음)."""
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(

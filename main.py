@@ -50,6 +50,8 @@ if settings.sentry_dsn:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """앱 시작 시 테이블 생성 + 초기 데이터 시딩 + 스케줄러 시작, 종료 시 스케줄러
+    정지 + DB 커넥션 정리를 담당한다."""
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     async with AsyncSessionLocal() as session:
@@ -124,6 +126,8 @@ app.include_router(user_alert_keyword_router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """라우터에서 처리 안 된 모든 예외를 잡아 Sentry/Slack에 보고하고, 상세 내용
+    없이 표준 500 응답만 내려준다(내부 오류 노출 방지)."""
     sentry_sdk.capture_exception(exc)
     await send_slack_alert(request, exc)
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})

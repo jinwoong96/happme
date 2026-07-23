@@ -13,10 +13,12 @@ from app.db.scheme.email_verification import EmailVerificationSend, EmailVerific
 
 
 def _generate_code() -> str:
+    """6자리 인증번호를 만든다."""
     return f"{random.randint(0, 999999):06d}"
 
 
 def _send_email(to_email: str, code: str) -> None:
+    """인증번호를 SMTP로 발송한다."""
     subject = "[happ:me] 이메일 인증번호 안내"
     body = (
         f"안녕하세요, happ:me 입니다.\n\n"
@@ -42,9 +44,11 @@ def _send_email(to_email: str, code: str) -> None:
 
 
 class EmailVerificationService:
+    """회원가입용 이메일 인증번호 발급/확인."""
 
     @staticmethod
     async def send_code_svc(db: AsyncSession, data: EmailVerificationSend) -> dict:
+        """이미 가입된 이메일이 아니면 인증번호를 발급해서 DB에 저장하고 메일로 보낸다."""
         if await UserCrud.get_by_email_and_provider(db, data.email, "local"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 이메일입니다.")
 
@@ -65,6 +69,7 @@ class EmailVerificationService:
 
     @staticmethod
     async def verify_code_svc(db: AsyncSession, data: EmailVerificationConfirm) -> dict:
+        """방금 받은 인증번호가 유효한지(존재/미만료/일치) 확인하고, 맞으면 인증완료 처리한다."""
         ev = await EmailVerificationCrud.get_latest_by_email(db, data.email)
         if not ev:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="인증번호를 먼저 요청해주세요.")

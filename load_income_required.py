@@ -38,6 +38,7 @@ DEFAULT_JSON = Path(__file__).parent / "notice_Truth_2632.json"
 
 
 def build_plcyno_to_id_map(conn) -> dict:
+    """전체 정책의 plcyNo -> policy_id 매핑을 만든다."""
     with conn.cursor() as cur:
         cur.execute("SELECT policy_id, plcyNo FROM policy")
         rows = cur.fetchall()
@@ -45,6 +46,7 @@ def build_plcyno_to_id_map(conn) -> dict:
 
 
 def ensure_table(conn) -> None:
+    """policy_incomeRequired 테이블이 없으면 만든다."""
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -60,6 +62,7 @@ def ensure_table(conn) -> None:
 
 
 def load_income_required(conn, json_path: Path, plcyno_map: dict) -> int:
+    """소득확인 필요 필드 결과 JSON을 읽어, plcyNo가 매칭되는 정책만 policy_incomeRequired에 적재한다."""
     print(f"{json_path.name} 에서 적재 중...")
     with open(json_path, encoding="utf-8") as f:
         records = json.load(f)
@@ -94,6 +97,7 @@ def load_income_required(conn, json_path: Path, plcyno_map: dict) -> int:
 
 
 def main():
+    """CLI 진입점: JSON 경로를 받아 policy_incomeRequired 테이블을 채운다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", default=str(DEFAULT_JSON), help="required_fields 결과 JSON 경로")
     args = parser.parse_args()

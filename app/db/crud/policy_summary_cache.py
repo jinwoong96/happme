@@ -3,6 +3,7 @@ from sqlalchemy import select
 from app.db.models.policy_summary_cache import PolicySummaryCache
 
 class PolicySummaryCacheCrud:
+    """정책명 기준 LLM 요약 캐시(policy_summary_cache) 조회/저장. bene_ai와 공유하는 테이블."""
 
     @staticmethod
     async def get_cache(db: AsyncSession, policy_name: str) -> PolicySummaryCache | None:

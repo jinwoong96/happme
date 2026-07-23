@@ -10,9 +10,12 @@ from app.db.models.policy import Policy
 
 
 class BookmarkService:
+    """즐겨찾기(정책 또는 지역 프로그램) 생성/조회/수정/삭제 및 캘린더 데이터 조립."""
 
     @staticmethod
     async def create_bookmark_svc(db: AsyncSession, data: BookmarkCreate) -> Bookmark:
+        """정책 또는 지역 프로그램 중 하나를 즐겨찾기에 추가한다. 이미 즐겨찾기했으면 막고,
+        정책 즐겨찾기면 정책의 bookmarkCnt도 함께 올린다."""
         if not await UserCrud.get_user(db, data.user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유저를 찾을 수 없습니다.")
 
@@ -63,6 +66,7 @@ class BookmarkService:
 
     @staticmethod
     async def delete_bookmark_svc(db: AsyncSession, bookmark_id: int) -> dict:
+        """즐겨찾기를 지운다. 정책 즐겨찾기였으면 정책의 bookmarkCnt도 함께 내린다."""
         bookmark = await BookmarkCrud.get_bookmark(db, bookmark_id)
         if not bookmark:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="즐겨찾기를 찾을 수 없습니다.")
@@ -79,6 +83,8 @@ class BookmarkService:
 
     @staticmethod
     def _format_ymd_range(start, end) -> str:
+        """지역 프로그램의 시작/종료일을 "YYYYMMDD ~ YYYYMMDD" 형식으로 만든다.
+        하나만 있으면 그 값으로 채우고, 둘 다 없으면 빈 문자열."""
         def fmt(d):
             return d.strftime("%Y%m%d") if d else None
         s, e = fmt(start), fmt(end)

@@ -63,14 +63,17 @@ class Settings(BaseSettings):
 
     @property
     def _base(self) -> str:
+        """DB 접속 정보(계정/호스트/DB명)를 URL 공통 부분으로 조합한다."""
         return f"{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     @property
     def db_url(self) -> str:
+        """비동기(FastAPI 요청 처리용) DB 접속 URL."""
         return f"mysql+aiomysql://{self._base}"
 
     @property
     def sync_db_url(self) -> str:
+        """동기(배치 스크립트용) DB 접속 URL."""
         return f"mysql+pymysql://{self._base}"
 
     @property

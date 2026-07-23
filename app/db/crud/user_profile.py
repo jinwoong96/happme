@@ -5,6 +5,7 @@ from app.db.scheme.user_profile import UserProfileCreate, UserProfileUpdate
 
 
 class UserProfileCrud:
+    """사용자 프로필(user_profile, 추천에 쓰이는 나이/지역/학력 등)에 대한 생성/조회/수정/삭제."""
 
     @staticmethod
     async def create_profile(db: AsyncSession, data: UserProfileCreate) -> UserProfile:

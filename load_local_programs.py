@@ -72,12 +72,14 @@ KEEP_KEYWORD = "성인"
 
 
 def is_excluded_target(usetgtinfo: str) -> bool:
+    """이용대상 문구에 청년 외 대상(유아/노인 등) 키워드가 있고 "성인"이 병기되지 않았으면 제외 대상으로 본다."""
     if not usetgtinfo:
         return False
     return any(kw in usetgtinfo for kw in EXCLUDE_KEYWORDS) and KEEP_KEYWORD not in usetgtinfo
 
 
 def parse_epoch_ms(value):
+    """밀리초 단위 유닉스 타임스탬프를 datetime으로 변환한다. 실패하면 None."""
     if value in (None, "", 0):
         return None
     try:
@@ -87,6 +89,7 @@ def parse_epoch_ms(value):
 
 
 def parse_decimal(value):
+    """값을 실수(위도/경도)로 변환한다. 실패하면 None."""
     if value in (None, ""):
         return None
     try:
@@ -96,6 +99,7 @@ def parse_decimal(value):
 
 
 def row_from_item(item: dict) -> tuple:
+    """JSON 항목 하나를 COLUMNS 순서의 DB INSERT용 튜플로 변환한다."""
     row = []
     for col in COLUMNS:
         src_key = FIELD_MAP[col]
@@ -115,6 +119,7 @@ def row_from_item(item: dict) -> tuple:
 
 
 def load_json_files(root: Path):
+    """루트 폴더 아래 모든 JSON 파일을 재귀적으로 찾는다."""
     files = sorted(root.rglob("*.json"))
     if not files:
         sys.exit(f"'{root}' 아래에서 .json 파일을 찾지 못했습니다.")
@@ -139,6 +144,7 @@ def cleanup_excluded(conn) -> int:
 
 
 def insert_batch(conn, rows: list):
+    """프로그램 배치를 삽입한다. svcid가 이미 있으면 나머지 컬럼을 최신 값으로 덮어쓴다(upsert)."""
     if not rows:
         return 0
 
@@ -159,6 +165,8 @@ def insert_batch(conn, rows: list):
 
 
 def main():
+    """루트 폴더 아래 모든 JSON 파일을 순회하며 지역 프로그램을 적재하고, 제외 대상은
+    걸러낸다(기존에 들어가있던 제외 대상 행도 함께 정리)."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", required=True, help="JSON 파일들이 들어있는 최상위 폴더 (예: ./backend)")
     args = parser.parse_args()

@@ -4,6 +4,8 @@ from app.core.settings import settings
 from app.core.request_context import get_request_id, REQUEST_ID_HEADER
 
 class AiClient:
+    """bene_ai(AI 마이크로서비스)에 HTTP로 요청을 보내는 클라이언트. 추천/일정추출/이미지분석/
+    공고문 매칭/캐시 재구축 등 AI 관련 기능은 전부 이 클래스를 통해 bene_ai를 호출한다."""
 
     @staticmethod
     async def recommend(user_profile: dict) -> dict:
@@ -148,7 +150,6 @@ class AiClient:
         except httpx.RequestError:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 서버에 연결할 수 없습니다.")
 
-    # 코드분석 필요
     @staticmethod
     async def analyze_image(image_bytes: bytes, filename: str, content_type: str) -> dict:
         """

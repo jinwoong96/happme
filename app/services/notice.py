@@ -6,6 +6,7 @@ from app.db.models.notice import Notice
 
 
 class NoticeService:
+    """공지사항 생성/조회/수정/삭제."""
 
     @staticmethod
     async def create_notice_svc(db: AsyncSession, data: NoticeCreate) -> Notice:

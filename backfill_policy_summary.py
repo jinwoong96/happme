@@ -44,11 +44,14 @@ def ensure_summary_column(conn) -> None:
 
 
 def load_summaries(path: str) -> list[dict]:
+    """policy_summaries.json(plcyNo/support_summary 목록)을 읽는다."""
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def backfill(conn, items: list[dict], dry_run: bool) -> None:
+    """요약이 있는 항목만 골라 policy.summary 컬럼에 채운다. dry_run이면 DB에
+    반영하지 않고 미리보기만 출력한다."""
     ensure_summary_column(conn)
 
     pairs = [
@@ -79,6 +82,7 @@ def backfill(conn, items: list[dict], dry_run: bool) -> None:
 
 
 def main():
+    """CLI 진입점: 옵션을 파싱하고 DB에 연결해 backfill을 실행한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="DB에 반영하지 않고 결과만 미리보기")
     parser.add_argument("--input", default=DEFAULT_INPUT_FILE, help="policy_summaries.json 경로")

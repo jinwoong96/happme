@@ -9,6 +9,7 @@ from typing import Optional
 
 
 class PolicyCrud:
+    """정책(policy) 테이블에 대한 생성/조회/검색/수정/삭제."""
 
     @staticmethod
     async def create_policy(db: AsyncSession, data: PolicyCreate) -> Policy:
@@ -44,6 +45,8 @@ class PolicyCrud:
         limit: int = 20,
         offset: int = 0,
     ) -> list[Policy]:
+        """정책 목록을 다양한 조건(나이/지역/분류/키워드/마감여부/제외목록/지원금액/
+        마감임박/제외키워드)으로 필터링하고 정렬해서 조회한다. 정책 목록 화면의 핵심 조회 함수."""
         stmt = select(Policy).options(selectinload(Policy.regions))
         if age is not None:
             stmt = stmt.where(Policy.sprtTrgtMinAge <= age, Policy.sprtTrgtMaxAge >= age)
@@ -118,6 +121,7 @@ class PolicyCrud:
 
     @staticmethod
     async def get_distinct_mclsf(db: AsyncSession) -> list[str]:
+        """정책 중분류(mclsfNm)에 실제로 쓰인 값 전체를 중복 없이 반환한다(필터 UI용)."""
         result = await db.execute(
             select(Policy.mclsfNm).where(Policy.mclsfNm.is_not(None)).distinct().order_by(Policy.mclsfNm.asc())
         )
@@ -125,6 +129,7 @@ class PolicyCrud:
 
     @staticmethod
     async def get_policies_by_ids(db: AsyncSession, policy_ids: list[int]) -> list[Policy]:
+        """policy_id 목록으로 정책 여러 건을 한 번에 조회한다."""
         if not policy_ids:
             return []
         result = await db.execute(
@@ -134,6 +139,8 @@ class PolicyCrud:
 
     @staticmethod
     async def get_policy_ids_by_plcyno(db: AsyncSession, plcy_nos: list[str]) -> dict[str, int]:
+        """정책번호(plcyNo) -> policy_id(DB PK) 매핑을 만든다. bene_ai는 plcyNo만 알고
+        있으므로, backend DB의 PK가 필요한 곳(예: bookmark)에서 이 변환이 필요하다."""
         if not plcy_nos:
             return {}
         result = await db.execute(
@@ -143,6 +150,7 @@ class PolicyCrud:
 
     @staticmethod
     async def get_summaries_by_plcyno(db: AsyncSession, plcy_nos: list[str]) -> dict[str, str]:
+        """정책번호(plcyNo) -> summary 매핑을 만든다(요약이 있는 것만)."""
         if not plcy_nos:
             return {}
         result = await db.execute(

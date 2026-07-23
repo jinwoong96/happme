@@ -36,11 +36,13 @@ NOTIFY_TYPE = "KEYWORD_MATCH"
 
 
 class UserAlertKeywordService:
+    """알림 키워드 CRUD + 신규/변경 정책과의 매칭 체크 및 알림 발송."""
 
     # ---- 키워드 CRUD ----
 
     @staticmethod
     async def create_keyword_svc(db: AsyncSession, data: UserAlertKeywordCreate) -> UserAlertKeyword:
+        """알림 키워드를 등록한다. 같은 유저가 같은 키워드를 이미 등록했으면 막는다."""
         if not await UserCrud.get_user(db, data.user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유저를 찾을 수 없습니다.")
         if await UserAlertKeywordCrud.get_by_user_keyword(db, data.user_id, data.keyword):

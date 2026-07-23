@@ -7,6 +7,7 @@ from app.db.scheme.notification import NotificationCreate
 
 
 class NotificationCrud:
+    """사용자 알림(notification) 테이블에 대한 생성/조회/읽음처리/삭제."""
 
     @staticmethod
     async def create_notification(db: AsyncSession, data: NotificationCreate) -> Notification:

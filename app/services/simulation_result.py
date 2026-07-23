@@ -8,6 +8,7 @@ from app.db.models.simulation_result import SimulationResult
 
 
 class SimulationResultService:
+    """정책 시뮬레이션 결과 저장/조회/삭제."""
 
     @staticmethod
     async def create_result_svc(db: AsyncSession, data: SimulationResultCreate) -> SimulationResult:

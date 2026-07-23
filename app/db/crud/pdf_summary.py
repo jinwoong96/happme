@@ -6,6 +6,8 @@ from app.db.scheme.pdf_summary import PdfSummaryCreate, PdfMatchCreate
 
 
 class PdfSummaryCrud:
+    """PDF/텍스트/URL 공고문 매칭 결과(pdf_summary)와 매칭된 정책(pdf_summary_match)
+    조회/생성/삭제."""
 
     @staticmethod
     async def create_pdf(db: AsyncSession, data: PdfSummaryCreate) -> PdfSummary:

@@ -1,3 +1,6 @@
+# 복지로 지자체 복지서비스 목록 API(LcgvWelfarelist)를 호출해 welfare_data.json으로 저장한다.
+# fetch_welfare_detail.py가 이 목록을 읽어 servId별 상세정보를 이어서 수집한다.
+
 import requests
 import os
 import json

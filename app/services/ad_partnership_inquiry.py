@@ -6,6 +6,8 @@ from app.db.models.ad_partnership_inquiry import AdPartnershipInquiry
 
 
 class AdPartnershipInquiryService:
+    """광고/제휴 문의 생성/조회/답변/삭제. CRUD 호출 후 commit/rollback과 404/400 에러
+    변환을 담당한다(라우터는 이 서비스 계층만 호출)."""
 
     @staticmethod
     async def create_inquiry_svc(db: AsyncSession, data: AdPartnershipInquiryCreate) -> AdPartnershipInquiry:

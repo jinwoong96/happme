@@ -10,6 +10,7 @@ from app.services.ai_client import AiClient
 
 
 class OcrResultService:
+    """이미지 공고문 분석(OCR) 결과 생성/조회/매칭추가/삭제, bene_ai 이미지 분석 연동."""
 
     @staticmethod
     async def create_ocr_svc(db: AsyncSession, data: OcrResultCreate) -> OcrResult:
@@ -61,11 +62,13 @@ class OcrResultService:
             await db.rollback()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OCR 결과 삭제에 실패했습니다.")
 
-    # 이미지 업로드 -> bene_ai 분석 -> OCR 결과 + 매칭 저장
     @staticmethod
     async def analyze_image_svc(
         db: AsyncSession, user_id: int, image_bytes: bytes, filename: str, content_type: str
     ) -> dict:
+        """이미지를 bene_ai에 보내 분석(탐지+OCR+정책검색+LLM요약)하고, 매칭된 정책마다
+        사용자 프로필 기준 지원가능 여부를 판정해 붙인 뒤, OCR 결과와 매칭을 DB에 저장한다.
+        LLM 요약이 있으면 즐겨찾기 비교 화면에서 재사용할 수 있도록 pdf_summary에도 같이 저장한다."""
         if not await UserCrud.get_user(db, user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유저를 찾을 수 없습니다.")
 

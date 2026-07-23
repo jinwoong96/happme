@@ -71,6 +71,7 @@ def split_region_name(full_name: str):
 
 
 def main():
+    """zipcd 테이블을 만들고, CSV의 시군구코드/지역명을 시도명/시군구명으로 나눠 적재한다."""
     if not os.path.exists(CSV_PATH):
         raise SystemExit(f"CSV 파일을 찾을 수 없습니다: {CSV_PATH}")
 

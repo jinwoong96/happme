@@ -5,6 +5,7 @@ from app.db.scheme.user_testprofile import UserTestProfileCreate
 
 
 class UserTestProfileCrud:
+    """비로그인 시뮬레이션용 임시 프로필(user_testprofile) 생성."""
 
     @staticmethod
     async def create_test_profile(db: AsyncSession, data: UserTestProfileCreate) -> UserTestProfile:
