@@ -7,7 +7,24 @@
         "resultMessage": "SUCCESS",
         "servList": [
             {
-                "inqNum": "46690",
+                "inqNum": "30390",
+                "intrsThemaArray": "서민금융",
+                "jurMnofNm": "산업통상부",
+                "jurOrgNm": "가스산업과",
+                "lifeArray": "청소년,청년,중장년,노년",
+                "onapPsbltYn": "N",
+                "rprsCtadr": "053-670-0114",
+                "servDgst": "기초생활수급자, 차상위계층, 장애인, 국가유공자 등 사회적배려대상자가 사용하는 도시가스요금을 감액하여 요금 감면을 지원합니다.",
+                "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004638&wlfareInfoReldBztpCd=01",
+                "servId": "WLF00004638",
+                "servNm": "가스요금할인",
+                "sprtCycNm": "월",
+                "srvPvsnNm": "감면",
+                "svcfrstRegTs": "20210903",
+                "trgterIndvdlArray": "다자녀,보훈대상자,장애인,저소득"
+            },
+            {
+                "inqNum": "47944",
                 "intrsThemaArray": "신체건강",
                 "jurMnofNm": "농림축산식품부",
                 "jurOrgNm": "식품외식산업과",
@@ -23,7 +40,7 @@
                 "svcfrstRegTs": "20260413"
             },
             {
-                "inqNum": "3055",
+                "inqNum": "3301",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -39,7 +56,7 @@
                 "svcfrstRegTs": "20260610"
             },
             {
-                "inqNum": "285",
+                "inqNum": "341",
                 "intrsThemaArray": "정신건강,생활지원,안전·위기,임신·출산,보육",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "가족정책과",
@@ -56,7 +73,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,다자녀"
             },
             {
-                "inqNum": "56557",
+                "inqNum": "58234",
                 "intrsThemaArray": "생활지원,서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "청년정책과",
@@ -72,7 +89,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "1117",
+                "inqNum": "1365",
                 "intrsThemaArray": "법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "인권구조과",
@@ -89,7 +106,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,보훈대상자,장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "1626",
+                "inqNum": "1727",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "자동차운영보험과",
@@ -106,7 +123,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "2112",
+                "inqNum": "2170",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "사회적기업과",
@@ -122,7 +139,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "4691",
+                "inqNum": "5523",
                 "intrsThemaArray": "신체건강,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "보험급여과",
@@ -138,7 +155,7 @@
                 "svcfrstRegTs": "20260622"
             },
             {
-                "inqNum": "1177",
+                "inqNum": "1353",
                 "intrsThemaArray": "정신건강,안전·위기",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "자살예방정책과",
@@ -154,7 +171,7 @@
                 "svcfrstRegTs": "20260622"
             },
             {
-                "inqNum": "702",
+                "inqNum": "751",
                 "intrsThemaArray": "법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "인권구조과",
@@ -171,7 +188,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "3509",
+                "inqNum": "3599",
                 "intrsThemaArray": "안전·위기",
                 "jurMnofNm": "행정안전부",
                 "jurOrgNm": "복지자원연계팀",
@@ -188,7 +205,7 @@
                 "trgterIndvdlArray": "장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "6427",
+                "inqNum": "6643",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "기후에너지환경부",
                 "jurOrgNm": "수도기획과",
@@ -205,7 +222,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "2940",
+                "inqNum": "3232",
                 "intrsThemaArray": "안전·위기,서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "퇴직연금복지과",
@@ -221,7 +238,7 @@
                 "svcfrstRegTs": "20260611"
             },
             {
-                "inqNum": "114563",
+                "inqNum": "117313",
                 "intrsThemaArray": "생활지원,임신·출산",
                 "jurMnofNm": "농림축산식품부",
                 "jurOrgNm": "식생활소비정책과",
@@ -238,7 +255,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "1285",
+                "inqNum": "1359",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
                 "lifeArray": "청년,중장년,노년",
@@ -253,7 +270,7 @@
                 "svcfrstRegTs": "20260601"
             },
             {
-                "inqNum": "1156",
+                "inqNum": "1297",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -270,7 +287,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "1243",
+                "inqNum": "1325",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "전문대학지원과",
@@ -286,7 +303,7 @@
                 "svcfrstRegTs": "20260610"
             },
             {
-                "inqNum": "693",
+                "inqNum": "748",
                 "intrsThemaArray": "교육,법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "인권구조과",
@@ -303,7 +320,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,장애인"
             },
             {
-                "inqNum": "944",
+                "inqNum": "1014",
                 "intrsThemaArray": "교육,법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "이민통합과",
@@ -320,7 +337,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "4366",
+                "inqNum": "4760",
                 "intrsThemaArray": "서민금융,법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "인권구조과",
@@ -337,7 +354,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "1410",
+                "inqNum": "1768",
                 "intrsThemaArray": "법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "인권구조과",
@@ -354,7 +371,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "726",
+                "inqNum": "764",
                 "intrsThemaArray": "보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "청년정책팀",
@@ -370,7 +387,7 @@
                 "svcfrstRegTs": "20260608"
             },
             {
-                "inqNum": "641",
+                "inqNum": "673",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "직업교육정책과",
@@ -386,7 +403,7 @@
                 "svcfrstRegTs": "20260608"
             },
             {
-                "inqNum": "1566",
+                "inqNum": "1604",
                 "intrsThemaArray": "신체건강,서민금융",
                 "jurMnofNm": "기후에너지환경부",
                 "jurOrgNm": "사무국",
@@ -402,7 +419,7 @@
                 "svcfrstRegTs": "20260313"
             },
             {
-                "inqNum": "1601",
+                "inqNum": "1747",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "청년정책팀",
                 "lifeArray": "청소년,청년",
@@ -417,7 +434,7 @@
                 "svcfrstRegTs": "20260605"
             },
             {
-                "inqNum": "519",
+                "inqNum": "563",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "중소벤처기업부",
                 "jurOrgNm": "소상공인정책과",
@@ -434,7 +451,7 @@
                 "trgterIndvdlArray": "보훈대상자,장애인"
             },
             {
-                "inqNum": "174674",
+                "inqNum": "175065",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주거복지지원과",
@@ -451,7 +468,7 @@
                 "trgterIndvdlArray": "저소득,한부모·조손"
             },
             {
-                "inqNum": "67600",
+                "inqNum": "67855",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주거복지지원과",
@@ -468,7 +485,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,다자녀,보훈대상자,장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "19677",
+                "inqNum": "19771",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주택공급정책과",
@@ -484,7 +501,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "66585",
+                "inqNum": "66739",
                 "intrsThemaArray": "주거,서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "금융정책과",
@@ -500,7 +517,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "554",
+                "inqNum": "593",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "보상정책과",
@@ -517,7 +534,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "2840",
+                "inqNum": "3066",
                 "intrsThemaArray": "생활지원,보호·돌봄,법률",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인정책과",
@@ -534,7 +551,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "2300",
+                "inqNum": "2455",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "복지정책과",
@@ -551,7 +568,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "812",
+                "inqNum": "852",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "보훈의료재활과",
@@ -568,7 +585,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "992",
+                "inqNum": "1057",
                 "intrsThemaArray": "서민금융,법률",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "법무과",
@@ -584,7 +601,7 @@
                 "svcfrstRegTs": "20260602"
             },
             {
-                "inqNum": "2443",
+                "inqNum": "2620",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -601,7 +618,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "7757",
+                "inqNum": "7965",
                 "intrsThemaArray": "정신건강,서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "정신건강정책과",
@@ -618,7 +635,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "9354",
+                "inqNum": "9789",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "퇴직연금복지과",
@@ -635,7 +652,7 @@
                 "trgterIndvdlArray": "다자녀,저소득"
             },
             {
-                "inqNum": "842",
+                "inqNum": "897",
                 "intrsThemaArray": "교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -651,7 +668,7 @@
                 "svcfrstRegTs": "20260601"
             },
             {
-                "inqNum": "6577",
+                "inqNum": "6988",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "과학기술정보통신부",
                 "jurOrgNm": "통신경쟁정책과",
@@ -668,7 +685,7 @@
                 "trgterIndvdlArray": "보훈대상자,장애인,저소득"
             },
             {
-                "inqNum": "57870",
+                "inqNum": "58069",
                 "intrsThemaArray": "신체건강,생활지원,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "건강보험정책국",
@@ -684,24 +701,7 @@
                 "svcfrstRegTs": "20220922"
             },
             {
-                "inqNum": "27997",
-                "intrsThemaArray": "서민금융",
-                "jurMnofNm": "산업통상자원부",
-                "jurOrgNm": "가스산업과",
-                "lifeArray": "청소년,청년,중장년,노년",
-                "onapPsbltYn": "N",
-                "rprsCtadr": "053-670-0114",
-                "servDgst": "기초생활수급자, 차상위계층, 장애인, 국가유공자 등 사회적배려대상자가 사용하는 도시가스요금을 감액하여 요금 감면을 지원합니다.",
-                "servDtlLink": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004638&wlfareInfoReldBztpCd=01",
-                "servId": "WLF00004638",
-                "servNm": "가스요금할인",
-                "sprtCycNm": "월",
-                "srvPvsnNm": "현금지급",
-                "svcfrstRegTs": "20210903",
-                "trgterIndvdlArray": "다자녀,보훈대상자,장애인,저소득"
-            },
-            {
-                "inqNum": "24141",
+                "inqNum": "24262",
                 "intrsThemaArray": "생활지원,입양·위탁,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "청년정책팀",
@@ -717,7 +717,7 @@
                 "svcfrstRegTs": "20240521"
             },
             {
-                "inqNum": "2233",
+                "inqNum": "2309",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "퇴직연금복지과",
                 "lifeArray": "청년,중장년",
@@ -732,7 +732,7 @@
                 "svcfrstRegTs": "20260521"
             },
             {
-                "inqNum": "48875",
+                "inqNum": "49100",
                 "intrsThemaArray": "보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인서비스과",
@@ -749,7 +749,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "11771",
+                "inqNum": "11851",
                 "intrsThemaArray": "생활지원,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인서비스과",
@@ -766,7 +766,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "112813",
+                "inqNum": "113258",
                 "intrsThemaArray": "생활지원,일자리,서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인자립기반과",
@@ -783,7 +783,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "4683",
+                "inqNum": "4725",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "통일부",
                 "jurOrgNm": "교육기획과",
@@ -800,7 +800,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "5547",
+                "inqNum": "5579",
                 "intrsThemaArray": "생활지원,문화·여가,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -816,7 +816,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "161182",
+                "inqNum": "161629",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "광역교통경제과",
@@ -833,7 +833,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,저소득"
             },
             {
-                "inqNum": "11594",
+                "inqNum": "11648",
                 "intrsThemaArray": "정신건강,생활지원,교육,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -849,7 +849,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "25028",
+                "inqNum": "25157",
                 "intrsThemaArray": "정신건강,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -865,7 +865,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "8976",
+                "inqNum": "9015",
                 "intrsThemaArray": "정신건강,생활지원,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -881,7 +881,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "7581",
+                "inqNum": "7612",
                 "intrsThemaArray": "정신건강,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -897,7 +897,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "11186",
+                "inqNum": "11244",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "복지정책과",
@@ -914,7 +914,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "211080",
+                "inqNum": "211692",
                 "intrsThemaArray": "신체건강",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "질병정책과",
@@ -930,7 +930,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "7201",
+                "inqNum": "7241",
                 "intrsThemaArray": "생활지원,일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -947,7 +947,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "6517",
+                "inqNum": "6555",
                 "intrsThemaArray": "교육",
                 "jurMnofNm": "통일부",
                 "jurOrgNm": "자립지원과",
@@ -964,7 +964,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "9620",
+                "inqNum": "9675",
                 "intrsThemaArray": "생활지원,법률",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인서비스과",
@@ -981,7 +981,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "320745",
+                "inqNum": "322147",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인서비스과",
@@ -998,7 +998,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "101311",
+                "inqNum": "101592",
                 "intrsThemaArray": "임신·출산,서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "출산정책과",
@@ -1014,7 +1014,7 @@
                 "svcfrstRegTs": "20250422"
             },
             {
-                "inqNum": "7234",
+                "inqNum": "7458",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1031,7 +1031,7 @@
                 "trgterIndvdlArray": "한부모·조손"
             },
             {
-                "inqNum": "3643",
+                "inqNum": "3747",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1047,7 +1047,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "1731",
+                "inqNum": "1780",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1063,7 +1063,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "4660",
+                "inqNum": "4813",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1079,7 +1079,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "4844",
+                "inqNum": "4986",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1096,7 +1096,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "6298",
+                "inqNum": "6709",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1113,7 +1113,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "2251",
+                "inqNum": "2373",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1129,7 +1129,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "2119",
+                "inqNum": "2274",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1145,7 +1145,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "1116",
+                "inqNum": "1153",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
                 "lifeArray": "청소년,청년,중장년,노년",
@@ -1160,7 +1160,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "1997",
+                "inqNum": "2114",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1176,7 +1176,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "4491",
+                "inqNum": "4935",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1192,7 +1192,7 @@
                 "svcfrstRegTs": "20260506"
             },
             {
-                "inqNum": "5291",
+                "inqNum": "5686",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1209,7 +1209,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "1785",
+                "inqNum": "1871",
                 "jurMnofNm": "산업통상자원부",
                 "jurOrgNm": "석탄산업과",
                 "lifeArray": "아동,청소년,청년,중장년,노년",
@@ -1225,7 +1225,7 @@
                 "trgterIndvdlArray": "장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "16450",
+                "inqNum": "16531",
                 "intrsThemaArray": "생활지원,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년자립지원과",
@@ -1241,7 +1241,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "4814",
+                "inqNum": "4845",
                 "intrsThemaArray": "신체건강,입양·위탁",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "아동보호자립과",
@@ -1257,7 +1257,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "10051",
+                "inqNum": "10101",
                 "intrsThemaArray": "정신건강,입양·위탁,서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "아동보호자립과",
@@ -1273,7 +1273,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "69686",
+                "inqNum": "70294",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "방송통신위원회",
                 "jurOrgNm": "방송정책기획과",
@@ -1290,7 +1290,7 @@
                 "trgterIndvdlArray": "보훈대상자,장애인,저소득"
             },
             {
-                "inqNum": "10606",
+                "inqNum": "10660",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인자립기반과",
@@ -1307,7 +1307,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "78353",
+                "inqNum": "78807",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인자립기반과",
@@ -1324,7 +1324,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "12734874",
+                "inqNum": "12741153",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "자활정책과",
@@ -1341,7 +1341,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "50015",
+                "inqNum": "56392",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "기후에너지환경부",
                 "jurOrgNm": "전력시장과",
@@ -1358,7 +1358,7 @@
                 "trgterIndvdlArray": "보훈대상자,장애인,저소득"
             },
             {
-                "inqNum": "37436",
+                "inqNum": "37572",
                 "intrsThemaArray": "신체건강,정신건강",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인정책과",
@@ -1375,7 +1375,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "1712",
+                "inqNum": "1804",
                 "jurMnofNm": "법무부",
                 "jurOrgNm": "보호정책과",
                 "lifeArray": "청소년,청년,중장년,노년",
@@ -1390,7 +1390,7 @@
                 "svcfrstRegTs": "20260316"
             },
             {
-                "inqNum": "5361",
+                "inqNum": "5446",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애예방운전지원과",
                 "lifeArray": "청소년,청년,중장년,노년",
@@ -1406,7 +1406,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "586666",
+                "inqNum": "588301",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "청년정책팀",
@@ -1422,7 +1422,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "23554",
+                "inqNum": "23650",
                 "intrsThemaArray": "생활지원,서민금융",
                 "jurMnofNm": "금융위원회",
                 "jurOrgNm": "서민금융과",
@@ -1438,7 +1438,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "16042",
+                "inqNum": "16103",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "인구정책총괄과",
@@ -1454,7 +1454,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "68188",
+                "inqNum": "68469",
                 "intrsThemaArray": "신체건강",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "질병정책과",
@@ -1471,7 +1471,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "79024",
+                "inqNum": "79337",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "다문화가족과",
@@ -1488,7 +1488,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "428147",
+                "inqNum": "433884",
                 "intrsThemaArray": "일자리,서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "자활정책과",
@@ -1505,7 +1505,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "10014",
+                "inqNum": "10115",
                 "intrsThemaArray": "생활지원,안전·위기",
                 "jurMnofNm": "농림축산식품부",
                 "jurOrgNm": "농업정책보험과",
@@ -1522,7 +1522,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "5844",
+                "inqNum": "6055",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "기후에너지환경부",
                 "jurOrgNm": "열산업혁신과",
@@ -1539,7 +1539,7 @@
                 "trgterIndvdlArray": "장애인,한부모·조손"
             },
             {
-                "inqNum": "2140",
+                "inqNum": "2214",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "기후에너지환경부",
                 "jurOrgNm": "열산업혁신과",
@@ -1555,7 +1555,7 @@
                 "svcfrstRegTs": "20260316"
             },
             {
-                "inqNum": "12334251",
+                "inqNum": "12349680",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "청년주거정책과",
@@ -1572,7 +1572,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "6708",
+                "inqNum": "6897",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "국민연금정책과",
@@ -1588,7 +1588,7 @@
                 "svcfrstRegTs": "20260423"
             },
             {
-                "inqNum": "52150",
+                "inqNum": "52394",
                 "intrsThemaArray": "주거",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주거복지지원과",
@@ -1605,7 +1605,7 @@
                 "trgterIndvdlArray": "다자녀,장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "5557",
+                "inqNum": "5601",
                 "intrsThemaArray": "생활지원,안전·위기",
                 "jurMnofNm": "해양수산부",
                 "jurOrgNm": "소득복지과",
@@ -1622,7 +1622,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "164827",
+                "inqNum": "165193",
                 "intrsThemaArray": "교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "평생학습정책과",
@@ -1639,7 +1639,7 @@
                 "trgterIndvdlArray": "저소득,한부모·조손"
             },
             {
-                "inqNum": "4178",
+                "inqNum": "4211",
                 "intrsThemaArray": "생활지원,서민금융",
                 "jurMnofNm": "해양수산부",
                 "jurOrgNm": "연안해운과",
@@ -1655,7 +1655,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "30192",
+                "inqNum": "30324",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "생활안정과",
@@ -1672,7 +1672,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "5775",
+                "inqNum": "5820",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "농림축산식품부",
                 "jurOrgNm": "농촌사회서비스과",
@@ -1688,7 +1688,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "12018",
+                "inqNum": "12060",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "중소벤처기업부",
                 "jurOrgNm": "소상공인경영안정정책과",
@@ -1704,7 +1704,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "6909",
+                "inqNum": "7170",
                 "intrsThemaArray": "신체건강,생활지원,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "보험정책과",
@@ -1720,7 +1720,7 @@
                 "svcfrstRegTs": "20260413"
             },
             {
-                "inqNum": "2252",
+                "inqNum": "2318",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "병무청",
                 "jurOrgNm": "병역공개과",
@@ -1736,7 +1736,7 @@
                 "svcfrstRegTs": "20260413"
             },
             {
-                "inqNum": "2045",
+                "inqNum": "2085",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1752,7 +1752,7 @@
                 "svcfrstRegTs": "20260413"
             },
             {
-                "inqNum": "1989",
+                "inqNum": "2084",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -1769,7 +1769,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "2892",
+                "inqNum": "2995",
                 "intrsThemaArray": "신체건강,일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -1786,7 +1786,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "4051",
+                "inqNum": "4167",
                 "intrsThemaArray": "일자리,서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "청년고용기획과",
@@ -1802,7 +1802,7 @@
                 "svcfrstRegTs": "20260413"
             },
             {
-                "inqNum": "1929",
+                "inqNum": "1967",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1819,7 +1819,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "1406",
+                "inqNum": "1437",
                 "intrsThemaArray": "생활지원,안전·위기",
                 "jurMnofNm": "해양수산부",
                 "jurOrgNm": "소득복지과",
@@ -1836,7 +1836,7 @@
                 "trgterIndvdlArray": "다자녀"
             },
             {
-                "inqNum": "6649",
+                "inqNum": "6694",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "농림축산식품부",
                 "jurOrgNm": "농촌사회서비스과",
@@ -1852,7 +1852,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "248075",
+                "inqNum": "249283",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인자립기반과",
@@ -1869,7 +1869,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "5523182",
+                "inqNum": "5524896",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인자립기반과",
@@ -1886,7 +1886,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "12433",
+                "inqNum": "12490",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "제대군인일자리과",
@@ -1903,7 +1903,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "8700",
+                "inqNum": "8757",
                 "intrsThemaArray": "신체건강,생활지원",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -1920,7 +1920,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "32522",
+                "inqNum": "32573",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -1937,7 +1937,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "17531",
+                "inqNum": "17579",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1953,7 +1953,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "35999",
+                "inqNum": "36093",
                 "intrsThemaArray": "교육,서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1970,7 +1970,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "37784",
+                "inqNum": "37920",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -1987,7 +1987,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,다자녀,보훈대상자,장애인,저소득"
             },
             {
-                "inqNum": "17183",
+                "inqNum": "17227",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "청년장학지원과",
@@ -2003,7 +2003,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "3850",
+                "inqNum": "3881",
                 "intrsThemaArray": "안전·위기,법률",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "제대군인일자리과",
@@ -2020,7 +2020,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "7540",
+                "inqNum": "7586",
                 "intrsThemaArray": "생활지원,서민금융",
                 "jurMnofNm": "통일부",
                 "jurOrgNm": "자립지원과",
@@ -2037,7 +2037,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "11116",
+                "inqNum": "11334",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "청년취업지원과",
@@ -2053,7 +2053,7 @@
                 "svcfrstRegTs": "20260316"
             },
             {
-                "inqNum": "48579",
+                "inqNum": "48847",
                 "intrsThemaArray": "문화·여가",
                 "jurMnofNm": "문화체육관광부",
                 "jurOrgNm": "장애인체육과",
@@ -2070,7 +2070,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "278493",
+                "inqNum": "279742",
                 "intrsThemaArray": "정신건강,생활지원,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "사회서비스사업과",
@@ -2087,7 +2087,7 @@
                 "trgterIndvdlArray": "한부모·조손"
             },
             {
-                "inqNum": "30155",
+                "inqNum": "30337",
                 "intrsThemaArray": "보육,보호·돌봄,서민금융",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "가족지원과",
@@ -2104,7 +2104,7 @@
                 "trgterIndvdlArray": "한부모·조손"
             },
             {
-                "inqNum": "32436",
+                "inqNum": "32539",
                 "intrsThemaArray": "신체건강",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "건강증진과",
@@ -2121,7 +2121,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "1398",
+                "inqNum": "1428",
                 "jurMnofNm": "과학기술정보통신부",
                 "jurOrgNm": "디지털포용정책팀",
                 "lifeArray": "청소년,청년,중장년,노년",
@@ -2137,7 +2137,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "13392",
+                "inqNum": "13467",
                 "intrsThemaArray": "주거,안전·위기",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "친밀관계폭력방지과",
@@ -2154,7 +2154,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "56563",
+                "inqNum": "56773",
                 "intrsThemaArray": "신체건강",
                 "jurMnofNm": "질병관리청",
                 "jurOrgNm": "만성질환예방과",
@@ -2170,7 +2170,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "161844",
+                "inqNum": "162440",
                 "intrsThemaArray": "신체건강,생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "필수의료총괄과",
@@ -2187,7 +2187,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "2841",
+                "inqNum": "2962",
                 "intrsThemaArray": "일자리,서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "직업교육정책과",
@@ -2203,7 +2203,7 @@
                 "svcfrstRegTs": "20260401"
             },
             {
-                "inqNum": "1040",
+                "inqNum": "1072",
                 "intrsThemaArray": "서민금융",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "직업교육정책과",
@@ -2219,7 +2219,7 @@
                 "svcfrstRegTs": "20260401"
             },
             {
-                "inqNum": "6477",
+                "inqNum": "6547",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "보훈문화정책과",
@@ -2236,7 +2236,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "10640",
+                "inqNum": "10687",
                 "intrsThemaArray": "일자리,교육",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "고용서비스정책과",
@@ -2252,7 +2252,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "27847",
+                "inqNum": "27935",
                 "intrsThemaArray": "일자리,서민금융",
                 "jurMnofNm": "산림청",
                 "jurOrgNm": "산림자원과",
@@ -2269,7 +2269,7 @@
                 "trgterIndvdlArray": "장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "27974",
+                "inqNum": "28104",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "장애인고용과",
@@ -2286,7 +2286,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "241992",
+                "inqNum": "243785",
                 "intrsThemaArray": "생활지원,일자리",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "국민취업지원기획팀",
@@ -2303,7 +2303,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "4353",
+                "inqNum": "4387",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "교육부",
                 "jurOrgNm": "평생학습정책과",
@@ -2320,7 +2320,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "6826",
+                "inqNum": "6875",
                 "intrsThemaArray": "생활지원,입양·위탁",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "입양정책팀",
@@ -2337,7 +2337,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "568591",
+                "inqNum": "570747",
                 "intrsThemaArray": "신체건강,생활지원",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년정책과",
@@ -2354,7 +2354,7 @@
                 "trgterIndvdlArray": "저소득,한부모·조손"
             },
             {
-                "inqNum": "37764",
+                "inqNum": "37848",
                 "intrsThemaArray": "주거,보호·돌봄",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "가족지원과",
@@ -2371,7 +2371,7 @@
                 "trgterIndvdlArray": "한부모·조손"
             },
             {
-                "inqNum": "4835",
+                "inqNum": "4878",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "중소벤처기업부",
                 "jurOrgNm": "중소기업제도과",
@@ -2387,7 +2387,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "4122",
+                "inqNum": "4153",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "중소벤처기업부",
                 "jurOrgNm": "중소기업제도과",
@@ -2403,7 +2403,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "5723",
+                "inqNum": "5768",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "중소벤처기업부",
                 "jurOrgNm": "중소기업제도과",
@@ -2419,7 +2419,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "9581",
+                "inqNum": "9647",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "다문화가족과",
@@ -2436,7 +2436,7 @@
                 "trgterIndvdlArray": "다문화·탈북민"
             },
             {
-                "inqNum": "284136",
+                "inqNum": "285688",
                 "intrsThemaArray": "문화·여가",
                 "jurMnofNm": "문화체육관광부",
                 "jurOrgNm": "문화정책과",
@@ -2453,7 +2453,7 @@
                 "trgterIndvdlArray": "장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "24952",
+                "inqNum": "25068",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "문화체육관광부",
                 "jurOrgNm": "예술인권리보호과",
@@ -2470,7 +2470,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "15896",
+                "inqNum": "15979",
                 "intrsThemaArray": "일자리",
                 "jurMnofNm": "산림청",
                 "jurOrgNm": "산림환경보호과",
@@ -2487,7 +2487,7 @@
                 "trgterIndvdlArray": "장애인,저소득"
             },
             {
-                "inqNum": "273517",
+                "inqNum": "274510",
                 "intrsThemaArray": "생활지원,일자리",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "자활정책과",
@@ -2504,7 +2504,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "19262",
+                "inqNum": "19464",
                 "intrsThemaArray": "생활지원,주거,서민금융",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "생활안정과",
@@ -2521,7 +2521,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "9570",
+                "inqNum": "9621",
                 "intrsThemaArray": "신체건강,정신건강,생활지원,일자리,교육",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "사회서비스자원과",
@@ -2537,7 +2537,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "673835",
+                "inqNum": "676384",
                 "intrsThemaArray": "생활지원",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "기초생활보장과",
@@ -2554,7 +2554,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "961200",
+                "inqNum": "968370",
                 "intrsThemaArray": "신체건강,생활지원,일자리,문화·여가,교육,법률",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "학교밖청소년지원과",
@@ -2571,7 +2571,7 @@
                 "trgterIndvdlArray": "저소득"
             },
             {
-                "inqNum": "22921",
+                "inqNum": "22969",
                 "intrsThemaArray": "생활지원,교육",
                 "jurMnofNm": "과학기술정보통신부",
                 "jurOrgNm": "미래인재양성과",
@@ -2587,7 +2587,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "9219",
+                "inqNum": "9261",
                 "intrsThemaArray": "정신건강",
                 "jurMnofNm": "성평등가족부",
                 "jurOrgNm": "청소년보호환경과",
@@ -2603,7 +2603,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "25409",
+                "inqNum": "25568",
                 "intrsThemaArray": "일자리,서민금융",
                 "jurMnofNm": "고용노동부",
                 "jurOrgNm": "고용지원실업급여과",
@@ -2619,7 +2619,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "49817",
+                "inqNum": "49940",
                 "intrsThemaArray": "주거,서민금융",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주택기금과",
@@ -2636,7 +2636,7 @@
                 "trgterIndvdlArray": "다자녀"
             },
             {
-                "inqNum": "6129",
+                "inqNum": "6169",
                 "intrsThemaArray": "교육",
                 "jurMnofNm": "국가보훈부",
                 "jurOrgNm": "제대군인일자리과",
@@ -2653,7 +2653,7 @@
                 "trgterIndvdlArray": "보훈대상자"
             },
             {
-                "inqNum": "194301",
+                "inqNum": "194596",
                 "intrsThemaArray": "주거,서민금융",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주택기금과",
@@ -2669,7 +2669,7 @@
                 "svcfrstRegTs": "20210903"
             },
             {
-                "inqNum": "167069",
+                "inqNum": "167767",
                 "intrsThemaArray": "주거,서민금융",
                 "jurMnofNm": "국토교통부",
                 "jurOrgNm": "주택기금과",
@@ -2686,7 +2686,7 @@
                 "trgterIndvdlArray": "다문화·탈북민,다자녀,장애인,저소득,한부모·조손"
             },
             {
-                "inqNum": "14040",
+                "inqNum": "14125",
                 "intrsThemaArray": "신체건강,생활지원,주거,일자리",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "장애인정책과",
@@ -2703,7 +2703,7 @@
                 "trgterIndvdlArray": "장애인"
             },
             {
-                "inqNum": "233693",
+                "inqNum": "234774",
                 "intrsThemaArray": "안전·위기,보호·돌봄",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "사회서비스사업과",
@@ -2719,7 +2719,7 @@
                 "svcfrstRegTs": "20240521"
             },
             {
-                "inqNum": "1581648",
+                "inqNum": "1585551",
                 "intrsThemaArray": "정신건강",
                 "jurMnofNm": "보건복지부",
                 "jurOrgNm": "자살예방정책과",
