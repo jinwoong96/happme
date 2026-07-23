@@ -1,5 +1,4 @@
-### DB 기준으로 data/policy_list.json을 임시로 만드는 스크립트
-# build_policy_list_from_db_temp.py
+# DB 기준으로 data/policy_list.json을 임시로 만드는 스크립트
 #
 # 원칙은 "온통청년 등 원본 API로 JSON을 먼저 만들고 그걸로 DB를 채운다"이지만, 그 JSON을
 # 아직 완전히 갖추기 전까지 검색문서/카드 요약/추천 엔진 파이프라인을 당장 테스트/사용하기
@@ -45,12 +44,14 @@ ZIP_QUERY = """
 
 
 def _json_default(value):
+    """json.dump가 date/datetime처럼 기본적으로 직렬화 못 하는 값을 문자열로 바꿔준다."""
     if isinstance(value, (date, datetime)):
         return value.isoformat()
     raise TypeError(f"직렬화할 수 없는 값: {value!r}")
 
 
 def main():
+    """DB의 정책 전체와 지역코드(zipCd)를 읽어 data/policy_list.json으로 저장한다."""
     conn = pymysql.connect(
         host=settings.db_host, port=settings.db_port, user=settings.db_user,
         password=settings.db_password, db=settings.db_name, charset="utf8mb4",

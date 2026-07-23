@@ -30,6 +30,7 @@ class PolicySimilarityService:
             return json.load(f)
 
     def known_plcynos(self) -> set[str]:
+        """현재 검색문서에 이미 포함돼 있는 정책 번호 전체를 반환한다."""
         return set(self._plcyno_index.keys())
 
     def refresh(self, docs: list[dict], embeddings: np.ndarray) -> None:
@@ -40,6 +41,7 @@ class PolicySimilarityService:
         self._plcyno_index = {str(doc.get("policy_id")): idx for idx, doc in enumerate(docs)}
 
     def _encode_query(self, query_text: str) -> np.ndarray:
+        """검색어 텍스트를 임베딩 벡터로 변환한다."""
         return self.model.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)[0]
 
     def search(self, query_text: str, candidate_policies: list[dict], top_k: int | None = 5) -> list[dict]:

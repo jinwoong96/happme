@@ -1,5 +1,4 @@
-### 정책 문서 임베딩 코드(search_text만, 전체 다) - bge_m3 임베딩 모델
-# build_search_doc_embeddings.py
+# 정책 문서 임베딩 코드(search_text만, 전체 다) - bge_m3 임베딩 모델
 
 import json
 from pathlib import Path
@@ -19,11 +18,14 @@ BATCH_SIZE = 64
 
 
 def load_docs(path):
+    """검색문서 JSON 파일을 읽는다."""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def build_policy_text(doc, mode):
+    """검색문서 하나를 임베딩할 텍스트로 만든다. "search_text_only"는 검색문서 필드만,
+    "full_text"는 정책명/요약/대상/지원내용 등을 다 합친 텍스트를 만든다."""
     if mode == "search_text_only":
         return doc["search_text"]
 
@@ -42,6 +44,7 @@ def build_policy_text(doc, mode):
 
 
 def save_json(path, data):
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, "w", encoding="utf-8") as f:
@@ -49,6 +52,8 @@ def save_json(path, data):
 
 
 def build_embeddings(docs, model, mode):
+    """검색문서 전체를 지정된 모드(search_text_only/full_text)로 임베딩하고,
+    임베딩 배열과 정책 id/이름/원문 텍스트를 파일로 저장한다."""
     output_dir = Path(OUTPUT_DIR) / MODEL_KEY / mode
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -75,7 +80,7 @@ def build_embeddings(docs, model, mode):
 
 
 def main():
-
+    """정제된 검색문서를 두 가지 모드(search_text_only/full_text)로 각각 임베딩해서 저장한다."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     print("=" * 50)

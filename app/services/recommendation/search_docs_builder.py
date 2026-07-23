@@ -43,10 +43,12 @@ _status: dict = {"running": False, "last_run": None}
 
 
 def get_status() -> dict:
+    """검색문서 생성 작업이 지금 실행 중인지, 마지막 실행 결과가 뭐였는지 반환한다."""
     return {"running": _status["running"], "last_run": _status["last_run"]}
 
 
 def _load_json(path, default):
+    """JSON 파일을 읽는다. 파일이 없으면 default를 반환한다."""
     p = Path(path)
     if not p.exists():
         return default
@@ -55,6 +57,7 @@ def _load_json(path, default):
 
 
 def _save_json(path, data):
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
@@ -62,6 +65,7 @@ def _save_json(path, data):
 
 
 def _load_policies_from_db() -> list[dict]:
+    """검색문서 생성에 필요한 필드들을 DB에서 전부 읽어온다."""
     conn = pymysql.connect(
         host=settings.db_host, port=settings.db_port, user=settings.db_user,
         password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -82,6 +86,8 @@ def get_new_policies(known_plcynos: set[str]) -> list[dict]:
 
 
 def _clean_doc(doc: dict, exceptions_log: list[dict]) -> dict:
+    """LLM이 생성한 검색문서 하나를 정제한다: 중복 제거, 의심스러운 대상 표현 제거,
+    항목별 최대 개수 제한."""
     for field in ("target", "support", "keywords", "situations", "example_queries"):
         value = doc.get(field)
         if isinstance(value, list):
@@ -95,12 +101,14 @@ def _clean_doc(doc: dict, exceptions_log: list[dict]) -> dict:
 
 
 def _upload_if_configured(local_path: str, s3_key: str) -> None:
+    """S3 설정이 돼 있으면 파일을 업로드하고, 아니면 아무것도 하지 않는다."""
     if settings.data_s3_bucket and s3_key:
         client = get_s3_client(settings.data_s3_public)
         upload_file(local_path, settings.data_s3_bucket, s3_key, client, label="search_docs_builder")
 
 
 def _append_batch_to_production(cleaned_docs: list[dict], model) -> None:
+    """새로 만든 검색문서를 임베딩하고, 기존 운영 파일(문서 JSON + 임베딩 npy)에 이어붙여 저장한다."""
     texts = [build_policy_text(doc, "full_text") for doc in cleaned_docs]
     new_embeddings = model.encode(texts, batch_size=64, convert_to_numpy=True, normalize_embeddings=True)
 

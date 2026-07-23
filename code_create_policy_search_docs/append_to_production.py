@@ -1,5 +1,4 @@
-### 독립 프로세스로 만든 검색문서(정제 완료)를 운영 파일에 이어붙이기
-# append_to_production.py
+# 독립 프로세스로 만든 검색문서(정제 완료)를 운영 파일에 이어붙이기
 #
 # run_create_search_docs.py -> clean_search_docs.py까지 돌려서 나온
 # result/search_docs_watsonx_cleaned.json을, 실제 서비스가 쓰는 운영 파일
@@ -23,6 +22,7 @@ INPUT_FILE = "result/search_docs_watsonx_cleaned.json"
 
 
 def load_json(path, default=None):
+    """JSON 파일을 읽는다. 파일이 없으면 default(기본값은 빈 리스트)를 반환한다."""
     p = Path(path)
     if not p.exists():
         return default if default is not None else []
@@ -31,6 +31,7 @@ def load_json(path, default=None):
 
 
 def save_json(path, data):
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
@@ -38,12 +39,14 @@ def save_json(path, data):
 
 
 def upload_if_configured(local_path: str, s3_key: str) -> None:
+    """S3 설정이 돼 있으면 파일을 업로드하고, 아니면 아무것도 하지 않는다."""
     if settings.data_s3_bucket and s3_key:
         client = get_s3_client(settings.data_s3_public)
         upload_file(local_path, settings.data_s3_bucket, s3_key, client, label="append_to_production")
 
 
 def main():
+    """정제된 신규 검색문서 중 운영 파일에 아직 없는 것만 임베딩해서 이어붙이고 저장한다."""
     new_docs = load_json(INPUT_FILE)
     if not new_docs:
         print(f"{INPUT_FILE}에 문서가 없습니다. 종료합니다.")

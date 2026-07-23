@@ -60,6 +60,8 @@ class RegionMatcher:
         self.zipcd_df = pd.read_csv(settings.zipcd_mapping_path, dtype={"시군구코드": str})
 
     def match(self, user: dict, policy: dict) -> dict:
+        """사용자 거주지역이 정책의 지역 조건(zipCd 목록)에 포함되는지 확인한다.
+        사용자가 시/군/구까지 안 정했으면 시/도 단위로만 대략 맞춰본다."""
         policy_zip_list = self._parse_zip_list(policy.get("zipCd"))
         policy_region_summary = self._summarize_policy_region(policy_zip_list)
 
@@ -147,6 +149,7 @@ class RegionMatcher:
         return PREFIX_MAP.get(cls._normalize_region(region))
 
     def _get_zip_code(self, region: str, district: str) -> str | None:
+        """시/도 + 시/군/구 이름으로 시군구코드를 찾는다. 못 찾으면 None."""
         region_prefix = self._region_to_prefix(region)
         if region_prefix is None:
             return None
@@ -170,6 +173,7 @@ class RegionMatcher:
 
     @staticmethod
     def _parse_zip_list(zip_cd) -> list[str]:
+        """쉼표로 구분된 시군구코드 문자열을 리스트로 쪼갠다."""
         if not zip_cd:
             return []
         return [x.strip() for x in str(zip_cd).split(",") if x.strip()]

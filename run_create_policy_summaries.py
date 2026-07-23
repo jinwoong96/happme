@@ -1,5 +1,4 @@
-### watsonx.ai로 정책 지원내용 요약(summary)만 생성
-# run_create_policy_summaries.py
+# watsonx.ai로 정책 지원내용 요약(summary)만 생성
 #
 # policy_cards 전체(title/apply_period_type/apply_period/target/link)가 아니라
 # support_summary 하나만 필요할 때 쓴다. policy_cards.json에 이미 support_summary가
@@ -77,6 +76,7 @@ def get_summaries_from_policy_cards() -> dict[str, str]:
 
 
 def load_existing_json(path, default):
+    """JSON 파일을 읽는다. 파일이 없으면 default를 반환한다."""
     p = Path(path)
     if not p.exists():
         return default
@@ -85,6 +85,7 @@ def load_existing_json(path, default):
 
 
 def save_json(path, data):
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
@@ -92,6 +93,8 @@ def save_json(path, data):
 
 
 def main():
+    """지원내용이 있는 정책을 배치로 돌며 summary를 채운다. policy_cards.json에 이미 있는
+    요약은 재사용하고, 없는 정책만 watsonx로 새로 생성한다. 배치마다 바로 저장한다."""
     policies = load_policies(INPUT_FILE)
     # 지원 내용이 비어있으면 요약할 게 없으므로 제외한다.
     policies = [p for p in policies if (p.get("plcySprtCn") or "").strip()]

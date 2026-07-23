@@ -191,6 +191,7 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_age(user, policy):
+        """사용자 나이가 정책의 최소/최대 연령 조건 안에 드는지 확인한다."""
         if policy.get("sprtTrgtAgeLmtYn") == "Y":
             return make_result(True, "연령 제한 없음")
 
@@ -214,6 +215,7 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_marriage(user, policy):
+        """사용자 혼인상태가 정책이 요구하는 혼인 조건과 맞는지 확인한다."""
         policy_marriage = policy.get("mrgSttsCd")
 
         if is_empty_or_unlimited(policy_marriage):
@@ -233,6 +235,7 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_school_status(user, policy):
+        """사용자 학력이 정책이 요구하는 학력 조건과 맞는지 확인한다."""
         policy_school = policy.get("schoolCd")
 
         if is_empty_or_unlimited(policy_school):
@@ -252,6 +255,7 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_major(user, policy):
+        """사용자 전공계열이 정책이 요구하는 전공 조건과 맞는지 확인한다."""
         policy_major = policy.get("plcyMajorCd")
 
         if is_empty_or_unlimited(policy_major):
@@ -271,6 +275,8 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_sbiz(user, policy):
+        """사용자가 정책이 요구하는 특수계층(여성/장애인/한부모가정 등) 조건 중 하나에
+        해당하는지 확인한다. 정책에 조건 코드가 여러 개면 하나라도 맞으면 통과."""
         policy_sbiz = policy.get("sbizCd")
 
         if is_empty_or_unlimited(policy_sbiz):
@@ -308,6 +314,7 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_job(user, policy):
+        """사용자 취업상태가 정책이 요구하는 취업상태 조건과 맞는지 확인한다."""
         policy_job = policy.get("jobCd")
 
         if is_empty_or_unlimited(policy_job):

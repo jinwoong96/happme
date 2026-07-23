@@ -29,6 +29,7 @@ class ScheduleExtractResponse(BaseModel):
 
 
 def get_schedule_service(request: Request) -> ScheduleService:
+    """앱 시작 시 만들어 둔 ScheduleService(일정 추출) 인스턴스를 꺼내온다."""
     return request.app.state.schedule_service
 
 

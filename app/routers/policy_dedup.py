@@ -7,6 +7,7 @@ router = APIRouter(prefix="/policy-dedup", tags=["PolicyDedup"])
 
 
 def get_policy_similarity_service(request: Request) -> PolicySimilarityService:
+    """앱 시작 시 만들어 둔 PolicySimilarityService 인스턴스를 꺼내온다."""
     return request.app.state.policy_similarity_service
 
 

@@ -37,6 +37,7 @@ class SearchService:
 
     @staticmethod
     def _load_policies_from_db() -> list[dict]:
+        """검색에 필요한 정책 필드들을 DB(policy 테이블)에서 전부 읽어온다."""
         conn = pymysql.connect(
             host=settings.db_host,
             port=settings.db_port,
@@ -61,10 +62,12 @@ class SearchService:
 
     @staticmethod
     def _make_search_text(policy: dict) -> str:
+        """정책 이름/설명/지원내용을 하나로 합쳐 임베딩용 텍스트를 만든다."""
         parts = [policy.get("plcyNm", ""), policy.get("plcyExplnCn", ""), policy.get("plcySprtCn", "")]
         return " ".join(x for x in parts if x)
 
     def _build_policy_embeddings(self):
+        """모든 정책을 임베딩으로 변환해 로컬 캐시 파일에 저장하고, 필요하면 S3에도 올린다."""
         texts = [self._make_search_text(p) for p in self.policies]
         self.policy_embeddings = self.embedding_model.encode(texts, show_progress_bar=True, convert_to_numpy=True)
         np.save(settings.policy_embedding_cache, self.policy_embeddings)
@@ -78,6 +81,7 @@ class SearchService:
             )
 
     def search_policy_svc(self, query_text: str, top_k: int = None) -> list[dict]:
+        """검색어(OCR 텍스트 등)를 임베딩해서 코사인 유사도가 가장 높은 정책 top_k개를 반환한다."""
         if not query_text.strip() or not self.policies:
             return []
         top_k = settings.top_k if top_k is None else top_k

@@ -44,6 +44,8 @@ def _iter_rotated_log_files(log_dir: str):
 
 
 def _upload_and_verify(local_path: str, bucket: str, s3_key: str, client) -> bool:
+    """파일을 S3에 올리고, 업로드된 파일 크기가 로컬과 같은지 확인한다.
+    업로드/확인 중 하나라도 실패하면 로컬 삭제로 이어지지 않도록 False를 반환한다."""
     try:
         client.upload_file(local_path, bucket, s3_key)
     except (ClientError, NoCredentialsError) as e:
@@ -64,6 +66,8 @@ def _upload_and_verify(local_path: str, bucket: str, s3_key: str, client) -> boo
 
 
 def main():
+    """어제 이전 날짜로 로테이션된 로그 파일들을 전부 S3에 올리고, 업로드가 확인된
+    파일만 로컬에서 지운다."""
     if not settings.data_s3_bucket:
         print("[upload_logs] DATA_S3_BUCKET이 비어있어 건너뜁니다.")
         return

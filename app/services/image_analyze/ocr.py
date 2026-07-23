@@ -35,6 +35,7 @@ class OcrService:
 
     @staticmethod
     def _clean_text(text: str) -> str:
+        """OCR로 읽은 텍스트에서 특수문자를 지우고 공백을 정리한다."""
         text = re.sub(r"[^\w\s가-힣]", "", text)
         text = re.sub(r"\s+", " ", text).strip()
         return text

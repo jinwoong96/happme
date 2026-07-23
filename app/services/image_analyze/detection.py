@@ -35,6 +35,7 @@ class DetectionService:
 
     @staticmethod
     def _load_notice_detector_model():
+        """공고물 위치 탐지기(Faster R-CNN) 가중치 파일을 불러와 추론 모드로 준비한다."""
         if not os.path.exists(settings.notice_detector_weights):
             raise FileNotFoundError(f"공고물 위치 탐지기 가중치를 찾을 수 없습니다: {settings.notice_detector_weights}")
         model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights=None)
@@ -47,12 +48,15 @@ class DetectionService:
 
     @staticmethod
     def _load_text_region_detector_model():
+        """텍스트 영역 탐지기(YOLOv11n) 가중치 파일을 불러온다."""
         if not os.path.exists(settings.text_region_detector_weights):
             raise FileNotFoundError(f"텍스트 영역 탐지기 가중치를 찾을 수 없습니다: {settings.text_region_detector_weights}")
         return YOLO(settings.text_region_detector_weights)
 
     @staticmethod
     def _get_notice_detector_label_map():
+        """공고물 탐지기의 클래스 번호 -> 이름(banner/card_news/poster 등) 매핑을 만든다.
+        COCO 어노테이션 파일이 있으면 거기서 읽고, 없으면 기본값을 쓴다."""
         if settings.notice_detector_coco_ann and os.path.exists(settings.notice_detector_coco_ann):
             with open(settings.notice_detector_coco_ann, encoding="utf-8") as f:
                 ann = json.load(f)
@@ -62,6 +66,7 @@ class DetectionService:
 
     @staticmethod
     def _crop_with_padding(img_pil, box, padding=None):
+        """탐지된 박스 영역을 여유 공간(padding)을 두고 이미지에서 잘라낸다."""
         padding = settings.crop_padding if padding is None else padding
         W, H = img_pil.size
         x1, y1, x2, y2 = box

@@ -55,6 +55,7 @@ EMPLOYMENT_CHOICE_MAP = {
 
 
 def is_empty(v) -> bool:
+    """값이 None이거나 빈 문자열/"None"/"NULL" 같은 사실상 빈 값인지 확인한다."""
     if v is None:
         return True
     if isinstance(v, str) and v.strip() in ("", "None", "NULL"):
@@ -102,6 +103,8 @@ class ScenarioResolver:
         return list(grouped.keys())
 
     def _normalize_region(self, raw_region: str | None) -> tuple[str | None, bool, str | None]:
+        """사용자가 입력한 시/도 이름(줄임말 포함)을 정식 시/도명으로 바꾼다.
+        Returns: (정규화된 시/도명 또는 None, 애매한지 여부, 설명 메모)"""
         if is_empty(raw_region):
             return None, False, None
         raw_region = raw_region.strip()
@@ -126,6 +129,8 @@ class ScenarioResolver:
         return None, True, f"'{raw_region}'는 zipcd 매핑에서 유효한 시/도로 확인되지 않습니다."
 
     def _normalize_district(self, raw_district: str | None) -> tuple[str | None, str | None, bool, str | None]:
+        """사용자가 입력한 시/군/구 이름을 zipcd 매핑에 있는 정식 이름으로 바꾼다.
+        Returns: (정규화된 시/군/구명, 소속 시/도명, 애매한지 여부, 설명 메모)"""
         if is_empty(raw_district):
             return None, None, False, None
         raw_district = raw_district.strip()
@@ -145,6 +150,8 @@ class ScenarioResolver:
         return city_repr, sido, False, f"'{raw_district}' → '{city_repr}'로 정규화 (zipcd 매핑, 소속: {sido})"
 
     def resolve_region_answer(self, region_choice: str, region_text: str | None) -> tuple[dict, dict, list[str]]:
+        """Q1(지역이동) 답변을 user_profile diff로 바꾼다.
+        Returns: (반영할 값 diff, 애매해서 반영 보류한 항목, 설명 메모 목록)"""
         notes: list[str] = []
         ambiguous: dict = {}
         diff: dict = {}
@@ -182,6 +189,8 @@ class ScenarioResolver:
 
     @staticmethod
     def _normalize_closed_set(raw_value, allowed_values: set, alias_map: dict, field_label: str) -> tuple[str | None, str | None]:
+        """자유 입력값을 정해진 값 집합(allowed_values) 중 하나로 바꾼다. 이미 정확히
+        일치하거나 별칭 목록(alias_map)에 있으면 매핑하고, 아니면 반영을 보류한다."""
         if is_empty(raw_value):
             return None, None
         raw_value = str(raw_value).strip()
@@ -196,6 +205,8 @@ class ScenarioResolver:
         return None, f"{field_label}: '{raw_value}'는 허용된 값이나 별칭 목록에 없어 반영 보류함"
 
     def resolve_employment_answer(self, employment_choice: str, other_text: str | None) -> tuple[dict, dict, list[str]]:
+        """Q2(취업 변화) 답변을 user_profile diff로 바꾼다.
+        Returns: (반영할 값 diff, 애매해서 반영 보류한 항목, 설명 메모 목록)"""
         notes: list[str] = []
         ambiguous: dict = {}
         diff: dict = {}
@@ -235,6 +246,9 @@ class ScenarioResolver:
         employment_choice: str,
         employment_other: str | None,
     ) -> tuple[dict, dict, list[str]]:
+        """Q1(지역이동)+Q2(취업 변화) 답변을 합쳐 최종 user_profile diff를 만든다.
+        지역만 바뀌고 시/군/구가 확정되지 않으면 기존 district 값을 지운다(남아있으면
+        예전 지역의 구가 새 시/도에 잘못 붙어있는 상태가 되므로)."""
         diff: dict = {}
         ambiguous: dict = {}
         notes: list[str] = []

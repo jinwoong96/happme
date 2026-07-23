@@ -1,5 +1,4 @@
-### 생성된 정책 문서 이상치 검증
-# validate_search_docs.py
+# 생성된 정책 검색문서 이상치 검증
 
 import json
 import re
@@ -61,17 +60,20 @@ BAD_TEXT_PATTERNS = [
 
 
 def load_json(path):
+    """JSON 파일을 읽는다."""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_json(path, data):
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def add_issue(issues, level, field, message):
+    """검증 이슈 하나를 issues 리스트에 추가한다."""
     issues.append({
         "level": level,
         "field": field,
@@ -80,6 +82,7 @@ def add_issue(issues, level, field, message):
 
 
 def has_repeated_phrase(text):
+    """같은 단어가 5번 이상 반복되는지 확인한다(LLM이 문장을 반복 생성하는 오류를 잡기 위함)."""
     words = re.findall(r"[가-힣A-Za-z0-9]+", text)
     if len(words) < 8:
         return False
@@ -90,6 +93,8 @@ def has_repeated_phrase(text):
 
 
 def validate_doc(doc):
+    """검색문서 하나를 검증한다: 필수 필드 누락, 문자열 길이, 이상 표현, 반복 표현,
+    리스트 항목 개수/중복, target의 의심스러운 표현, keywords의 일반 행정 표현 등을 확인한다."""
     issues = []
 
     # 필수 필드 검사
@@ -212,6 +217,7 @@ def validate_doc(doc):
 
 
 def main():
+    """생성된 검색문서 전체를 검증하고, 상세 리포트(JSON)와 요약(txt)을 저장한다."""
     docs = load_json(INPUT_FILE)
 
     if not isinstance(docs, list):

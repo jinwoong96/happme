@@ -44,10 +44,13 @@ CONDITIONAL_RULE_PATTERN = re.compile(r"(이전|이후)(은|는|에는)")
 
 
 def _normalize_for_match(text: str) -> str:
+    """공백을 지워서 비교하기 쉽게 만든다."""
     return re.sub(r"\s+", "", text or "")
 
 
 def _raw_text_is_grounded(raw_text: str, source_text: str) -> bool:
+    """LLM이 추출한 raw_text가 실제로 원문(source_text)에 있는 문장인지 확인한다.
+    LLM이 없는 내용을 지어내는 것(할루시네이션)을 걸러내기 위한 검증이다."""
     needle = _normalize_for_match(raw_text)
     haystack = _normalize_for_match(source_text)
     if not needle:
@@ -56,14 +59,18 @@ def _raw_text_is_grounded(raw_text: str, source_text: str) -> bool:
 
 
 def _extract_md_pairs(text: str) -> list:
+    """텍스트에서 "7.20" "7월 20일" 같은 월/일 표현을 전부 찾아 (월, 일) 튜플 리스트로 반환한다."""
     return [(int(m), int(d)) for m, d in MD_PATTERN.findall(text or "")]
 
 
 def _is_conditional_rule_text(text: str) -> bool:
+    """"~이전은/~이후는"처럼 일정이 아니라 서류 종류를 가르는 조건부 안내 문장인지 확인한다."""
     return bool(CONDITIONAL_RULE_PATTERN.search(text or ""))
 
 
 def _build_date_from_raw(raw_text: str, reg_year: str) -> str:
+    """raw_text에서 월/일을 뽑아 공고 등록연도(reg_year)를 붙여 실제 날짜 문자열로 만든다.
+    월/일이 2개면 기간(~)으로, 1개면 단일 날짜로, 월만 있으면 "YYYY-MM"으로 만든다."""
     if not reg_year or not reg_year.isdigit():
         return ""
 
@@ -85,6 +92,7 @@ def _build_date_from_raw(raw_text: str, reg_year: str) -> str:
 
 
 def _extract_json_array(text: str) -> list:
+    """LLM 응답 텍스트에서 JSON 배열 부분만 뽑아 파싱한다. 실패하면 빈 리스트."""
     text = text.strip()
     text = re.sub(r"^```json|^```|```$", "", text, flags=re.MULTILINE).strip()
     match = re.search(r"\[.*\]", text, flags=re.DOTALL)
@@ -97,6 +105,8 @@ def _extract_json_array(text: str) -> list:
 
 
 def _clean_events(events: list, raw_full_text: str, reg_year: str) -> list:
+    """LLM이 추출한 일정 후보들을 검증/정제한다: 원문에 실제로 있는지, 금지된
+    타입(신청/모집)은 아닌지, 조건부 안내 문장은 아닌지 걸러내고 날짜를 채운다."""
     cleaned = []
     for e in events:
         etype = e.get("type") or ""
@@ -119,6 +129,7 @@ def _clean_events(events: list, raw_full_text: str, reg_year: str) -> list:
 
 
 def _build_user_prompt(policy: dict) -> str:
+    """정책의 설명/신청방법/심사방법 원문과 공고 등록연도를 LLM에게 줄 프롬프트로 합친다."""
     reg_year = (policy.get("frstRegDt") or "")[:4] or "알 수 없음"
     parts = [
         f"[공고 등록연도] {reg_year}",
@@ -152,6 +163,8 @@ class ScheduleService:
         print("[ScheduleService] 준비 완료")
 
     def extract_events_svc(self, policy: dict, retries: int = 1) -> list[dict]:
+        """공고문에서 실제 날짜가 있는 일정(서류심사/결과발표/면접 등)을 LLM으로 추출하고
+        검증한다. 실패하면 retries만큼 재시도하고, 그래도 실패하면 빈 리스트를 반환한다."""
         if not self.enabled:
             return []
 
@@ -176,6 +189,7 @@ class ScheduleService:
         return []
 
     def generate_prep_tip_svc(self, policy: dict, events: list[dict]) -> str | None:
+        """추출된 일정과 신청마감일을 보고 "언제까지 뭘 준비하면 좋을지" 짧은 안내 문장을 만든다."""
         if not self.enabled:
             return None
 

@@ -1,4 +1,4 @@
-### watsonx.ai로 정책 문서 생성 (하위 코드)
+# watsonx.ai로 정책 검색문서(정책명/요약/대상/지원내용/키워드 등) 생성
 
 import json
 import re
@@ -60,6 +60,7 @@ class WatsonxSearchDocGenerator:
         )
 
     def pick_policy_fields(self, policy: Dict[str, Any]) -> Dict[str, Any]:
+        """정책 원본에서 검색문서 생성에 필요한 필드만(값이 있는 것만) 골라낸다."""
         return {
             key: policy.get(key)
             for key in self.input_fields
@@ -67,6 +68,8 @@ class WatsonxSearchDocGenerator:
         }
 
     def build_prompt(self, policy_input: Dict[str, Any]) -> str:
+        """정책 정보를 채팅 검색용 구조화 문서(summary/target/support/keywords/situations
+        /example_queries/search_text)로 만들어달라는 프롬프트를 구성한다."""
         return f"""
 너는 청년정책 추천 시스템의 검색용 문서를 생성하는 도우미다.
 
@@ -148,6 +151,7 @@ target 작성 예시:
 
     @staticmethod
     def extract_json_object(text: str) -> Dict[str, Any]:
+        """LLM 응답 텍스트에서 JSON 객체 부분을 뽑아 파싱한다. 못 찾으면 예외를 던진다."""
         text = text.strip()
         text = re.sub(r"```json|```", "", text).strip()
 
@@ -163,6 +167,7 @@ target 작성 예시:
         return json.loads(match.group(0))
 
     def call_watsonx(self, prompt: str) -> str:
+        """프롬프트로 watsonx.ai를 호출해 응답 텍스트를 받는다."""
         response = self.model.chat(
             messages=[
                 {
@@ -184,6 +189,7 @@ target 작성 예시:
         return response["choices"][0]["message"]["content"]
 
     def create_search_doc(self, policy: Dict[str, Any]) -> Dict[str, Any]:
+        """정책 하나에 대한 검색문서를 LLM으로 생성한다."""
         policy_input = self.pick_policy_fields(policy)
         prompt = self.build_prompt(policy_input)
         response_text = self.call_watsonx(prompt)
@@ -201,6 +207,8 @@ target 작성 예시:
         sleep_sec: float = 0.0,
         verbose: bool = True,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """정책 목록 전체에 대해 검색문서를 하나씩 생성한다. 실패한 건은 errors에 모아
+        나머지는 계속 진행한다."""
         results = []
         errors = []
 
@@ -240,6 +248,7 @@ target 작성 예시:
         sleep_sec: float = 0.0,
         verbose: bool = True,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """create_search_docs를 batch_size 단위로 나눠서 반복 호출한다."""
         all_results = []
         all_errors = []
 
@@ -262,6 +271,8 @@ target 작성 예시:
 
 
 def load_policies(path: str) -> List[Dict[str, Any]]:
+    """정책 목록 JSON 파일을 읽는다. 온통청년 API 원본 구조, 단순화된 구조, 순수
+    리스트 형태를 모두 지원한다."""
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -278,6 +289,7 @@ def load_policies(path: str) -> List[Dict[str, Any]]:
 
 
 def save_json(path: str, data: Any) -> None:
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, "w", encoding="utf-8") as f:

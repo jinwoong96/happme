@@ -1,5 +1,4 @@
-### watsonx.ai로 정책 카드(제목/신청기간/지원대상/지원내용요약/링크) 생성 (하위 코드)
-# policy_card_generator.py
+# watsonx.ai로 정책 카드(제목/신청기간/지원대상/지원내용요약/링크) 생성
 
 import json
 import os
@@ -179,6 +178,7 @@ class WatsonxPolicySummaryGenerator:
         )
 
     def pick_policy_fields(self, policy: Dict[str, Any]) -> Dict[str, Any]:
+        """정책 원본에서 LLM 요약에 필요한 필드만(값이 있는 것만) 골라낸다."""
         return {
             key: policy.get(key)
             for key in self.input_fields
@@ -186,6 +186,7 @@ class WatsonxPolicySummaryGenerator:
         }
 
     def build_prompt(self, policy_input: Dict[str, Any]) -> str:
+        """정책 지원내용을 금액 위주로 1~2문장 요약해달라는 프롬프트를 만든다."""
         return f"""
 너는 청년정책 정보를 요약하는 도우미다.
 
@@ -230,6 +231,7 @@ class WatsonxPolicySummaryGenerator:
 
     @staticmethod
     def extract_json_object(text: str) -> Dict[str, Any]:
+        """LLM 응답 텍스트에서 JSON 객체 부분을 뽑아 파싱한다. 못 찾으면 예외를 던진다."""
         text = text.strip()
         text = re.sub(r"```json|```", "", text).strip()
 
@@ -245,6 +247,7 @@ class WatsonxPolicySummaryGenerator:
         return json.loads(match.group(0))
 
     def call_watsonx(self, prompt: str) -> str:
+        """프롬프트로 watsonx.ai를 호출해 응답 텍스트를 받는다."""
         response = self.model.chat(
             messages=[
                 {
@@ -264,6 +267,7 @@ class WatsonxPolicySummaryGenerator:
         return response["choices"][0]["message"]["content"]
 
     def summarize_one(self, policy: Dict[str, Any]) -> Dict[str, Any]:
+        """정책 하나의 지원내용을 LLM으로 요약해서 {"plcyNo", "support_summary"} 형태로 반환한다."""
         policy_input = self.pick_policy_fields(policy)
         prompt = self.build_prompt(policy_input)
         response_text = self.call_watsonx(prompt)
@@ -324,6 +328,8 @@ class WatsonxPolicySummaryGenerator:
 # ---------------------------------------------------------------------------
 
 def load_policies(path: str) -> List[Dict[str, Any]]:
+    """정책 목록 JSON 파일을 읽는다. 온통청년 API 원본 구조({"result": {"youthPolicyList": [...]}}),
+    단순화된 {"youthPolicyList": [...]}, 순수 리스트 형태를 모두 지원한다."""
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -340,6 +346,7 @@ def load_policies(path: str) -> List[Dict[str, Any]]:
 
 
 def save_json(path: str, data: Any) -> None:
+    """데이터를 JSON 파일로 저장한다(폴더가 없으면 만든다)."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, "w", encoding="utf-8") as f:

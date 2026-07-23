@@ -1,5 +1,4 @@
-### watsonx.ai로 정책 문서 생성 (상위 코드)
-# run_create_search_docs.py
+# watsonx.ai로 정책 검색문서 전체를 생성하는 실행 스크립트 (search_doc_generator_watsonx.py를 배치로 돌린다)
 
 from pathlib import Path
 
@@ -23,6 +22,7 @@ SLEEP_SEC = 0.2
 
 
 def load_existing_json(path, default):
+    """JSON 파일을 읽는다. 파일이 없으면 default를 반환한다."""
     path = Path(path)
     if not path.exists():
         return default
@@ -33,6 +33,8 @@ def load_existing_json(path, default):
 
 
 def main():
+    """정책 목록 중 START~END 범위를 배치로 나눠 검색문서를 생성한다. 이미 생성된
+    정책(done_ids)은 건너뛰고, 배치마다 바로 저장하므로 중간에 중단돼도 이어서 실행할 수 있다."""
     policies = load_policies(INPUT_FILE)
 
     start_idx = START - 1

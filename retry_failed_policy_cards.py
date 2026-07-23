@@ -1,5 +1,4 @@
-### 생성 실패한 정책만 골라서 재시도 (result/policy_cards_errors.json 기준)
-# retry_failed_policy_cards.py
+# 생성 실패한 정책만 골라서 재시도 (result/policy_cards_errors.json 기준)
 
 import json
 from pathlib import Path
@@ -23,6 +22,7 @@ TARGET_PLCY_NO = "20260406005400212413"
 
 
 def load_existing_json(path, default):
+    """JSON 파일을 읽는다. 파일이 없으면 default를 반환한다."""
     path = Path(path)
     if not path.exists():
         return default
@@ -32,6 +32,8 @@ def load_existing_json(path, default):
 
 
 def main():
+    """errors 파일(또는 TARGET_PLCY_NO 하나)에 있는 실패 정책만 골라 다시 카드를 생성하고,
+    성공한 건은 results에 반영 + errors에서 제거, 이번에도 실패하면 새 에러로 남긴다."""
     results = load_existing_json(OUTPUT_FILE, [])
     errors = load_existing_json(ERROR_FILE, [])
 

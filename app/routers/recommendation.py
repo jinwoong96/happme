@@ -16,14 +16,17 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 
 
 def get_recommendation_service(request: Request) -> RecommendationService:
+    """앱 시작 시 만들어 둔 RecommendationService(추천 rule engine) 인스턴스를 꺼내온다."""
     return request.app.state.recommendation_service
 
 
 def get_scenario_resolver(request: Request) -> ScenarioResolver:
+    """앱 시작 시 만들어 둔 ScenarioResolver 인스턴스를 꺼내온다."""
     return request.app.state.scenario_resolver
 
 
 def get_income_eligibility_service(request: Request) -> IncomeEligibilityService:
+    """앱 시작 시 만들어 둔 IncomeEligibilityService 인스턴스를 꺼내온다."""
     return request.app.state.income_eligibility_service
 
 

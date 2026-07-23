@@ -50,6 +50,7 @@ class LlmService:
 
     @staticmethod
     def _build_prompt(query_text: str, matches: list[dict]) -> str:
+        """OCR로 뽑은 공고문 텍스트와 매칭된 정책 후보들로 요약 요청 프롬프트를 만든다."""
         policies_text = ""
         for i, m in enumerate(matches, 1):
             p = m["policy_raw"]
@@ -75,6 +76,7 @@ class LlmService:
 
     @staticmethod
     def _db_get_combo_summary(combo_key: str) -> str | None:
+        """정책 조합(combo_key)에 대한 이전 요약을 DB 캐시에서 찾는다. 없으면 None."""
         conn = pymysql.connect(
             host=settings.db_host, port=settings.db_port, user=settings.db_user,
             password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -96,6 +98,7 @@ class LlmService:
 
     @staticmethod
     def _db_set_combo_summary(combo_key: str, summary_text: str) -> None:
+        """정책 조합(combo_key)에 대한 요약을 DB 캐시에 저장(이미 있으면 갱신)한다."""
         conn = pymysql.connect(
             host=settings.db_host, port=settings.db_port, user=settings.db_user,
             password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -119,6 +122,8 @@ class LlmService:
             conn.close()
 
     def summarize_svc(self, query_text: str, matches: list[dict]) -> str | None:
+        """매칭된 정책들을 하나의 설명글로 요약한다. 같은 정책 조합이면 메모리 -> DB
+        캐시 순으로 먼저 확인해 재사용하고, 캐시에 없을 때만 실제로 LLM을 호출한다."""
         if not self.enabled or not matches:
             return None
 
@@ -177,6 +182,7 @@ class LlmService:
 
     @staticmethod
     def _build_one_liner_prompt(policies: list[dict]) -> str:
+        """정책 여러 개를 한 번에 한 줄 요약하도록 요청하는 프롬프트를 만든다 (JSON 배열 응답 형식 지정)."""
         policies_text = ""
         for p in policies:
             policies_text += f'\n{{"policy_id": {p["policy_id"]}, "plcyNm": "{p["plcyNm"]}", "plcyExplnCn": "{p["plcyExplnCn"]}"}}'
@@ -195,6 +201,7 @@ class LlmService:
 
     @staticmethod
     def _db_get_one_liner(policy_id: int) -> str | None:
+        """정책 한 개의 한 줄 요약을 DB 캐시에서 찾는다. 없으면 None."""
         conn = pymysql.connect(
             host=settings.db_host, port=settings.db_port, user=settings.db_user,
             password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -216,6 +223,7 @@ class LlmService:
 
     @staticmethod
     def _db_set_one_liner(policy_id: int, one_liner: str) -> None:
+        """정책 한 개의 한 줄 요약을 DB 캐시에 저장(이미 있으면 갱신)한다."""
         conn = pymysql.connect(
             host=settings.db_host, port=settings.db_port, user=settings.db_user,
             password=settings.db_password, db=settings.db_name, charset="utf8mb4",

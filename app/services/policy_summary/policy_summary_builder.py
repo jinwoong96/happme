@@ -23,10 +23,12 @@ _status: dict = {"running": False, "last_run": None}
 
 
 def get_status() -> dict:
+    """요약 채우기 작업이 지금 실행 중인지, 마지막 실행 결과가 뭐였는지 반환한다."""
     return {"running": _status["running"], "last_run": _status["last_run"]}
 
 
 def _connect():
+    """policy 테이블이 있는 DB에 연결한다."""
     return pymysql.connect(
         host=settings.db_host, port=settings.db_port, user=settings.db_user,
         password=settings.db_password, db=settings.db_name, charset="utf8mb4",
