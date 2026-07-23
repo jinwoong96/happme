@@ -46,17 +46,11 @@ export default function CurrentRecommendationPage() {
 
   const visibleTabs = results ? TABS.filter((tab) => (results[tab.key] || []).length > 0) : [];
 
-  // 결과가 새로 나올 때마다 모든 카테고리를 기본 접힘 상태로 초기화하고, 활성 탭이 결과가
+  // 결과가 새로 나올 때마다 모든 카테고리를 기본 펼침 상태로 초기화하고, 활성 탭이 결과가
   // 없어 숨겨졌다면 보이는 탭 중 첫 번째로 옮겨준다.
   useEffect(() => {
     if (!results) return;
-    const allCategories = new Set();
-    for (const tab of TABS) {
-      for (const policy of results[tab.key] || []) {
-        allCategories.add(policy.category || '기타');
-      }
-    }
-    setCollapsedCategories(allCategories);
+    setCollapsedCategories(new Set());
 
     if (visibleTabs.length > 0 && !visibleTabs.some((tab) => tab.key === activeTab)) {
       setActiveTab(visibleTabs[0].key);
