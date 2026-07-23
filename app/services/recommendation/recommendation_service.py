@@ -296,8 +296,10 @@ class RecommendationService:
         full_detail = len(policies) <= FULL_DETAIL_MAX_POLICIES
         persona_signature = make_persona_signature(user)
 
-        cache_hits = 0
-        cache_misses = 0
+        persona_matches: dict[str, Any] = {}
+        if not full_detail:
+            with log_step(PIPELINE, "rule_engine_cache_sync"):
+                persona_matches = self._get_persona_matches(persona_signature, user, policies)
 
         with log_step(PIPELINE, "eligibility_evaluate", policy_count=len(policies)):
             for policy in policies:
@@ -306,11 +308,7 @@ class RecommendationService:
                     # 소규모 배치 등)는 캐싱 없이 기존 evaluate()를 그대로 쓴다.
                     match_result = self.eligibility_engine.evaluate(user, policy, full_detail=True)
                 else:
-                    match_result, cache_hit = self._evaluate_with_cache(persona_signature, user, policy)
-                    if cache_hit:
-                        cache_hits += 1
-                    else:
-                        cache_misses += 1
+                    match_result = self._match_with_persona_cache(persona_matches, user, policy)
 
                 plcy_no = policy.get("plcyNo")
 
@@ -348,17 +346,6 @@ class RecommendationService:
                 if bucket != "available_policies":
                     fail_reasons[str(plcy_no)] = match_result["details"]
 
-        if not full_detail:
-            total_checked = cache_hits + cache_misses
-            log_event(
-                PIPELINE, "rule_engine_cache",
-                persona_signature=persona_signature,
-                hits=cache_hits,
-                misses=cache_misses,
-                hit_rate=round(cache_hits / total_checked, 3) if total_checked else None,
-                **self.rule_engine_cache.stats(),
-            )
-
         log_event(
             PIPELINE, "result",
             available=len(buckets["available_policies"]),
@@ -382,35 +369,95 @@ class RecommendationService:
             "fail_reasons_by_plcyNo": fail_reasons,
         }
 
-    def _evaluate_with_cache(self, persona_signature: str, user: dict, policy: dict) -> tuple[dict[str, Any], bool]:
-        """apply_period는 "오늘 날짜"에 의존해 매번 새로 계산하고, 나머지 7개 체크(evaluate_content)는
-        RuleEngineCache에서 persona_signature+plcyNo로 찾아 있으면 재사용(hit), 없으면 새로 계산해
-        캐시에 채워넣는다(miss). plcyNo가 없는 정책(관리자 수동 등록 등)은 여러 정책이 캐시 키를
-        공유하게 돼 잘못된 결과가 섞일 수 있어 캐싱하지 않고 항상 새로 계산한다.
+    def _get_persona_matches(self, persona_signature: str, user: dict, policies: list[dict]) -> dict[str, Any]:
+        """이 persona가 조건(apply_period 제외 7개 체크)을 만족하는 정책들만 {plcyNo: region_scope}
+        형태로 반환한다. 캐시가 없으면 카탈로그 전체를 한 번 평가해서 만든 뒤 캐싱하고, 있으면
+        마지막 동기화 이후 바뀐 정책들만 골라 그 정책들만 다시 평가해서 갱신한다(정책 대부분은
+        안 건드리므로 캐시 전체 재계산보다 훨씬 빠르다)."""
+        entry = self.rule_engine_cache.get_persona(persona_signature)
 
-        eligibility_rules.py의 evaluate_content()는 OCR 자격판정(check_eligibility_svc가 쓰는
-        evaluate())과 같은 rule engine 코드를 공유하므로 각 체크의 reason/user_value/policy_value를
-        그대로 다 반환한다 - rule engine 자체에서는 이 정보를 줄이지 않는다. 다만 이 캐시에 그대로
-        저장하면 persona 하나당 수십 MB가 나가므로(엔트리당 ~5KB x 카탈로그 전체), 캐시에는
-        실제로 다운스트림(_bucket_for, region_scope)에서 쓰는 값만 압축해서 저장한다."""
+        if entry is None:
+            matched = self._compute_matches(user, policies)
+            self.rule_engine_cache.set_persona(persona_signature, matched, self.rule_engine_cache.current_version())
+            log_event(
+                PIPELINE, "rule_engine_cache", persona_signature=persona_signature, mode="full_compute",
+                matched_count=len(matched), **self.rule_engine_cache.stats(),
+            )
+            return matched
+
+        changed_plcynos = self.rule_engine_cache.get_changes_since(entry["synced_version"])
+
+        if changed_plcynos is None:
+            # 변경 로그가 트림돼서 델타를 못 구함 -> 안전하게 전체 재계산.
+            matched = self._compute_matches(user, policies)
+            self.rule_engine_cache.set_persona(persona_signature, matched, self.rule_engine_cache.current_version())
+            log_event(
+                PIPELINE, "rule_engine_cache", persona_signature=persona_signature, mode="full_recompute_log_trimmed",
+                matched_count=len(matched), **self.rule_engine_cache.stats(),
+            )
+            return matched
+
+        if not changed_plcynos:
+            log_event(
+                PIPELINE, "rule_engine_cache", persona_signature=persona_signature, mode="hit_no_change",
+                matched_count=len(entry["matched"]), **self.rule_engine_cache.stats(),
+            )
+            return entry["matched"]
+
+        # 바뀐 정책들만 이 persona 기준으로 다시 평가해서 matched set을 갱신한다.
+        matched = dict(entry["matched"])
+        for plcy_no in set(changed_plcynos):
+            policy = self.policy_loader.get_policy_by_plcyno(plcy_no)
+            if policy is None:
+                matched.pop(plcy_no, None)  # 삭제된 정책
+                continue
+            content_checks = self.eligibility_engine.evaluate_content(user, policy)
+            if all(v["match"] for v in content_checks.values()):
+                matched[plcy_no] = (content_checks.get("region") or {}).get("policy_value", {}).get("type")
+            else:
+                matched.pop(plcy_no, None)
+
+        self.rule_engine_cache.set_persona(persona_signature, matched, self.rule_engine_cache.current_version())
+        log_event(
+            PIPELINE, "rule_engine_cache", persona_signature=persona_signature, mode="delta_recompute",
+            changed_count=len(set(changed_plcynos)), matched_count=len(matched), **self.rule_engine_cache.stats(),
+        )
+        return matched
+
+    def _compute_matches(self, user: dict, policies: list[dict]) -> dict[str, Any]:
+        """카탈로그 전체를 한 번 평가해서, apply_period를 제외한 조건을 만족하는 정책만
+        {plcyNo: region_scope}로 반환한다. plcyNo가 없는 정책(관리자 수동 등록 등)은 여러 정책이
+        캐시 키를 공유하게 돼 잘못된 결과가 섞일 수 있어 애초에 캐싱 대상에서 제외한다
+        (_match_with_persona_cache가 그런 정책은 항상 새로 평가한다)."""
+        matched: dict[str, Any] = {}
+        for policy in policies:
+            plcy_no = policy.get("plcyNo")
+            if plcy_no is None:
+                continue
+            content_checks = self.eligibility_engine.evaluate_content(user, policy)
+            if all(v["match"] for v in content_checks.values()):
+                matched[plcy_no] = (content_checks.get("region") or {}).get("policy_value", {}).get("type")
+        return matched
+
+    def _match_with_persona_cache(self, persona_matches: dict, user: dict, policy: dict) -> dict[str, Any]:
+        """apply_period는 "오늘 날짜"에 의존해 매번 새로 계산하고, 나머지 7개 체크는
+        persona_matches(_get_persona_matches가 만든 {plcyNo: region_scope})에 있는지로 판단한다.
+        plcyNo가 없는 정책은 persona 캐시 대상이 아니므로 항상 새로 전체 평가한다."""
         plcy_no = policy.get("plcyNo")
         apply_period_check = self.eligibility_engine.evaluate_apply_period(user, policy)
 
-        cached = self.rule_engine_cache.get(persona_signature, plcy_no) if plcy_no is not None else None
-        hit = cached is not None
-        if not hit:
+        if plcy_no is None:
             content_checks = self.eligibility_engine.evaluate_content(user, policy)
-            cached = {
-                "content_matched": all(v["match"] for v in content_checks.values()),
-                "region_scope": (content_checks.get("region") or {}).get("policy_value", {}).get("type"),
-            }
-            if plcy_no is not None:
-                self.rule_engine_cache.set(persona_signature, plcy_no, cached)
+            content_matched = all(v["match"] for v in content_checks.values())
+            region_scope = (content_checks.get("region") or {}).get("policy_value", {}).get("type")
+        else:
+            content_matched = plcy_no in persona_matches
+            region_scope = persona_matches.get(plcy_no)
 
-        is_matched = apply_period_check["match"] and cached["content_matched"]
-        details = {"apply_period": apply_period_check, "region_scope": cached["region_scope"]}
+        is_matched = apply_period_check["match"] and content_matched
+        details = {"apply_period": apply_period_check, "region_scope": region_scope}
 
-        return {"result": "YES" if is_matched else "NO", "details": details}, hit
+        return {"result": "YES" if is_matched else "NO", "details": details}
 
     def check_eligibility_svc(self, user: dict, plcy_nos: list[str]) -> list[dict]:
         """OCR/사진분석 등에서 이미 매칭된 정책들에 대해, plcyNo 기준으로 전체 필드를 갖춘
