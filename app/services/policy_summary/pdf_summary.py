@@ -180,9 +180,12 @@ class PdfSummaryService:
     # ---------- 공용 함수 (WebSummaryService도 재사용) ----------
 
     def get_policy_detail_svc(self, policy_name: str):
+        """정책명으로 정책 원본 정보(dict)를 찾는다. 없으면 None."""
         return self.policy_by_name.get(policy_name)
 
     def verify_with_llm_svc(self, text: str, candidates: list[str], pdf_name: str | None = None) -> str:
+        """임베딩 유사도만으로 확신하기 애매한 경우, 공고문 텍스트와 후보 정책 목록을
+        LLM에 보여주고 정말 같은 사업인지 최종 판정을 맡긴다. 없으면 '없음'을 반환."""
         candidate_str = "\n".join([f"{i+1}. {c}" for i, c in enumerate(candidates)])
 
         if pdf_name is not None:
@@ -215,6 +218,7 @@ class PdfSummaryService:
 
     @staticmethod
     def _format_period(start_ymd, end_ymd):
+        """YYYYMMDD 형식 시작/종료일을 "YYYY.MM.DD ~ YYYY.MM.DD"로 바꾼다. 둘 다 없으면 "상시"."""
         def fmt(ymd):
             if not ymd or len(ymd) != 8:
                 return ""
@@ -274,6 +278,8 @@ class PdfSummaryService:
             conn.close()
 
     def summarize_policy_svc(self, policy_detail: dict) -> str | None:
+        """정책 원본 정보를 보기 쉬운 형태(한줄요약/지원대상/지원내용 등)로 LLM 요약한다.
+        같은 정책명으로 이미 만든 요약이 DB 캐시에 있으면 LLM을 부르지 않고 그걸 재사용한다."""
         name = (policy_detail.get("plcyNm") or "").strip()
 
         if name:
@@ -357,6 +363,9 @@ class PdfSummaryService:
 
     @staticmethod
     def extract_pdf_features_svc(pdf_bytes: bytes):
+        """PDF 앞 5페이지에서 텍스트를 뽑아 (매칭용 요약 텍스트, 전체 텍스트, 발행 기관명)을
+        만든다. 매칭용 요약 텍스트는 앞부분 300자 + "사업명/지원내용" 같은 키워드 주변
+        텍스트를 모은 것으로, 임베딩 검색 시 핵심 정보에 가중치를 주기 위함이다."""
         try:
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             text = ""
@@ -366,8 +375,8 @@ class PdfSummaryService:
                 text += page.get_text()
             doc.close()
             text = " ".join(text.split())
-            print(f"[DEBUG] 추출된 텍스트 길이: {len(text)}자")  # ← 추가
-            print(f"[DEBUG] 추출된 텍스트: {text[:200]}")        # ← 추가
+            print(f"[DEBUG] 추출된 텍스트 길이: {len(text)}자")
+            print(f"[DEBUG] 추출된 텍스트: {text[:200]}")
             keyword_text = ""
             for kw in ["사업명", "사업개요", "지원내용", "지원대상", "모집내용", "인턴", "공고명"]:
                 idx = text.find(kw)
@@ -391,6 +400,7 @@ class PdfSummaryService:
             return "", "", ""
 
     def _cosine_sim(self, query_emb):
+        """검색 쿼리 임베딩과 전체 정책 임베딩 사이의 코사인 유사도를 계산한다."""
         db = self.db_embeddings
         return np.dot(db, query_emb.T).flatten() / (
             np.linalg.norm(db, axis=1) * np.linalg.norm(query_emb) + 1e-8
@@ -398,6 +408,9 @@ class PdfSummaryService:
 
     def match_pdf_svc(self, pdf_bytes: bytes, filename: str,
                        raw_threshold_high=0.88, raw_threshold_low=0.875, top_k=10) -> dict:
+        """업로드된 PDF가 어떤 정책 공고문인지 판정한다. 파일명/본문에 정책명이 그대로
+        있으면 직접매칭, 유사도가 아주 높으면 임베딩매칭으로 바로 확정하고, 애매한 구간
+        (raw_threshold_low ~ raw_threshold_high)이면 LLM에게 최종 판정을 맡긴다."""
         with log_step(PIPELINE, "extract", source="pdf"):
             combined_text, full_text, pdf_institution = self.extract_pdf_features_svc(pdf_bytes)
         if not combined_text or len(combined_text.strip()) < 10:
@@ -435,7 +448,7 @@ class PdfSummaryService:
             return {
                 "matched_policy": "해당 없음",
                 "method": "매칭불가",
-                "candidates": top_names[:3],      # ← 문자열 리스트
+                "candidates": top_names[:3],  # 정책명 문자열 리스트
                 "raw_score": raw_best_score
             }
         if raw_best_score >= raw_threshold_high:
@@ -443,7 +456,7 @@ class PdfSummaryService:
             return {
                 "matched_policy": best_match,
                 "method": "임베딩매칭",
-                "candidates": top_names[:2],      # ← 문자열 리스트
+                "candidates": top_names[:2],  # 정책명 문자열 리스트
                 "raw_score": raw_best_score
             }
 
@@ -458,11 +471,13 @@ class PdfSummaryService:
         return {
             "matched_policy": matched,
             "method": "매칭불가" if is_none else "하이브리드매칭",
-            "candidates": top_names[:2],          # ← 문자열 리스트
+            "candidates": top_names[:2],  # 정책명 문자열 리스트
             "raw_score": raw_best_score
         }
 
     def compare_policies_svc(self, summaries: list[dict]) -> str | None:
+        """요약된 정책 2개 이상을 비교해서, 서로 다른 상황(예: 이런 경우엔 A, 저런 경우엔 B)에
+        어떤 정책이 더 적합한지 LLM이 짧게 정리해준다."""
         policy_list = "\n\n".join(
             f"{s['policy_name']}\n{s['summary']}"
             for s in summaries if s.get("summary")
@@ -501,6 +516,7 @@ _rebuild_status: dict = {"running": False, "last_run": None}
 
 
 def get_rebuild_status() -> dict:
+    """캐시 재구축(reload_policies_svc)이 지금 실행 중인지, 마지막 실행 결과가 뭐였는지 반환한다."""
     return {"running": _rebuild_status["running"], "last_run": _rebuild_status["last_run"]}
 
 

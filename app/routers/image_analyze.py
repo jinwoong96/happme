@@ -27,6 +27,7 @@ _analyze_cache: "OrderedDict[str, dict]" = OrderedDict()
 
 
 def _cache_get(key: str):
+    """메모리 캐시에서 이미지 해시로 이전 분석 결과를 찾는다. 없으면 None."""
     if key in _analyze_cache:
         _analyze_cache.move_to_end(key)  # 최근 사용으로 갱신
         return _analyze_cache[key]
@@ -34,6 +35,7 @@ def _cache_get(key: str):
 
 
 def _cache_set(key: str, value: dict):
+    """분석 결과를 메모리 캐시에 저장한다. 최대 개수를 넘으면 가장 오래된 항목부터 지운다."""
     _analyze_cache[key] = value
     _analyze_cache.move_to_end(key)
     if len(_analyze_cache) > _ANALYZE_CACHE_MAX_SIZE:
@@ -45,6 +47,7 @@ def _cache_set(key: str, value: dict):
 # 다시 돌리지 않고 여기서 채워서 반환한다.
 
 def _db_cache_get(image_hash: str) -> dict | None:
+    """DB 캐시 테이블에서 이미지 해시로 이전 분석 결과를 찾는다. 없거나 오류가 나면 None."""
     conn = pymysql.connect(
         host=settings.db_host, port=settings.db_port, user=settings.db_user,
         password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -66,6 +69,7 @@ def _db_cache_get(image_hash: str) -> dict | None:
 
 
 def _db_cache_set(image_hash: str, result: dict) -> None:
+    """분석 결과를 DB 캐시 테이블에 저장(이미 있으면 갱신)한다."""
     conn = pymysql.connect(
         host=settings.db_host, port=settings.db_port, user=settings.db_user,
         password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -90,10 +94,13 @@ def _db_cache_set(image_hash: str, result: dict) -> None:
 
 
 def get_image_analyze_service(request: Request) -> ImageAnalyzeService:
+    """앱 시작 시 만들어 둔 ImageAnalyzeService 인스턴스를 꺼내온다."""
     return request.app.state.image_analyze_service
 
 
 # C 이미지 분석 (탐지 -> OCR -> 정책 검색 -> LLM 요약)
+# 업로드된 이미지를 임시 저장 후 파이프라인을 돌리고, 끝나면 임시 파일은 지운다.
+# 같은 이미지가 다시 오면 메모리 캐시 -> DB 캐시 순으로 확인해 파이프라인 재실행을 건너뛴다.
 @router.post("/")
 async def analyze_image(request: Request, file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):

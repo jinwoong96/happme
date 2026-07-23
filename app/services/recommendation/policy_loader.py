@@ -40,6 +40,7 @@ class PolicyLoaderService:
 
     @staticmethod
     def _load_policies_from_db() -> list[dict]:
+        """정책 전체와 지역코드(zipCd)를 DB에서 읽어 하나로 합친 리스트로 반환한다."""
         conn = pymysql.connect(
             host=settings.db_host, port=settings.db_port, user=settings.db_user,
             password=settings.db_password, db=settings.db_name, charset="utf8mb4",
@@ -65,9 +66,11 @@ class PolicyLoaderService:
         return policies
 
     def get_policies(self) -> list[dict]:
+        """메모리에 캐시된 정책 전체 목록을 반환한다."""
         return self.policies
 
     def get_policy_by_plcyno(self, plcy_no: str) -> dict | None:
+        """정책 번호(plcyNo)로 정책 하나를 찾는다. 없으면 None."""
         return self._by_plcyno.get(str(plcy_no))
 
     def upsert_policy(self, policy: dict) -> None:

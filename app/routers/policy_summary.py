@@ -79,6 +79,7 @@ def _extract_recommendation(comparison: str) -> str | None:
 
 
 def _parse_summary_fields(summary: str) -> dict:
+    """"한줄요약: ..." 형태로 나온 LLM 요약 텍스트를 라벨별 dict로 쪼갠다."""
     import re
 
     labels = ["한줄요약", "지원대상", "지원내용", "신청방법", "신청기간", "사업기간", "신청URL", "지원규모"]
@@ -90,10 +91,12 @@ def _parse_summary_fields(summary: str) -> dict:
 
 
 def get_pdf_service(request: Request) -> PdfSummaryService:
+    """앱 시작 시 만들어 둔 PdfSummaryService(PDF/텍스트 매칭·요약) 인스턴스를 꺼내온다."""
     return request.app.state.pdf_summary_service
 
 
 def get_web_service(request: Request) -> WebSummaryService:
+    """앱 시작 시 만들어 둔 WebSummaryService(URL 크롤링 매칭·요약) 인스턴스를 꺼내온다."""
     return request.app.state.web_summary_service
 
 

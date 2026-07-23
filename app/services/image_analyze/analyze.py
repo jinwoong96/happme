@@ -21,6 +21,7 @@ POLICY_KEYWORDS = (
 
 
 def _has_policy_keyword(text: str) -> bool:
+    """텍스트에 정책 공고문에서 흔히 쓰는 키워드가 하나라도 있는지 확인한다."""
     return any(keyword in text for keyword in POLICY_KEYWORDS)
 
 
@@ -58,6 +59,7 @@ class ImageAnalyzeService:
 
     @staticmethod
     def _empty_result(detected_objects: int, message: str, extracted_text: str = "") -> dict:
+        """공고문이 아니거나 매칭에 실패한 경우 안내 메시지를 담은 빈 결과를 만든다."""
         log_event(PIPELINE, "result", outcome="empty", reason=message, detected_objects=detected_objects)
         return {
             "extracted_text": extracted_text,

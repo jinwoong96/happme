@@ -7,6 +7,7 @@ router = APIRouter(prefix="/policy-cache", tags=["PolicyCache"])
 
 
 def get_policy_loader(request: Request):
+    """앱 시작 시 만들어 둔 PolicyLoaderService(메모리 캐시) 인스턴스를 꺼내온다."""
     return request.app.state.policy_loader
 
 

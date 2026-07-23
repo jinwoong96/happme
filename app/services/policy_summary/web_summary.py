@@ -20,6 +20,8 @@ class WebSummaryService:
 
     def match_text_svc(self, text: str, top_k_keyword=5, top_k_embed=5,
                         raw_threshold_high=0.88, raw_threshold_low=0.80) -> dict:
+        """사용자가 직접 입력한 공고문 텍스트가 어떤 정책인지 판정한다. 정책명 직접매칭 ->
+        키워드 점수 매칭 -> 임베딩 매칭 순으로 시도하고, 후보가 여럿이면 LLM에게 맡긴다."""
         if not text or len(text.strip()) < 2:
             return {"matched_policy": None, "method": "텍스트부족"}
 
@@ -99,16 +101,21 @@ class WebSummaryService:
 
     @staticmethod
     def extract_policy_no_from_url(url: str):
+        """온통청년 상세페이지 URL에서 정책 번호(plcyNo)를 추출한다. 형식이 아니면 None."""
         m = re.search(r"ythPlcyDetail/(\d+)", url)
         return m.group(1) if m else None
 
     def get_policy_by_no_svc(self, plcy_no: str):
+        """정책 번호(plcyNo)로 정책 원본 정보를 찾는다. 없으면 None."""
         for item in self.pdf.policy_by_name.values():
             if item.get("plcyNo", "").strip() == plcy_no:
                 return item
         return None
 
     async def _extract_url_features_async(self, url: str):
+        """Playwright로 URL 페이지를 렌더링해서 텍스트를 뽑는다. 첫 로딩 후 본문이
+        너무 짧으면(500자 미만) 지연 로딩된 컨텐츠를 보려고 스크롤을 한 번 더 시도한다.
+        Returns: (매칭용 요약 텍스트, 전체 텍스트, 발행 기관명, 페이지 제목, 크롤링 차단 여부)"""
         from playwright.async_api import async_playwright
 
         try:
@@ -185,6 +192,8 @@ class WebSummaryService:
             return "", "", "", "", False
 
     def match_url_svc(self, url: str, raw_threshold_high=0.88, raw_threshold_low=0.875, top_k=10) -> dict:
+        """URL이 어떤 정책 공고인지 판정한다. URL 자체에 정책 번호가 있으면 바로 확정하고,
+        없으면 페이지를 크롤링해서 텍스트를 직접매칭 -> 임베딩매칭 순으로 판정한다."""
         plcy_no = self.extract_policy_no_from_url(url)
         if plcy_no:
             detail = self.get_policy_by_no_svc(plcy_no)
@@ -232,7 +241,7 @@ class WebSummaryService:
             return {
                 "matched_policy": "해당 없음",
                 "method": "매칭불가",
-                "candidates": top_names[:3],  # ← 추가
+                "candidates": top_names[:3],  # 정책명 문자열 리스트
                 "policy_detail": None,
                 "blocked": False
             }
@@ -240,7 +249,7 @@ class WebSummaryService:
         return {
             "matched_policy": best_match,
             "method": "임베딩매칭",
-            "candidates": top_names[:2],  # ← 추가
+            "candidates": top_names[:2],  # 정책명 문자열 리스트
             "policy_detail": None,
             "blocked": False
         }
@@ -249,6 +258,8 @@ class WebSummaryService:
 
     @staticmethod
     def _preprocess_question(question: str) -> str:
+        """질문에 담긴 의도(금액/장소/자격/기간)를 키워드로 감지해서, LLM이 어떤 항목
+        중심으로 답해야 하는지 힌트를 질문 뒤에 덧붙인다."""
         if any(kw in question for kw in ["금액", "얼마", "돈", "비용", "지원금"]):
             return f"{question} (지원내용, 지원방식, 지원품목 중심으로 답변)"
         if any(kw in question for kw in ["어디", "장소", "곳", "센터"]):
@@ -260,6 +271,8 @@ class WebSummaryService:
         return question
 
     def answer_question_svc(self, question: str, policy_detail: dict) -> str | None:
+        """매칭된 정책 정보를 바탕으로 사용자의 추가 질문에 LLM이 답변한다.
+        정책 정보에 없는 내용은 답하지 않도록 프롬프트로 제한한다."""
         if not policy_detail:
             log_event(PIPELINE, "result", source="qa", method="정책정보없음")
             return None

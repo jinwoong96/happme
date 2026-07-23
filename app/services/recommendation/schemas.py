@@ -35,6 +35,9 @@ class ScenarioResolveRequest(BaseModel):
 
 
 class ScenarioResolveResponse(BaseModel):
+    """resolve-scenario 응답. diff는 반영할 값, ambiguous는 애매해서 보류한 항목,
+    notes는 무엇을 왜 그렇게 처리했는지 설명 메모."""
+
     diff: dict
     ambiguous: dict
     notes: list[str]
@@ -48,6 +51,8 @@ class IncomeEligibilityRequest(BaseModel):
 
 
 class IncomeEligibilityResponse(BaseModel):
+    """소득 조건 판정 결과. eligible이 None이면 규칙/LLM으로 확정할 수 없어 안내만 제공한 경우."""
+
     eligible: Optional[bool]
     method: Literal["rule", "llm", "not_found", "unknown_income"]
     reason: str

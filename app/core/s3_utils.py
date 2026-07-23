@@ -8,6 +8,8 @@ from botocore.exceptions import ClientError, NoCredentialsError
 
 
 def get_s3_client(public: bool):
+    """S3 클라이언트를 만든다. public=True면 인증 없이 접근 가능한 퍼블릭 버킷용
+    (서명 없는 요청), False면 자격증명(AWS credentials)을 사용하는 일반 클라이언트."""
     if public:
         return boto3.client("s3", config=Config(signature_version=UNSIGNED))
     return boto3.client("s3")

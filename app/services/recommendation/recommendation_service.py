@@ -122,6 +122,8 @@ class RecommendationService:
         self.llm_service = llm_service  # PdfSummaryService 인스턴스 (llm_model 재사용)
 
     def recommend_svc(self, user_profile: dict) -> dict[str, Any]:
+        """전체 정책 카탈로그를 대상으로 rule engine을 돌려 조건만족/신청마감/기간종료/
+        조건불만족 4개 묶음으로 분류한다."""
         with log_step(PIPELINE, "policy_load"):
             policies = self.policy_loader.get_policies()
         return self._recommend_policies(user_profile, policies)
@@ -274,6 +276,8 @@ class RecommendationService:
         return raw.strip()
 
     def _recommend_policies(self, user: dict, policies: list[dict]) -> dict[str, Any]:
+        """주어진 정책 목록 각각을 eligibility_engine으로 판정해서 4개 묶음(조건만족/
+        신청마감/기간종료/조건불만족)으로 나누고, 불만족 사유도 함께 모은다."""
         buckets: dict[str, list] = {key: [] for key in POLICY_BUCKET_KEYS}
         plcyno_buckets: dict[str, list] = {key: [] for key in POLICY_BUCKET_KEYS}
 
@@ -367,6 +371,7 @@ class RecommendationService:
 
     @staticmethod
     def _bucket_for(match_result: dict[str, Any]) -> str:
+        """판정 결과를 보고 신청마감/기간종료/조건만족/조건불만족 중 어느 묶음에 넣을지 정한다."""
         apply_period = match_result["details"]["apply_period"]
 
         if not apply_period["match"]:
