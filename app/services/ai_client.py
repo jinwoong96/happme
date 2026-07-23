@@ -113,6 +113,14 @@ class AiClient:
         return await AiClient._delete(f"/policy-cache/{policy_id}")
 
     @staticmethod
+    async def clear_rule_engine_cache() -> dict:
+        """bene_ai의 POST /policy-cache/rule-engine-cache/clear 호출. 정책 데이터는 그대로인데
+        eligibility_rules.py의 판정 로직 자체가 바뀌었을 때(예: 나이 판정 규칙 변경), 옛 로직
+        기준으로 캐싱된 rule engine 결과를 서버 재시작 없이 전부 비우는 용도.
+        Returns: {message, cleared: {persona_count, entry_count}} (cleared는 비우기 직전 상태)"""
+        return await AiClient._post("/policy-cache/rule-engine-cache/clear", {})
+
+    @staticmethod
     async def _post(path: str, payload: dict):
         try:
             async with httpx.AsyncClient(base_url=settings.ai_server_url, timeout=30) as client:

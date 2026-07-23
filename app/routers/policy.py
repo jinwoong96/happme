@@ -129,6 +129,15 @@ async def get_pdf_cache_rebuild_status(current_admin: User = Depends(get_current
     return await AiClient.get_pdf_cache_rebuild_status()
 
 
+# bene_ai의 rule engine 캐시(persona+plcyNo 단위로 자격판정 결과를 캐싱한 것) 전체를 수동으로
+# 비운다. 평소엔 정책 CUD 시 정책 단위로만 무효화되지만, eligibility_rules.py의 판정 로직 자체가
+# 바뀌었을 때는(정책 데이터는 안 바뀌어도) 기존 캐시가 옛 로직 기준 결과를 계속 들고 있으므로
+# 전체를 비워야 한다. "/{policy_id}"보다 먼저 선언.
+@router.post("/rule-engine-cache/clear")
+async def clear_rule_engine_cache(current_admin: User = Depends(get_current_admin)):
+    return await AiClient.clear_rule_engine_cache()
+
+
 # R 단일 조회
 @router.get("/{policy_id}", response_model=PolicyRead)
 async def get_policy(policy_id: int, db: AsyncSession = Depends(get_db)):
