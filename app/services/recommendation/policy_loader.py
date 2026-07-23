@@ -91,8 +91,15 @@ class PolicyLoaderService:
         if plcy_no is not None:
             self._by_plcyno[str(plcy_no)] = policy
 
-    def remove_policy(self, policy_id: int) -> None:
+    def remove_policy(self, policy_id: int) -> str | None:
         """정책 삭제 시 메모리 캐시에서도 제거한다(기존에는 이 로직 자체가 없어서, 삭제된
-        정책이 서버 재시작 전까지 추천/알림 매칭에 계속 남아있었다)."""
+        정책이 서버 재시작 전까지 추천/알림 매칭에 계속 남아있었다).
+        제거된 정책의 plcyNo를 반환한다(없으면 None) - 호출부(policy_cache 라우터)가
+        RuleEngineCache처럼 plcyNo 기준 캐시를 같이 무효화할 때 쓴다."""
+        removed_plcyno = next(
+            (str(p.get("plcyNo")) for p in self.policies if p.get("policy_id") == policy_id and p.get("plcyNo") is not None),
+            None,
+        )
         self.policies = [p for p in self.policies if p.get("policy_id") != policy_id]
         self._by_plcyno = {k: v for k, v in self._by_plcyno.items() if v.get("policy_id") != policy_id}
+        return removed_plcyno

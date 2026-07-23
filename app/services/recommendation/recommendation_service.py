@@ -1,8 +1,10 @@
+import asyncio
 import re
 from typing import Any
 
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.policy_loader import PolicyLoaderService
+from app.services.recommendation.rule_engine_cache import RuleEngineCache, make_persona_signature
 from app.services.recommendation.similarity_search import PolicySimilarityService
 from app.core.step_logger import log_step, log_event
 
@@ -115,11 +117,13 @@ class RecommendationService:
         eligibility_engine: PolicyEligibilityEngine,
         similarity_service: PolicySimilarityService,
         llm_service,
+        rule_engine_cache: RuleEngineCache,
     ):
         self.policy_loader = policy_loader
         self.eligibility_engine = eligibility_engine
         self.similarity_service = similarity_service
         self.llm_service = llm_service  # PdfSummaryService 인스턴스 (llm_model 재사용)
+        self.rule_engine_cache = rule_engine_cache
 
     def recommend_svc(self, user_profile: dict) -> dict[str, Any]:
         """전체 정책 카탈로그를 대상으로 rule engine을 돌려 조건만족/신청마감/기간종료/
@@ -128,7 +132,7 @@ class RecommendationService:
             policies = self.policy_loader.get_policies()
         return self._recommend_policies(user_profile, policies)
 
-    def recommend_chat_svc(self, user_profile: dict, chat: str) -> dict[str, Any]:
+    async def recommend_chat_svc(self, user_profile: dict, chat: str) -> dict[str, Any]:
         """
         top_k 제한 없이(top_k=None) 조건을 통과한 정책을 전부 유사도 순으로 반환하고,
         각 정책에 정규화된 category를 붙인다. 마감/종료/조건불만족 정책은 화면에 보여줄 필요가
@@ -153,8 +157,7 @@ class RecommendationService:
         if chat and chat.strip():
             with log_step(PIPELINE, "similarity_search", candidate_count=len(available)):
                 matches = self.similarity_service.search(chat, available, top_k=None)
-            with log_step(PIPELINE, "llm_pick_policy"):
-                llm_answer = self._llm_pick_policy(chat, matches[:LLM_PICK_CANDIDATE_COUNT])
+            llm_answer = await self._llm_pick_policy(chat, matches[:LLM_PICK_CANDIDATE_COUNT])
         else:
             # 채팅 텍스트가 없으면 유사도 계산을 생략하고 rule engine이 판정한 순서를 그대로 사용한다.
             # TODO: 추후 이 경우엔 유사도 대신 사용자 프로필 기반 우선순위로 대체 예정
@@ -178,7 +181,7 @@ class RecommendationService:
 
         return {**buckets, "llm_answer": llm_answer}
 
-    def _llm_pick_policy(self, chat: str, candidates: list[dict]) -> dict[str, Any] | None:
+    async def _llm_pick_policy(self, chat: str, candidates: list[dict]) -> dict[str, Any] | None:
         """유사도 상위 후보(이미 similarity_search.search()에서 chat_similarity_min_score 이상만
         걸러진 상태) 중 사용자 상황(chat)에 맞는 정책을 2단계로 찾는다.
         1단계: 정책 '제목'만 보여주고 적절한 정책이 있는지 번호로 고르게 한다(_llm_select_candidate).
@@ -190,22 +193,29 @@ class RecommendationService:
         if not candidates:
             return None
 
-        selected = self._llm_select_candidate(chat, candidates)
+        selected = await self._llm_select_candidate(chat, candidates)
         if selected is None:
-            return {"policy_name": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
+            return {"policy_name": None, "plcyNo": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
 
         policy_detail = self.policy_loader.get_policy_by_plcyno(selected.get("plcyNo"))
         if policy_detail is None:
-            return {"policy_name": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
+            return {"policy_name": None, "plcyNo": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
 
-        answer = self._llm_explain_policy(chat, policy_detail)
-        return {"policy_name": policy_detail.get("plcyNm") or selected.get("policy_name"), "answer": answer}
+        answer = await self._llm_explain_policy(chat, policy_detail)
+        return {
+            "policy_name": policy_detail.get("plcyNm") or selected.get("policy_name"),
+            # 프론트가 상황매칭 결과 목록에서 이 정책을 찾아 맨 앞에 보여주는 데 쓴다.
+            "plcyNo": policy_detail.get("plcyNo"),
+            "answer": answer,
+        }
 
-    def _llm_select_candidate(self, chat: str, candidates: list[dict]) -> dict | None:
+    async def _llm_select_candidate(self, chat: str, candidates: list[dict]) -> dict | None:
         """1단계: 후보 정책 제목만(상세정보 없이) 번호를 매겨 LLM에 보여주고, 사용자 상황에
         맞는 정책이 있으면 번호를, 없으면 0을 답하게 한다. 정책명 문자열로 매칭하면 LLM이
         정책명을 살짝 다르게 재현했을 때 못 찾을 수 있어, 번호로만 답하게 해 candidates 인덱스로
-        그대로 되짚어 찾는다."""
+        그대로 되짚어 찾는다.
+        generate_text 자체는 동기 blocking 호출(watsonx SDK가 agenerate_text를 제공하지 않음)이라,
+        FastAPI 이벤트 루프를 막지 않도록 asyncio.to_thread로 별도 스레드에서 실행한다."""
         listing = "\n".join(f"{i}. {c.get('policy_name')}" for i, c in enumerate(candidates, start=1))
 
         prompt = f"""당신은 청년 정책 목록에서 사용자 상황에 맞는 정책을 고르는 도우미입니다.
@@ -224,7 +234,8 @@ class RecommendationService:
 번호:"""
 
         try:
-            raw = self.llm_service.llm_model.generate_text(prompt=prompt)
+            with log_step(PIPELINE, "llm_select_candidate", candidate_count=len(candidates)):
+                raw = await asyncio.to_thread(self.llm_service.llm_model.generate_text, prompt=prompt)
         except Exception as e:
             print(f"[RecommendationService] watsonx 호출 오류(1단계 선택): {e}")
             return None
@@ -239,10 +250,10 @@ class RecommendationService:
 
         return candidates[index - 1]
 
-    def _llm_explain_policy(self, chat: str, policy: dict) -> str:
+    async def _llm_explain_policy(self, chat: str, policy: dict) -> str:
         """2단계: 1단계에서 선택된 정책 하나의 상세정보(policy_loader 원본 필드)를 근거로 최종
         설명을 생성한다. 04-hybrid-search/rag.py의 build_context/PROMPT 패턴(제공된 문서만
-        근거로 답변)을 참고했다."""
+        근거로 답변)을 참고했다. _llm_select_candidate와 동일한 이유로 asyncio.to_thread를 쓴다."""
         context = f"""정책명: {policy.get("plcyNm") or ""}
 정책 설명: {policy.get("plcyExplnCn") or ""}
 지원 내용: {policy.get("plcySprtCn") or ""}
@@ -268,7 +279,8 @@ class RecommendationService:
 [답변]"""
 
         try:
-            raw = self.llm_service.llm_model.generate_text(prompt=prompt)
+            with log_step(PIPELINE, "llm_explain_policy", plcyNo=policy.get("plcyNo")):
+                raw = await asyncio.to_thread(self.llm_service.llm_model.generate_text, prompt=prompt)
         except Exception as e:
             print(f"[RecommendationService] watsonx 호출 오류(2단계 설명): {e}")
             return f"{policy.get('plcyNm') or ''} 정책이 사용자 상황에 적합해 보입니다."
@@ -286,10 +298,24 @@ class RecommendationService:
         # 대상이 많을 때(보통 전체 카탈로그 수천 건)는 화면에 불만족 사유를 보여줄 일이 없으니
         # rule engine이 첫 실패 검사에서 바로 다음 정책으로 넘어가도록 해서 시간을 아낀다.
         full_detail = len(policies) <= FULL_DETAIL_MAX_POLICIES
+        persona_signature = make_persona_signature(user)
+
+        cache_hits = 0
+        cache_misses = 0
 
         with log_step(PIPELINE, "eligibility_evaluate", policy_count=len(policies)):
             for policy in policies:
-                match_result = self.eligibility_engine.evaluate(user, policy, full_detail=full_detail)
+                if full_detail:
+                    # 판정 대상이 적어(<=20) 실패 사유를 전부 보여줘야 하는 경우(check_eligibility_svc용
+                    # 소규모 배치 등)는 캐싱 없이 기존 evaluate()를 그대로 쓴다.
+                    match_result = self.eligibility_engine.evaluate(user, policy, full_detail=True)
+                else:
+                    match_result, cache_hit = self._evaluate_with_cache(persona_signature, user, policy)
+                    if cache_hit:
+                        cache_hits += 1
+                    else:
+                        cache_misses += 1
+
                 plcy_no = policy.get("plcyNo")
 
                 policy_result = {
@@ -316,7 +342,7 @@ class RecommendationService:
                     "details": match_result["details"],
                     # 조건을 만족한 정책만 이 값이 채워진다(region 체크까지 도달한 경우에만).
                     # 화면에서 전국급/시도범위/시군구범위 탭으로 나누는 데 쓰인다.
-                    "region_scope": (match_result["details"].get("region") or {}).get("policy_value", {}).get("type"),
+                    "region_scope": self._extract_region_scope(match_result["details"]),
                 }
 
                 bucket = self._bucket_for(match_result)
@@ -325,6 +351,17 @@ class RecommendationService:
 
                 if bucket != "available_policies":
                     fail_reasons[str(plcy_no)] = match_result["details"]
+
+        if not full_detail:
+            total_checked = cache_hits + cache_misses
+            log_event(
+                PIPELINE, "rule_engine_cache",
+                persona_signature=persona_signature,
+                hits=cache_hits,
+                misses=cache_misses,
+                hit_rate=round(cache_hits / total_checked, 3) if total_checked else None,
+                **self.rule_engine_cache.stats(),
+            )
 
         log_event(
             PIPELINE, "result",
@@ -349,6 +386,36 @@ class RecommendationService:
             "fail_reasons_by_plcyNo": fail_reasons,
         }
 
+    def _evaluate_with_cache(self, persona_signature: str, user: dict, policy: dict) -> tuple[dict[str, Any], bool]:
+        """apply_period는 "오늘 날짜"에 의존해 매번 새로 계산하고, 나머지 7개 체크(evaluate_content)는
+        RuleEngineCache에서 persona_signature+plcyNo로 찾아 있으면 재사용(hit), 없으면 새로 계산해
+        캐시에 채워넣는다(miss). plcyNo가 없는 정책(관리자 수동 등록 등)은 여러 정책이 캐시 키를
+        공유하게 돼 잘못된 결과가 섞일 수 있어 캐싱하지 않고 항상 새로 계산한다.
+
+        eligibility_rules.py의 evaluate_content()는 OCR 자격판정(check_eligibility_svc가 쓰는
+        evaluate())과 같은 rule engine 코드를 공유하므로 각 체크의 reason/user_value/policy_value를
+        그대로 다 반환한다 - rule engine 자체에서는 이 정보를 줄이지 않는다. 다만 이 캐시에 그대로
+        저장하면 persona 하나당 수십 MB가 나가므로(엔트리당 ~5KB x 카탈로그 전체), 캐시에는
+        실제로 다운스트림(_bucket_for, region_scope)에서 쓰는 값만 압축해서 저장한다."""
+        plcy_no = policy.get("plcyNo")
+        apply_period_check = self.eligibility_engine.evaluate_apply_period(user, policy)
+
+        cached = self.rule_engine_cache.get(persona_signature, plcy_no) if plcy_no is not None else None
+        hit = cached is not None
+        if not hit:
+            content_checks = self.eligibility_engine.evaluate_content(user, policy)
+            cached = {
+                "content_matched": all(v["match"] for v in content_checks.values()),
+                "region_scope": (content_checks.get("region") or {}).get("policy_value", {}).get("type"),
+            }
+            if plcy_no is not None:
+                self.rule_engine_cache.set(persona_signature, plcy_no, cached)
+
+        is_matched = apply_period_check["match"] and cached["content_matched"]
+        details = {"apply_period": apply_period_check, "region_scope": cached["region_scope"]}
+
+        return {"result": "YES" if is_matched else "NO", "details": details}, hit
+
     def check_eligibility_svc(self, user: dict, plcy_nos: list[str]) -> list[dict]:
         """OCR/사진분석 등에서 이미 매칭된 정책들에 대해, plcyNo 기준으로 전체 필드를 갖춘
         원본 정책을 다시 찾아 PolicyEligibilityEngine으로 지원 가능 여부를 판정한다.
@@ -368,6 +435,16 @@ class RecommendationService:
             ]
             results.append({"plcyNo": plcy_no, "result": outcome["result"], "reasons": reasons})
         return results
+
+    @staticmethod
+    def _extract_region_scope(details: dict) -> str | None:
+        """match_result["details"]에서 지역 규모(전국급/시도범위/시군구범위)를 뽑아낸다.
+        캐시를 거친 경로(_evaluate_with_cache)는 details에 region_scope를 이미 뽑아 바로 넣어주고,
+        캐싱 없이 eligibility_engine.evaluate()를 그대로 쓴 경로(full_detail=True)는 details["region"]
+        안에 원래 체크 결과(policy_value.type)로 들어있으므로 두 모양을 다 처리한다."""
+        if "region_scope" in details:
+            return details["region_scope"]
+        return (details.get("region") or {}).get("policy_value", {}).get("type")
 
     @staticmethod
     def _bucket_for(match_result: dict[str, Any]) -> str:
