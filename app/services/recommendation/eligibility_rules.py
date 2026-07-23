@@ -191,9 +191,10 @@ class PolicyEligibilityEngine:
 
     @staticmethod
     def _match_age(user, policy):
-        if policy.get("sprtTrgtAgeLmtYn") == "Y":
-            return make_result(True, "연령 제한 없음")
-
+        # sprtTrgtAgeLmtYn은 원본 데이터 오류가 너무 많아 더 이상 보지 않는다. min/max가 둘 다
+        # 0이면(is_empty_or_unlimited가 "0"을 제한없음으로 보므로 아래 두 체크가 각각 자동으로
+        # 스킵돼) 자연스럽게 무제한으로 판정된다 - 최신화 시 전연령 정책은 0/0으로 통일해서 넣는다
+        # (age_resolver.py 참고).
         user_age = user.get("age")
         if user_age is None:
             return make_result(False, "사용자 나이 정보 없음")
