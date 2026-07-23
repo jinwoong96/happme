@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
 const SESSION_KEY = 'bene_ocr_state';
 
+// sessionStorage에 저장해둔 이전 분석 결과를 불러온다(페이지 이동 후 돌아와도 유지).
 function loadPersisted() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
@@ -12,6 +13,7 @@ function loadPersisted() {
   }
 }
 
+// 분석 결과를 sessionStorage에 저장한다.
 function savePersisted(state) {
   try {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
@@ -20,6 +22,7 @@ function savePersisted(state) {
   }
 }
 
+// 저장해둔 분석 결과를 지운다(새 파일 선택/분석 시작 시).
 function clearPersisted() {
   try {
     sessionStorage.removeItem(SESSION_KEY);
@@ -28,6 +31,7 @@ function clearPersisted() {
   }
 }
 
+// 공고문 이미지 업로드 -> bene_ai 분석 -> 매칭 정책 표시까지의 상태와 흐름을 관리한다.
 export default function useOCR() {
   const persisted = loadPersisted();
 

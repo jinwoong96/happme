@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import useRegion from '../../hooks/useRegion';
 import useBookmarks from '../../hooks/useBookmarks';
 
+// 지역 프로그램 지도 검색 화면: 카카오맵 위에 검색 결과를 마커로 표시한다.
 export default function RegionPage() {
   const {
     keyword,

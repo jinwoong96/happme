@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronUp, Search, Plus, X } from 'lucide-react';
 import useNotification from '../../hooks/useNotification';
 
+// 알림 설정 화면: 즐겨찾기별 마감 알림 on/off, 검색, 공고문 키워드 알림 등록/삭제.
 export default function NotificationPage() {
   const {
     filtered, search, setSearch, toggle, loading, isEmpty,

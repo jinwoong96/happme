@@ -12,6 +12,7 @@ const inputStyle = {
 
 const labelStyle = { margin: '0 0 7px', fontSize: 13, fontWeight: 600, color: '#444' };
 
+// 회원가입 화면: 이름/이메일(인증코드 포함)/비밀번호 입력 폼.
 export default function SignupPage() {
   const {
     form, loading, error, handleChange, handleSignup,

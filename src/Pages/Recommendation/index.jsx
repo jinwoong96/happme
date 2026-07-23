@@ -31,11 +31,13 @@ function groupByCategory(policies) {
 
 // 상시는 카드 데이터의 apply_period_type을 봅니다.
 // (특정기간이면서 아직 열려있는 경우엔 배지 없이 날짜만 보여줍니다.)
+// 상시 모집 정책이면 배지를 만든다.
 function getPeriodBadge(policy) {
   if (policy.apply_period_type === '상시') return { label: '상시', bg: '#dcfce7', color: '#16a34a' };
   return null;
 }
 
+// "무엇이 바뀌면" 시뮬레이션 화면: Q1~Q3 질문 폼과 결과(지역 범위별 정책 목록)를 보여준다.
 export default function RecommendationPage() {
   const {
     regionChoice, setRegionChoice, regionText, setRegionText,

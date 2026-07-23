@@ -29,11 +29,13 @@ function parseEventDate(str) {
   return dates;
 }
 
+// Date를 "M/D" 형식으로 표시한다.
 function formatMD(date) {
   if (!date) return '';
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+// 오늘부터 target까지 남은 일수를 계산한다(음수면 이미 지남).
 function dDay(target) {
   if (!target) return null;
   const today = new Date();
@@ -43,6 +45,8 @@ function dDay(target) {
   return Math.round((t - today) / (1000 * 60 * 60 * 24));
 }
 
+// 즐겨찾기 캘린더 화면의 데이터를 관리한다: 서버에서 즐겨찾기+일정을 불러와 월별로
+// 보여줄 색상/D-day를 계산하고, 날짜별 표시 점(dotsByDate)과 범례(legend)를 만든다.
 export default function useBookmark() {
   const [rawItems, setRawItems] = useState([]);
   const [loading, setLoading] = useState(true);

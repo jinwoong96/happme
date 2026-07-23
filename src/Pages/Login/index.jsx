@@ -5,6 +5,7 @@ import { Gift, HeartHandshake, Sparkles } from 'lucide-react';
 
 const LOGO_ICONS = [Gift, HeartHandshake, Sparkles];
 
+// 카카오 로고 아이콘 (SVG).
 function KakaoIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -16,6 +17,7 @@ function KakaoIcon() {
   );
 }
 
+// 구글 로고 아이콘 (SVG).
 function GoogleIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 48 48">
@@ -39,6 +41,7 @@ function GoogleIcon() {
   );
 }
 
+// 로그인 화면: 이메일/비밀번호 로그인 폼 + 소셜 로그인 버튼.
 export default function LoginPage() {
   const { form, loading, error, handleChange, handleLogin, handleGoogleLogin, handleKakaoLogin, handleNaverLogin } = useLogin();
   const navigate = useNavigate();

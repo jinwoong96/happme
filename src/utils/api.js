@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
 
+// 서버 에러 응답을 사용자에게 보여줄 한국어 문구로 바꾼다.
 function toFriendlyMessage(status, err) {
   if (Array.isArray(err?.detail)) {
     const first = err.detail[0];
@@ -28,14 +29,14 @@ function toFriendlyMessage(status, err) {
 }
 
 
+// JSON body로 백엔드에 요청을 보낸다. 로그인 토큰은 헤더가 아니라 httpOnly 쿠키로
+// 자동 전달되므로(credentials: 'include') Authorization 헤더는 쓰지 않는다.
 async function request(method, endpoint, body) {
-  // const token = localStorage.getItem('token');
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
     credentials: 'include', // httpOnly 쿠키를 주고받기 위해 필수
     headers: {
       'Content-Type': 'application/json',
-      // ...(token && { Authorization: `Bearer ${token}` }),
     },
     ...(body && { body: JSON.stringify(body) }),
   });
@@ -49,6 +50,7 @@ async function request(method, endpoint, body) {
   return text ? JSON.parse(text) : null;
 }
 
+// 파일 업로드(FormData)로 백엔드에 요청을 보낸다.
 async function requestForm(method, endpoint, formData) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
@@ -65,6 +67,7 @@ async function requestForm(method, endpoint, formData) {
   return text ? JSON.parse(text) : null;
 }
 
+// 백엔드 호출용 공용 클라이언트. 모든 요청은 이 객체를 통해 나간다.
 export const api = {
   get: (endpoint) => request('GET', endpoint),
   post: (endpoint, body) => request('POST', endpoint, body),

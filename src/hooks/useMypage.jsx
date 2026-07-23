@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
+// 마이페이지에 보여줄 사용자 정보(이름/이메일/즐겨찾기 수/알림 수/비밀번호 보유 여부)를 모은다.
 export default function useMypage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);

@@ -12,6 +12,7 @@ const inputStyle = {
 
 const labelStyle = { margin: '0 0 7px', fontSize: 13, fontWeight: 600, color: '#444' };
 
+// 비밀번호 변경 화면. 성공하면 완료 안내를 보여주고 잠시 후 마이페이지로 돌아간다.
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
   const { form, loading, error, success, checking, handleChange, handleSubmit } = useChangePassword();

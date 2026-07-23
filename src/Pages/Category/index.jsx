@@ -11,6 +11,7 @@ function getBadge(policy) {
   return policy.apply_period_type === '상시' ? { label: '상시', bg: '#dcfce7', color: '#16a34a' } : null;
 }
 
+// 전체보기 화면: 탭/지역/키워드/정렬/초성으로 정책을 필터링해 보여준다.
 export default function CategoryPage() {
   const {
     categories,

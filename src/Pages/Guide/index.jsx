@@ -35,6 +35,7 @@ const STEPS = [
   },
 ];
 
+// 이용 가이드 화면: STEPS를 이미지/영상과 함께 한 장씩 넘겨보는 슬라이드.
 export default function GuidePage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);

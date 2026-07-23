@@ -5,6 +5,7 @@ import { api } from '../utils/api';
 const SPECIAL_CHAR_RULE = /[!@#$%^&*(),.?":{}|<>]/;
 const MIN_LENGTH = 8;
 
+// 비밀번호 변경 폼 상태와 제출 처리를 관리한다.
 export default function useChangePassword() {
   const navigate = useNavigate();
   const [form, setForm] = useState({

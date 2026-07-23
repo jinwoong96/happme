@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import useInquiryForm from '../../hooks/useInquiryForm';
 
+// 문의 작성 화면. URL 파라미터(type)에 따라 inquiryConfig에 정의된 필드로 폼을 그린다.
 export default function InquiryFormPage() {
   const { type } = useParams();
   const navigate = useNavigate();

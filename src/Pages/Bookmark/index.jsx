@@ -20,6 +20,7 @@ const COMPARE_COLORS = ['#3b82f6', '#16a34a', '#f59e0b'];
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => i + 1);
 
+// 월 달력의 칸 배열을 만든다. 1일 앞의 빈 칸과 말일 뒤 남는 칸은 null로 채운다.
 function buildCalendarCells(year, month) {
   const firstDay = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -30,6 +31,8 @@ function buildCalendarCells(year, month) {
   return cells;
 }
 
+// 즐겨찾기 목록의 카드 하나. 비교 모드에서는 클릭 시 체크박스처럼 선택/해제되고,
+// 평소에는 상세 모달을 연다.
 function BookmarkItemCard({ item, onRemove, onOpen, comparisonMode, isChecked, onToggleCheck }) {
   const isPolicy = !!item.policy_id;
   const handleCardClick = () => {
@@ -111,6 +114,7 @@ function BookmarkItemCard({ item, onRemove, onOpen, comparisonMode, isChecked, o
   );
 }
 
+// 즐겨찾기 화면: 목록 보기, 캘린더 보기, 2~3개 정책 비교(AI 요약) 기능을 제공한다.
 export default function BookmarkPage() {
   const navigate = useNavigate();
   const { items, loading, cursor, goPrevMonth, goNextMonth, dotsByDate, legend, dateKey, removeBookmark } = useBookmark();

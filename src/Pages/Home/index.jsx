@@ -12,6 +12,7 @@ const BANNER_REASON_LABEL = {
   latest: '최근 등록',
 };
 
+// 원 단위 금액을 "최대 3억원 지원"처럼 읽기 쉬운 문구로 바꾼다.
 function formatWon(amount) {
   if (amount == null) return null;
   if (amount >= 100_000_000) {
@@ -24,6 +25,7 @@ function formatWon(amount) {
   return `최대 ${amount.toLocaleString()}원 지원`;
 }
 
+// 마감일까지 남은 일수를 "D-n" 형식으로 표시한다. 이미 지났으면 "마감".
 function formatDeadline(aplyEndDt) {
   if (!aplyEndDt) return null;
   const end = new Date(aplyEndDt);
@@ -54,6 +56,7 @@ function getBadge(policy) {
   return policy.apply_period_type === '상시' ? { label: '상시', bg: '#dcfce7', color: '#16a34a' } : null;
 }
 
+// 홈 화면: 지원금 배너, 인기 정책 목록, 빠른 메뉴(맞춤추천/OCR/요약/알림)를 보여준다.
 export default function HomePage() {
   const {
     benefits, banner, bannerLoading, loading, userName, unreadCount,

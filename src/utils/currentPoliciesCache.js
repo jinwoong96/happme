@@ -3,6 +3,7 @@
 // 프로필이 바뀌면(useRecommendationProfile에서 저장 성공 시) 캐시를 지워서 다음 진입 시 새로 계산되게 한다.
 const CACHE_KEY = 'bene:currentPolicies';
 
+// 캐시된 "가능정책" 추천 결과를 읽는다. 없으면 null.
 export function readCurrentPoliciesCache() {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
@@ -12,6 +13,7 @@ export function readCurrentPoliciesCache() {
   }
 }
 
+// "가능정책" 추천 결과를 캐시에 저장한다.
 export function writeCurrentPoliciesCache(results) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(results));
@@ -20,6 +22,7 @@ export function writeCurrentPoliciesCache(results) {
   }
 }
 
+// 캐시를 지운다(프로필이 바뀌어 다음 진입 시 새로 계산되게 할 때).
 export function clearCurrentPoliciesCache() {
   try {
     localStorage.removeItem(CACHE_KEY);

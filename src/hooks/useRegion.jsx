@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../utils/api';
 
+// 지역 프로그램 지도 검색 화면: 카카오맵 초기화, 내 위치 찾기, 키워드+반경 검색,
+// 마커/정보창 표시, 상태별 필터링을 관리한다.
 export default function useRegion() {
   const [keyword, setKeyword] = useState('');
   const [radius, setRadius] = useState(3);
@@ -32,6 +34,7 @@ export default function useRegion() {
     });
   }, []);
 
+  // 브라우저 위치 권한으로 현재 위치를 구해 지도 중심을 옮기고 파란 점 마커를 표시한다.
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       setError('이 브라우저는 위치 기능을 지원하지 않아요.');
@@ -76,11 +79,13 @@ export default function useRegion() {
     );
   };
 
+  // 지도에 찍혀있는 마커를 전부 지운다(새 검색 전 초기화용).
   const clearMarkers = () => {
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
   };
 
+  // 키워드(+위치가 있으면 반경)로 지역 프로그램을 검색하고, 결과를 지도에 마커로 표시한다.
   const handleSearch = async () => {
     if (!keyword.trim()) return;
     setLoading(true);

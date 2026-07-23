@@ -26,11 +26,13 @@ function groupByCategory(policies) {
   return Array.from(groups, ([category, policies]) => ({ category, policies }));
 }
 
+// 상시 모집 정책이면 배지를 만든다.
 function getPeriodBadge(policy) {
   if (policy.apply_period_type === '상시') return { label: '상시', bg: '#dcfce7', color: '#16a34a' };
   return null;
 }
 
+// "가능정책" 화면: 현재 저장된 프로필만으로 판정한 추천 결과를 지역 범위별로 보여준다.
 export default function CurrentRecommendationPage() {
   const {
     results, loading, refreshing, error, refresh,

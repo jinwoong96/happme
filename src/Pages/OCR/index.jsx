@@ -4,6 +4,7 @@ import { ChevronLeft, ImageIcon, Bot, ChevronDown, ExternalLink, CheckCircle2, L
 import useOCR from '../../hooks/useOCR';
 import useBookmarks from '../../hooks/useBookmarks';
 
+// 펼친 카드에서 보여줄 연령 조건 전체 문구 (예: "19세 ~ 34세").
 function formatAge(min, max) {
   if (!min && !max) return '연령 제한 없음';
   if (min && max) return `${min}세 ~ ${max}세`;
@@ -70,6 +71,7 @@ function isGenericPortalUrl(url) {
   }
 }
 
+// 텍스트에서 첫 번째 URL(http(s):// 또는 www.로 시작)을 찾아 반환한다.
 function extractUrl(text) {
   if (!text) return null;
   const match = text.match(/(https?:\/\/[^\s)]+|www\.[^\s),]+)/i);
@@ -78,6 +80,7 @@ function extractUrl(text) {
   return url.startsWith('http') ? url : `https://${url}`;
 }
 
+// 지원내용 텍스트에서 언급된 금액들을 전부 찾아 그중 최댓값을 "최대 N원" 형식으로 반환한다.
 function extractMaxAmount(text) {
   if (!text) return null;
 
@@ -100,6 +103,7 @@ function extractMaxAmount(text) {
   return `최대 ${max.toLocaleString()}원`;
 }
 
+// 줄바꿈이나 불릿 기호(✅○●• 등) 앞에서 텍스트를 항목별로 쪼갠다.
 function splitItems(text) {
   if (!text) return [];
   return text
@@ -123,6 +127,7 @@ function truncate(text, max = 40) {
   return cleaned.length <= max ? cleaned : `${cleaned.slice(0, max).trimEnd()}...`;
 }
 
+// 라벨 + 값(또는 목록) 한 쌍을 보여주는 필드. 값이 없으면 "정보 없음"을 표시한다.
 function Field({ label, value, asList = false }) {
   const items = asList ? splitItems(value) : [];
   const isEmpty = asList ? items.length === 0 : !value;
@@ -182,6 +187,8 @@ function IconRow({ icon, label, value, singleLine = false }) {
   );
 }
 
+// 매칭된 정책 하나를 접힌/펼친 아코디언 카드로 보여준다. 지원내용 미리보기, 신청 URL,
+// 소득조건 불충족 사유 등을 정리해서 표시한다.
 function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmark }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [reasonsOpen, setReasonsOpen] = useState(false);
@@ -355,6 +362,8 @@ function MatchAccordion({ match, isOpen, onToggle, isBookmarked, onToggleBookmar
   );
 }
 
+// 공고문 이미지 업로드 화면: 이미지를 올려 bene_ai로 분석하고, 매칭된 정책들을
+// 아코디언 카드로 보여준다.
 export default function OCRPage() {
   const { files, loading, results, error, previewDataUrl, fileInputRef, handleFileChange, handleRemoveFile, handleAnalyze, clearOcrSession } = useOCR();
   const { isBookmarked, toggleBookmark } = useBookmarks();

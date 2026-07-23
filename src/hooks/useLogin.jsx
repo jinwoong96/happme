@@ -4,6 +4,7 @@ import { api } from '../utils/api';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
 
+// 로그인 폼 상태와 제출 처리, 소셜 로그인(구글/카카오/네이버) 리다이렉트를 관리한다.
 export default function useLogin() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });

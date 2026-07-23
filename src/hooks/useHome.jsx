@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
+// API 응답 필드를 화면에서 쓰는 카드 형태로 정리한다.
 function mapPolicy(p) {
   return {
     policy_id: p.policy_id,
@@ -22,6 +23,8 @@ function mapPolicy(p) {
 // 주기적으로 다시 확인한다(관리자 저장 -> AI 임베딩/매칭은 백그라운드라 수 초~수십 초 걸림).
 const UNREAD_POLL_MS = 30_000;
 
+// 홈 화면 데이터(인기 정책/배너/안읽은 알림 수/사용자 이름)를 불러오고,
+// 정책 상세 모달을 관리한다.
 export default function useHome() {
   const [benefits, setBenefits] = useState([]);
   const [banner, setBanner] = useState([]);

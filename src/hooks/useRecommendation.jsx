@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
+// "무엇이 바뀌면" 시뮬레이션 추천 화면: Q1(지역이동)/Q2(취업변화)/Q3(상황설명) 답변으로
+// what-if 추천을 요청하고, 결과와 정책 상세 모달을 관리한다.
 export default function useRecommendation() {
   const navigate = useNavigate();
   const [regionChoice, setRegionChoice] = useState('지역 이동 안함');

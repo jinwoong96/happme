@@ -1,5 +1,7 @@
 import { Bookmark } from 'lucide-react';
 
+// 정책 목록/추천 결과에서 공통으로 쓰는 정책 카드. 클릭하면 상세 모달을 열고,
+// 즐겨찾기 버튼과(있으면) 소득계산 버튼을 함께 보여준다.
 export default function PolicyCard({ policy, badge, onOpen, isBookmarked, onToggleBookmark, bookmarkDisabled, onCheckIncome, children }) {
   return (
     <div

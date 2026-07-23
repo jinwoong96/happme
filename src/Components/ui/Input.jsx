@@ -1,5 +1,6 @@
 import { cn } from '../../lib/utils';
 
+// 공용 텍스트 입력 필드.
 export default function Input({ className, ...props }) {
   return (
     <input

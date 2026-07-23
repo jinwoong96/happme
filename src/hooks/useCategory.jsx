@@ -24,6 +24,8 @@ function endsWithIncompleteJamo(text) {
   return code >= 0x3131 && code <= 0x318e;
 }
 
+// 카테고리(전체보기) 화면: 탭/지역/키워드/정렬/초성 필터로 정책 목록을 조회하고,
+// 즐겨찾기 토글과 정책 상세 모달을 관리한다.
 export default function useCategory() {
   const location = useLocation();
   // 홈 화면 "많이 찾는 정책 > 전체보기"처럼 특정 정렬로 들어오길 원하는 진입 경로를 위한 기본값.

@@ -1,5 +1,6 @@
 import { cn } from '../../lib/utils';
 
+// 공용 버튼. variant로 채움(primary)/외곽선(outline)/텍스트(ghost) 스타일을 고른다.
 export default function Button({ children, variant = 'primary', className, ...props }) {
   const base = 'w-full py-4 rounded-2xl font-semibold text-base transition-opacity active:opacity-80';
   const variants = {

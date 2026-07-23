@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useSupport from '../../hooks/useSupport';
 import { INQUIRY_TYPES } from './inquiryConfig';
 
+// 고객지원 메인 화면: 문의 유형별 카드 목록.
 export default function SupportPage() {
   const navigate = useNavigate();
   const { handleContact } = useSupport();

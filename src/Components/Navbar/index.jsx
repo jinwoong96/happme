@@ -8,6 +8,7 @@ const tabs = [
   { to: '/mypage', label: '마이페이지', Icon: User },
 ];
 
+// 하단 탭 네비게이션(홈/전체보기/즐겨찾기/마이페이지).
 export default function Navbar() {
   return (
     <nav className="flex justify-around items-center bg-white border-t border-gray-100 py-2.5 shrink-0">

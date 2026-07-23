@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { api } from '../utils/api';
 import { INQUIRY_TYPES } from '../Pages/Support/inquiryConfig';
 
+// 문의 유형(type)에 맞는 폼 필드를 inquiryConfig에서 읽어와 상태/제출을 관리하는 공용 훅.
+// 광고제휴/기업지원금/일반문의가 이 하나의 훅으로 동작한다.
 export default function useInquiryForm(type) {
   const config = INQUIRY_TYPES[type];
   const [form, setForm] = useState(() =>

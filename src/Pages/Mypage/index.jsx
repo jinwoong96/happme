@@ -12,6 +12,7 @@ const MENU = [
   { Icon: FileText,   label: '이용약관' },
 ];
 
+// 마이페이지: 프로필 요약과 즐겨찾기/알림함/가이드/비밀번호/고객센터 메뉴로 이동하는 진입점.
 export default function MypagePage() {
   const { user, handleLogout } = useMypage();
   const navigate = useNavigate();

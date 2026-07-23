@@ -1,3 +1,4 @@
+// 공용 확인 모달. isOpen이 false면 아무것도 렌더링하지 않는다.
 export default function Modal({ isOpen, onClose, title, children, maxWidth = 290, maxHeight = '70%' }) {
   if (!isOpen) return null;
 

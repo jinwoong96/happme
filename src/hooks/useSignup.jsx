@@ -6,6 +6,7 @@ const SPECIAL_CHAR_RULE = /[!@#$%^&*(),.?":{}|<>]/;
 const MIN_LENGTH = 8;
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// 회원가입 폼 상태, 이메일 인증코드 발송/확인, 비밀번호 규칙 검증 및 제출을 관리한다.
 export default function useSignup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({

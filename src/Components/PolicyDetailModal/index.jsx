@@ -1,6 +1,7 @@
 import { Bookmark, ExternalLink, Users, CalendarClock, ClipboardList, FileText, Wallet, Info, Link2 } from 'lucide-react';
 import Modal from '../Modal';
 
+// 원 단위 금액을 "최대 3억원"/"최대 500만원"처럼 읽기 쉬운 문구로 바꾼다.
 function formatWon(amount) {
   if (amount == null) return null;
   if (amount >= 100_000_000) {
@@ -13,12 +14,14 @@ function formatWon(amount) {
   return `최대 ${amount.toLocaleString()}원`;
 }
 
+// "YYYYMMDD"를 "YYYY.MM.DD"로 바꾼다.
 function formatYmd(raw) {
   const trimmed = (raw || '').trim();
   if (trimmed.length !== 8) return trimmed || null;
   return `${trimmed.slice(0, 4)}.${trimmed.slice(4, 6)}.${trimmed.slice(6, 8)}`;
 }
 
+// "YYYYMMDD ~ YYYYMMDD" 형태 텍스트의 양쪽 날짜를 각각 포맷한다.
 function formatYmdRange(text) {
   if (!text) return null;
   return text.split('~').map((part) => formatYmd(part)).join(' ~ ');
@@ -33,6 +36,7 @@ function getApplyPeriodText(p) {
   return p.bizPrdEtcCn || null;
 }
 
+// 마감일까지 남은 일수에 따라 D-day 뱃지(색상 포함)를 만든다. 이미 지났으면 "마감".
 function getDeadlineBadge(aplyEndDt) {
   if (!aplyEndDt) return null;
   const end = new Date(aplyEndDt);
@@ -45,6 +49,7 @@ function getDeadlineBadge(aplyEndDt) {
   return { label: `D-${diffDays}`, bg: '#dbeafe', color: '#2563eb' };
 }
 
+// 소득 조건 표시 텍스트를 만든다. 자유 텍스트(earnEtcCn)가 있으면 그걸 우선 쓴다.
 function getIncomeText(p) {
   if (p.earnEtcCn) return p.earnEtcCn;
   if (p.earnMaxAmt) {
@@ -54,6 +59,7 @@ function getIncomeText(p) {
   return null;
 }
 
+// 사업 기간 표시 텍스트를 만든다. 시작/종료일이 둘 다 있으면 범위로, 아니면 원문 텍스트로.
 function getBizPeriodText(p) {
   const begin = formatYmd(p.bizPrdBgngYmd);
   const end = formatYmd(p.bizPrdEndYmd);
@@ -61,6 +67,7 @@ function getBizPeriodText(p) {
   return p.bizPrdEtcCn || null;
 }
 
+// 아이콘+제목이 붙은 상세 정보 섹션 하나를 렌더링하는 내부 컴포넌트.
 function Section({ icon: Icon, title, children }) {
   return (
     <div>
@@ -75,6 +82,8 @@ function Section({ icon: Icon, title, children }) {
   );
 }
 
+// 정책 상세 정보 모달. usePolicyDetail이 만든 selectedPolicy를 받아 소개/지원대상/
+// 신청안내/사업정보/기타사항/링크 섹션으로 나눠 보여준다.
 export default function PolicyDetailModal({ selectedPolicy, policyLoading, isBookmarked, onToggleBookmark, bookmarkDisabled, onClose }) {
   const p = selectedPolicy;
   const deadlineBadge = p && !p.error ? getDeadlineBadge(p.aplyEndDt) : null;

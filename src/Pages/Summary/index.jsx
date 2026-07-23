@@ -5,6 +5,7 @@ import useSummary from '../../hooks/useSummary';
 import useBookmarks from '../../hooks/useBookmarks';
 
 
+// 공고문 PDF/텍스트/URL 요약 화면.
 export default function SummaryPage() {
   const [expandedIndex, setExpandedIndex] = useState(null);
   const {

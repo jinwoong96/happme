@@ -4,6 +4,7 @@ import useBookmarks from './useBookmarks';
 
 const SESSION_KEY = 'bene_summary_state';
 
+// sessionStorage에 저장해둔 이전 요약 결과를 불러온다(페이지 이동 후 돌아와도 유지).
 function loadPersisted() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
@@ -13,6 +14,7 @@ function loadPersisted() {
   }
 }
 
+// 요약 결과를 sessionStorage에 저장한다.
 function savePersisted(state) {
   try {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
@@ -21,6 +23,7 @@ function savePersisted(state) {
   }
 }
 
+// 저장해둔 요약 결과를 지운다(새 분석 시작 시).
 function clearPersisted() {
   try {
     sessionStorage.removeItem(SESSION_KEY);
@@ -34,6 +37,8 @@ const KNOWN_LABELS = [
   '신청기간', '사업기간', '담당기관', '신청URL', '지원규모', '기타사항', '정책명',
 ];
 
+// LLM이 "**라벨**: 내용" 형태로 만든 요약 텍스트를 라벨별 값으로 쪼개고, 값에 섞여 들어온
+// URL 조각은 제거한다.
 function parseSummaryFields(text) {
   if (!text) return {};
 
@@ -60,6 +65,8 @@ function parseSummaryFields(text) {
 }
 
 
+// 공고문 PDF/텍스트/URL 요약 화면: 입력 방식 3가지(파일/텍스트/URL)로 매칭·요약을
+// 요청하고, 매칭 후보 선택 없이 바로 요약 결과를 보여주며, 추가 질문(Q&A)도 처리한다.
 export default function useSummary() {
   const persisted = loadPersisted();
 
@@ -116,6 +123,8 @@ export default function useSummary() {
 
   const canSummarize = !loading && (files.length > 0 || text.trim().length > 0 || url.trim().length > 0);
 
+  // bene_ai 매칭/요약 응답을 화면 상태로 변환한다. 매칭 실패면 후보 목록을, 성공이면
+  // 라벨별 요약 필드를 만든다.
   const applyAiResult = (aiResult) => {
     const first = aiResult?.results?.[0];
 

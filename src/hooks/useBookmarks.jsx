@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../utils/api';
 
+// 정책/지역프로그램 카드에서 즐겨찾기 여부 확인 및 토글에 쓰는 공용 훅.
+// 낙관적 갱신 없이 서버 응답을 기다린 뒤 로컬 맵(policy_id -> bookmark_id)을 갱신한다.
 export default function useBookmarks() {
   const [bookmarkMap, setBookmarkMap] = useState({}); // policy_id -> bookmark_id
   const [localProgramMap, setLocalProgramMap] = useState({}); // local_program_id -> bookmark_id

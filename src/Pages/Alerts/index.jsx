@@ -16,6 +16,7 @@ const TYPE_LABEL = {
   KEYWORD_MATCH: { label: '관심 공고', bg: '#eef2ff', color: '#6366f1' },
 };
 
+// ISO 날짜 문자열을 "M/D HH:MM" 형식으로 표시한다.
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -29,6 +30,7 @@ function parseAlertTitle(title) {
   return match ? { tag: match[1], rest: match[2] } : { tag: null, rest: title };
 }
 
+// 알림함 화면: 알림 목록을 읽음처리/삭제하고, 정책 관련 알림이면 상세 모달을 연다.
 export default function AlertsPage() {
   const navigate = useNavigate();
   const { alerts, loading, markRead, markAllRead, removeAlert } = useAlerts();

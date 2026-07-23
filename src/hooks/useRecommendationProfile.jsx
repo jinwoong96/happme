@@ -27,6 +27,8 @@ const NUMBER_FIELDS = [];
 const BOOLEAN_FIELDS = ['sme_employment', 'disability', 'basic_livelihood', 'single_parent'];
 const REQUIRED_FIELDS = ['birth_date', 'gender', 'region', 'education', 'employment_status', 'marital_status'];
 
+// 추천에 쓰이는 사용자 프로필 입력/수정 폼을 관리한다. 저장 후 어디로 돌아갈지는
+// 진입 경로(from: mypage/current/recommendation)에 따라 달라진다.
 export default function useRecommendationProfile() {
   const navigate = useNavigate();
   const location = useLocation();

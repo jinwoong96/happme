@@ -20,6 +20,7 @@ import BookmarkPage from './Pages/Bookmark';
 import RegionPage from './Pages/Region';
 import AlertsPage from './Pages/Alerts';
 
+// 로그인 안 한 사용자는 /login으로 보낸다. 인증 확인 중에는 아무것도 렌더링하지 않는다.
 function PrivateRoute({ children }) {
   const { status } = useAuth();
 
@@ -28,6 +29,7 @@ function PrivateRoute({ children }) {
   return children;
 }
 
+// 하단 네비게이션 바가 있는 화면에서 쓰는 공용 레이아웃(홈/즐겨찾기/마이페이지 등).
 function Layout({ children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -39,6 +41,7 @@ function Layout({ children }) {
   );
 }
 
+// 앱 전체 라우팅. 로그인/회원가입 외 모든 경로는 PrivateRoute로 보호된다.
 export default function App() {
   return (
     <BrowserRouter>

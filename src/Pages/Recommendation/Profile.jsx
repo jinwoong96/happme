@@ -28,6 +28,7 @@ const inputStyle = {
   color: '#1f2937',
 };
 
+// 라벨(+필수 표시) 아래에 입력 컴포넌트를 감싸는 공용 필드 래퍼.
 function Field({ label, required, children }) {
   return (
     <div>
@@ -40,6 +41,7 @@ function Field({ label, required, children }) {
   );
 }
 
+// 옵션 목록으로 값을 고르는 드롭다운.
 function Select({ value, onChange, options }) {
   return (
     <select value={value || ''} onChange={(e) => onChange(e.target.value)} style={{ ...inputStyle, appearance: 'auto' }}>
@@ -51,6 +53,7 @@ function Select({ value, onChange, options }) {
   );
 }
 
+// 공용 텍스트/숫자 입력 필드.
 function TextInput({ value, onChange, placeholder, type = 'text' }) {
   return (
     <input
@@ -83,6 +86,8 @@ function getBirthDateError(value) {
   return null;
 }
 
+// 생년월일 입력 필드. 숫자 입력을 자동으로 "YYYY-MM-DD"로 정렬하고, 실존하지 않거나
+// 미래 날짜면 에러 메시지를 보여준다.
 function BirthDateInput({ value, onChange }) {
   const error = getBirthDateError(value);
   return (
@@ -101,6 +106,7 @@ function BirthDateInput({ value, onChange }) {
   );
 }
 
+// 공용 여러 줄 텍스트 입력.
 function Textarea({ value, onChange, placeholder }) {
   return (
     <textarea
@@ -113,6 +119,7 @@ function Textarea({ value, onChange, placeholder }) {
   );
 }
 
+// 추천용 프로필 입력/수정 화면.
 export default function RecommendationProfilePage() {
   const navigate = useNavigate();
   const { form, handleChange, handleSubmit, handleSkip, loading, saving, error, from, hasProfile } = useRecommendationProfile();

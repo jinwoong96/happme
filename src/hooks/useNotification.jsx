@@ -9,6 +9,7 @@ function formatDeadline(aplyYmd) {
   return `${end.slice(0, 4)}-${end.slice(4, 6)}-${end.slice(6, 8)}`;
 }
 
+// 알림 설정 화면: 즐겨찾기별 마감 알림 on/off, 검색, 공고문 키워드 알림 등록/삭제를 관리한다.
 export default function useNotification() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');

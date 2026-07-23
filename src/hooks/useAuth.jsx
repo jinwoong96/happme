@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 
+// 로그인 여부를 서버에 물어봐서(/users/me) status('loading'|'authed'|'unauthed')와
+// role을 알려준다. 성공하면 localStorage에도 사용자 정보를 캐싱하고, 실패하면 지운다.
 export default function useAuth() {
   const [status, setStatus] = useState('loading');
   const [role, setRole] = useState(() => localStorage.getItem('userRole') || null);
