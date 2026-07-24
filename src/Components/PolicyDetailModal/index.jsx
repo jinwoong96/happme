@@ -176,8 +176,10 @@ export default function PolicyDetailModal({ selectedPolicy, policyLoading, isBoo
 
               {(p.sprtTrgtMinAge != null || p.target || p.ptcpPrpTrgtCn || p.addAplyQlfcCndCn || incomeText) && (
                 <Section icon={Users} title="지원 대상">
-                  {p.sprtTrgtMaxAge === 0 ? (
+                  {p.sprtTrgtMinAge === 0 && (p.sprtTrgtMaxAge === 0 || p.sprtTrgtMaxAge >= 99) ? (
                     <p>연령 제한 없음</p>
+                  ) : p.sprtTrgtMinAge > 0 && p.sprtTrgtMaxAge >= 99 ? (
+                    <p>만 {p.sprtTrgtMinAge}세 이상</p>
                   ) : (p.sprtTrgtMinAge != null || p.sprtTrgtMaxAge != null) && (
                     <p>만 {p.sprtTrgtMinAge}세 ~ {p.sprtTrgtMaxAge}세</p>
                   )}
