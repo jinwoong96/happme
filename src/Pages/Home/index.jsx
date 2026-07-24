@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight } from 'lucide-react';
+import { Bell, List, Sparkles, FileText, ScanSearch, BellRing, Bookmark, ChevronRight, Grid2x2 } from 'lucide-react';
 import useHome from '../../hooks/useHome';
 import useBookmarks from '../../hooks/useBookmarks';
 import PolicyCard from '../../Components/PolicyCard';
@@ -43,11 +43,11 @@ function getBannerDetail(item) {
 }
 
 const MENU = [
+  { label: '전체보기', path: '/category', Icon: Grid2x2 },
   { label: '맞춤정책', path: '/recommendation/current', Icon: List },
   { label: '상황매칭', path: '/recommendation', Icon: Sparkles },
-  { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '사진분석', path: '/ocr', Icon: ScanSearch },
-  { label: '지원금알림', path: '/notification', Icon: BellRing },
+  { label: '공고요약', path: '/summary', Icon: FileText },
   { label: '지역프로그램', path: '/region', Icon: Bookmark },
 ];
 

@@ -73,7 +73,7 @@ export default function CurrentRecommendationPage() {
         <button onClick={() => navigate(-1)} className="bg-transparent border-none cursor-pointer p-0 flex items-center">
           <ChevronLeft size={24} color="#333" />
         </button>
-        <p className="flex-1 text-[20px] font-bold text-gray-900">가능정책</p>
+        <p className="flex-1 text-[20px] font-bold text-gray-900">맞춤정책</p>
         <button
           onClick={refresh}
           disabled={loading || refreshing}
