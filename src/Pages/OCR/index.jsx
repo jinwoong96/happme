@@ -5,19 +5,21 @@ import useOCR from '../../hooks/useOCR';
 import useBookmarks from '../../hooks/useBookmarks';
 
 // 펼친 카드에서 보여줄 연령 조건 전체 문구 (예: "19세 ~ 34세").
+// min=0이고 max가 0 또는 99 이상이면 전연령(연령 제한 없음), min>0인데 max가 99 이상이면
+// 상한이 사실상 없는 것이므로 "X세 이상"만 표시한다(age_resolver.py의 0/99 관례와 짝을 이룸).
 function formatAge(min, max) {
-  if (!min && !max) return '연령 제한 없음';
-  if (min && max) return `${min}세 ~ ${max}세`;
-  if (min) return `${min}세 이상`;
-  return `${max}세 이하`;
+  if (min == null || max == null) return '연령 제한 없음';
+  if (min === 0 && (max === 0 || max >= 99)) return '연령 제한 없음';
+  if (max >= 99) return `${min}세 이상`;
+  return `${min}세 ~ ${max}세`;
 }
 
 // 접힌 카드의 칩(chip)에 넣을 짧은 연령 텍스트 (예: "만 19~34세")
 function formatAgeChip(min, max) {
-  if (!min && !max) return null;
-  if (min && max) return `만 ${min}~${max}세`;
-  if (min) return `만 ${min}세 이상`;
-  return `만 ${max}세 이하`;
+  if (min == null || max == null) return null;
+  if (min === 0 && (max === 0 || max >= 99)) return null;
+  if (max >= 99) return `만 ${min}세 이상`;
+  return `만 ${min}~${max}세`;
 }
 
 // aplyYmd 문자열(예: "2026.07.01 ~ 2026.07.26", "20251015 ~ 20251114")에서
