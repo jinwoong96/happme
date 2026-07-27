@@ -8,6 +8,19 @@ from app.db.scheme.policy import PolicyCreate, PolicyUpdate
 from typing import Optional
 
 
+# 정책 데이터 소스가 여러 곳이라 대분류(lclsfNm) 표기가 소스마다 달라서(예: "복지문화" vs
+# "복지" vs "금융･복지･문화"), 화면의 5개 카테고리 탭 이름에 대해 같은 의미로 봐야 할 원본
+# 값들을 모아둔다. lclsfNm 값 자체가 "일자리,교육"처럼 콤마로 여러 개 붙어 있는 경우도 있어
+# 아래 필터링에서는 콤마로 쪼갠 원소 단위로 매칭한다.
+LCLSF_ALIASES = {
+    "일자리": ["일자리"],
+    "주거": ["주거"],
+    "교육": ["교육", "교육･직업훈련"],
+    "복지문화": ["복지문화", "복지", "금융･복지･문화"],
+    "참여권리": ["참여권리", "참여･기반"],
+}
+
+
 class PolicyCrud:
     """정책(policy) 테이블에 대한 생성/조회/검색/수정/삭제."""
 
@@ -51,7 +64,8 @@ class PolicyCrud:
         if age is not None:
             stmt = stmt.where(Policy.sprtTrgtMinAge <= age, Policy.sprtTrgtMaxAge >= age)
         if lclsf:
-            stmt = stmt.where(Policy.lclsfNm == lclsf)
+            variants = LCLSF_ALIASES.get(lclsf, [lclsf])
+            stmt = stmt.where(or_(*[func.find_in_set(v, Policy.lclsfNm) > 0 for v in variants]))
         if mclsf:
             stmt = stmt.where(Policy.mclsfNm == mclsf)
         if keyword:
