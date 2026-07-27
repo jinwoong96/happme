@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+from app.core.match_timing_debug import timed  # TODO(임시/테스트 전용): 측정 끝나면 이 줄과 각 @timed(...) 제거
 from app.services.recommendation.code_mapping import JOB_MAP, MAJOR_MAP, MARRIAGE_MAP, SBIZ_MAP, SCHOOL_MAP
 from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
@@ -119,6 +120,7 @@ class PolicyEligibilityEngine:
 
         return cls._parse_yyyymmdd(start), cls._parse_yyyymmdd(end)
 
+    @timed("apply_period")
     def _match_apply_period(self, user, policy):
         """
         aplyPrdSeCd:
@@ -190,6 +192,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "신청기간 조건 판단 정보 없음", str(today), policy_value)
 
     @staticmethod
+    @timed("age")
     def _match_age(user, policy):
         """사용자 나이가 정책의 최소/최대 연령 조건 안에 드는지 확인한다."""
         if policy.get("sprtTrgtAgeLmtYn") == "Y":
@@ -214,6 +217,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "연령 조건 충족", user_age, policy_value)
 
     @staticmethod
+    @timed("marriage")
     def _match_marriage(user, policy):
         """사용자 혼인상태가 정책이 요구하는 혼인 조건과 맞는지 확인한다."""
         policy_marriage = policy.get("mrgSttsCd")
@@ -234,6 +238,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "혼인 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("school_status")
     def _match_school_status(user, policy):
         """사용자 학력이 정책이 요구하는 학력 조건과 맞는지 확인한다."""
         policy_school = policy.get("schoolCd")
@@ -254,6 +259,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "학력 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("major")
     def _match_major(user, policy):
         """사용자 전공계열이 정책이 요구하는 전공 조건과 맞는지 확인한다."""
         policy_major = policy.get("plcyMajorCd")
@@ -274,6 +280,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "전공계열 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("sbiz")
     def _match_sbiz(user, policy):
         """사용자가 정책이 요구하는 특수계층(여성/장애인/한부모가정 등) 조건 중 하나에
         해당하는지 확인한다. 정책에 조건 코드가 여러 개면 하나라도 맞으면 통과."""
@@ -313,6 +320,7 @@ class PolicyEligibilityEngine:
         return make_result(False, "특수계층 조건 불충족", user_value, policy_values)
 
     @staticmethod
+    @timed("job")
     def _match_job(user, policy):
         """사용자 취업상태가 정책이 요구하는 취업상태 조건과 맞는지 확인한다."""
         policy_job = policy.get("jobCd")
