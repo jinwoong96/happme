@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+from app.core.match_timing_debug import timed  # TODO(임시/테스트 전용): 측정 끝나면 이 줄과 각 @timed(...) 제거
 from app.services.recommendation.code_mapping import JOB_MAP, MAJOR_MAP, MARRIAGE_MAP, SBIZ_MAP, SCHOOL_MAP
 from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
@@ -119,6 +120,7 @@ class PolicyEligibilityEngine:
 
         return cls._parse_yyyymmdd(start), cls._parse_yyyymmdd(end)
 
+    @timed("apply_period")
     def _match_apply_period(self, user, policy):
         """
         aplyPrdSeCd:
@@ -190,6 +192,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "신청기간 조건 판단 정보 없음", str(today), policy_value)
 
     @staticmethod
+    @timed("age")
     def _match_age(user, policy):
         # sprtTrgtAgeLmtYn은 원본 데이터 오류가 너무 많아 더 이상 보지 않는다. min/max가 둘 다
         # 0이면(is_empty_or_unlimited가 "0"을 제한없음으로 보므로 아래 두 체크가 각각 자동으로
@@ -214,6 +217,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "연령 조건 충족", user_age, policy_value)
 
     @staticmethod
+    @timed("marriage")
     def _match_marriage(user, policy):
         policy_marriage = policy.get("mrgSttsCd")
 
@@ -233,6 +237,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "혼인 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("school_status")
     def _match_school_status(user, policy):
         policy_school = policy.get("schoolCd")
 
@@ -252,6 +257,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "학력 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("major")
     def _match_major(user, policy):
         policy_major = policy.get("plcyMajorCd")
 
@@ -271,6 +277,7 @@ class PolicyEligibilityEngine:
         return make_result(True, "전공계열 조건 충족", user_value, allowed_value)
 
     @staticmethod
+    @timed("sbiz")
     def _match_sbiz(user, policy):
         policy_sbiz = policy.get("sbizCd")
 
@@ -308,6 +315,7 @@ class PolicyEligibilityEngine:
         return make_result(False, "특수계층 조건 불충족", user_value, policy_values)
 
     @staticmethod
+    @timed("job")
     def _match_job(user, policy):
         policy_job = policy.get("jobCd")
 

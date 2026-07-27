@@ -2,6 +2,7 @@ import re
 
 import pandas as pd
 
+from app.core.match_timing_debug import timed  # TODO(임시/테스트 전용): 측정 끝나면 이 줄과 @timed(...) 제거
 from app.core.settings import settings
 from app.services.recommendation.rule_helpers import make_result
 
@@ -59,6 +60,33 @@ class RegionMatcher:
     def __init__(self):
         self.zipcd_df = pd.read_csv(settings.zipcd_mapping_path, dtype={"시군구코드": str})
 
+        # match()가 호출될 때마다(정책 x persona 조합으로 수만 번) 아래 값들을 pandas로 매번
+        # 다시 계산하고 있어서(전체 스캔이 호출당 20~40번) 그게 region 체크 시간의 대부분을
+        # 차지했다(프로파일링 결과 region 체크가 캐시미스 전체 시간의 96.7%). 정책/사용자가
+        # 바뀌어도 안 바뀌는 값들이라 __init__에서 한 번만 계산해 캐싱한다.
+        self._all_known_zips: set[str] = set(self.zipcd_df["시군구코드"])
+
+        # 시/도 prefix -> [(시군구코드, 정규화된 지역명), ...] (원본 DataFrame 행 순서 유지 -
+        # _get_zip_code의 "첫 매칭" 동작이 이 순서에 의존한다)
+        self._province_rows: dict[str, list[tuple[str, str]]] = {}
+        for prefix in PREFIX_MAP.values():
+            sub = self.zipcd_df[self.zipcd_df["시군구코드"].str.startswith(prefix)]
+            self._province_rows[prefix] = [
+                (zip_code, self._normalize_text(name))
+                for zip_code, name in zip(sub["시군구코드"], sub["지역명"])
+            ]
+
+        # 시/도 prefix -> 그 시/도에 속한 시군구코드 전체 집합 (전국/시도범위 판정용)
+        self._province_zip_sets: dict[str, set[str]] = {
+            prefix: {zip_code for zip_code, _ in rows} for prefix, rows in self._province_rows.items()
+        }
+
+        # 시군구코드 -> 지역명 (region_names 조립용)
+        self._zip_to_name: dict[str, str] = dict(
+            zip(self.zipcd_df["시군구코드"], self.zipcd_df["지역명"].astype(str).str.strip())
+        )
+
+    @timed("region")
     def match(self, user: dict, policy: dict) -> dict:
         policy_zip_list = self._parse_zip_list(policy.get("zipCd"))
         policy_region_summary = self._summarize_policy_region(policy_zip_list)
@@ -151,22 +179,19 @@ class RegionMatcher:
         if region_prefix is None:
             return None
 
-        candidates = self.zipcd_df[self.zipcd_df["시군구코드"].str.startswith(region_prefix)].copy()
+        candidates = self._province_rows.get(region_prefix, [])
 
         # 세종특별자치시는 시군구코드가 보통 1개라 district와 무관하게 반환
         if region_prefix == "36" and len(candidates) == 1:
-            return candidates.iloc[0]["시군구코드"]
+            return candidates[0][0]
 
         district = self._normalize_text(district)
 
-        matched = candidates[
-            candidates["지역명"].apply(self._normalize_text).str.contains(district, regex=False)
-        ]
+        for zip_code, normalized_name in candidates:
+            if district in normalized_name:
+                return zip_code
 
-        if len(matched) == 0:
-            return None
-
-        return matched.iloc[0]["시군구코드"]
+        return None
 
     @staticmethod
     def _parse_zip_list(zip_cd) -> list[str]:
@@ -190,16 +215,16 @@ class RegionMatcher:
             return {"type": "광역", "zipCd_count": 0, "region_names": []}
 
         zip_set = set(policy_zip_list)
-        all_known = set(self.zipcd_df["시군구코드"])
+        all_known = self._all_known_zips
 
         if all_known and len(zip_set & all_known) / len(all_known) >= self._NATIONWIDE_COVERAGE_RATIO:
             return {"type": "광역", "zipCd_count": len(policy_zip_list), "region_names": []}
 
-        full_province_count = 0
-        for prefix in PREFIX_MAP.values():
-            province_codes = set(self.zipcd_df.loc[self.zipcd_df["시군구코드"].str.startswith(prefix), "시군구코드"])
-            if province_codes and province_codes.issubset(zip_set):
-                full_province_count += 1
+        full_province_count = sum(
+            1
+            for province_codes in self._province_zip_sets.values()
+            if province_codes and province_codes.issubset(zip_set)
+        )
 
         if full_province_count >= 2:
             return {"type": "광역", "zipCd_count": len(policy_zip_list), "region_names": []}
@@ -209,12 +234,9 @@ class RegionMatcher:
         if len(policy_zip_list) > limit:
             return {"type": "시군구범위", "zipCd_count": len(policy_zip_list), "region_names": []}
 
-        region_names = []
-
-        for zip_code in policy_zip_list:
-            row = self.zipcd_df[self.zipcd_df["시군구코드"] == zip_code]
-            if not row.empty:
-                region_names.append(str(row.iloc[0].get("지역명", "")).strip())
+        region_names = [
+            self._zip_to_name[zip_code] for zip_code in policy_zip_list if zip_code in self._zip_to_name
+        ]
 
         return {
             "type": "시군구범위",
