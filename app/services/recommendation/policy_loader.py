@@ -27,6 +27,7 @@ class PolicyLoaderService:
     테이블에서 직접 조회합니다(정적 JSON 스냅샷을 쓰지 않음 - 서버 재시작 시점 기준으로
     항상 최신 DB 상태를 반영).
     무거운 리소스이므로 앱 시작 시(lifespan) 인스턴스 하나만 만들어 재사용하세요.
+    policy_loader는 "정책 하나당 rule engine이 필요로 하는 값 전부 + 그 정책이 적용되는 지역 리스트"
     """
 
     def __init__(self):

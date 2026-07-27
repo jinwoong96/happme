@@ -1,12 +1,20 @@
 import asyncio
+import json
 import re
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from app.services.recommendation.eligibility_rules import PolicyEligibilityEngine
 from app.services.recommendation.policy_loader import PolicyLoaderService
 from app.services.recommendation.rule_engine_cache import RuleEngineCache, make_persona_signature
 from app.services.recommendation.similarity_search import PolicySimilarityService
+from app.core.settings import settings
 from app.core.step_logger import log_step, log_event
+
+# Ragas 정답셋 만들 때만 켜는 캡처 파일 경로 (bene_ai/evaluation/collected/raw_capture.jsonl).
+# 이 파일 위치(recommendation/recommendation_service.py) 기준 parents[3] == bene_ai.
+EVAL_CAPTURE_PATH = Path(__file__).resolve().parents[3] / "evaluation" / "collected" / "raw_capture.jsonl"
 
 # 상황 설명(chat)에 대한 LLM 정책 추천 답변을 만들 때, 유사도 상위 몇 개까지 후보로 넘길지.
 # (similarity_service.search()가 이미 settings.chat_similarity_min_score 미만은 걸러낸 뒤이므로,
@@ -83,7 +91,8 @@ KEYWORD_HINTS = {
 def _normalize_category(policy: dict) -> str:
     """policy_result 딕셔너리(lclsfNm/mclsfNm/policy_name 포함)를 보고 화면에 보여줄 최종
     카테고리 하나를 정한다. DB의 lclsfNm/mclsfNm은 원본 그대로(콤마로 여러 값 포함 가능)
-    보존돼 있으므로, 여기서 후보들을 뽑아 정책명과 키워드가 맞는 걸 대표로 선택한다."""
+    보존돼 있으므로, 여기서 후보들을 뽑아 정책명과 키워드가 맞는 걸 대표로 선택한다.
+    소분류/중분류 카테고리 보여줌"""
     lclsf_tags = [t.strip() for t in str(policy.get("lclsfNm") or "").split(",") if t.strip()]
     mclsf_tags = [t.strip() for t in str(policy.get("mclsfNm") or "").split(",") if t.strip()]
     lclsf_first = lclsf_tags[0] if lclsf_tags else ""
@@ -113,11 +122,11 @@ class RecommendationService:
 
     def __init__(
         self,
-        policy_loader: PolicyLoaderService,
-        eligibility_engine: PolicyEligibilityEngine,
-        similarity_service: PolicySimilarityService,
+        policy_loader: PolicyLoaderService,              # 정책 하나당 rule engine이 필요로 하는 값 전부 + 그 정책이 적용되는 지역 리스트"
+        eligibility_engine: PolicyEligibilityEngine,     # rule engine 조건 YES/NO 판정 + 실패 사유(reason)까지 반환
+        similarity_service: PolicySimilarityService,     # 채팅 기반 정책 유사도 검색
         llm_service,
-        rule_engine_cache: RuleEngineCache,
+        rule_engine_cache: RuleEngineCache,              # rule engine 판정 결과를 캐싱해 재계산을 줄이는 메모리 캐시
     ):
         self.policy_loader = policy_loader
         self.eligibility_engine = eligibility_engine
@@ -134,11 +143,18 @@ class RecommendationService:
 
     async def recommend_chat_svc(self, user_profile: dict, chat: str) -> dict[str, Any]:
         """
-        top_k 제한 없이(top_k=None) 조건을 통과한 정책을 전부 유사도 순으로 반환하고,
-        각 정책에 정규화된 category를 붙인다. 마감/종료/조건불만족 정책은 화면에 보여줄 필요가
-        없어 아예 응답에서 뺀다. 대신 조건 만족 정책을 지역 규모(전국급/시도범위/시군구범위)
-        3개로 나눠서 반환한다.
-        chat이 빈 문자열이면 유사도 계산 없이 rule engine이 판정한 순서를 그대로 반환한다.
+        사용자의 프로필과 채팅 내용을 기반으로 정책을 추천하는 함수
+
+        처리 흐름
+        1. 전체 정책을 불러온다.
+        2. Rule Engine으로 자격 조건을 검사하여 조건을 만족하는 정책만 남긴다.
+        3. 채팅 내용이 있으면 임베딩 유사도 검색으로 정책을 관련도 순으로 정렬한다.
+        4. 유사도 상위 후보를 LLM이 검토하여 가장 적합한 정책을 선택하고 추천 이유를 생성한다.
+        5. 각 정책에 카테고리, 기관, 지역 정보를 추가한다.
+        6. 정책을 전국 / 시·도 / 시·군·구 단위로 분류하여 화면에 반환한다.
+
+        채팅이 없으면 유사도 검색과 LLM을 생략하고,
+        Rule Engine 결과를 그대로 반환한다.
         """
         with log_step(PIPELINE, "policy_load"):
             policies = self.policy_loader.get_policies()
@@ -195,19 +211,68 @@ class RecommendationService:
 
         selected = await self._llm_select_candidate(chat, candidates)
         if selected is None:
+            self._capture_eval_case(chat, candidates, selected, None, None)
             return {"policy_name": None, "plcyNo": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
 
         policy_detail = self.policy_loader.get_policy_by_plcyno(selected.get("plcyNo"))
         if policy_detail is None:
+            self._capture_eval_case(chat, candidates, selected, None, None)
             return {"policy_name": None, "plcyNo": None, "answer": "제공된 후보 중에는 적합한 정책이 없습니다."}
 
         answer = await self._llm_explain_policy(chat, policy_detail)
+        self._capture_eval_case(chat, candidates, selected, policy_detail, answer)
         return {
             "policy_name": policy_detail.get("plcyNm") or selected.get("policy_name"),
             # 프론트가 상황매칭 결과 목록에서 이 정책을 찾아 맨 앞에 보여주는 데 쓴다.
             "plcyNo": policy_detail.get("plcyNo"),
             "answer": answer,
         }
+
+    def _capture_eval_case(
+        self,
+        chat: str,
+        candidates: list[dict],
+        selected: dict | None,
+        policy_detail: dict | None,
+        answer: str | None,
+    ) -> None:
+        """Ragas 정답셋 만들 때만(settings.eval_capture_enabled=true) 실제 호출 하나를
+        evaluation/collected/raw_capture.jsonl에 한 줄 남긴다. 평소엔 즉시 return하므로
+        운영 흐름에 아무 영향이 없고, 파일 쓰기가 실패해도(예: 폴더 없음) 추천 자체는
+        절대 막지 않는다(best-effort, 다른 로깅 코드들과 동일한 방침)."""
+        print(f"[EVAL_CAPTURE DEBUG] enabled={settings.eval_capture_enabled} path={EVAL_CAPTURE_PATH}")
+        if not settings.eval_capture_enabled:
+            return
+        try:
+            candidate_names = [c.get("policy_name") for c in candidates]
+            llm_response = str(candidate_names.index(selected.get("policy_name")) + 1) if selected else "0"
+            record = {
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "chat": chat,
+                "candidates": candidate_names,
+                "llm_response": llm_response,
+                "reference": None,  # 사람이 나중에 채워야 하는 정답. 지금은 항상 빈 값.
+                "context": self._build_policy_context(policy_detail) if policy_detail else None,
+                "answer": answer,
+            }
+            EVAL_CAPTURE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(EVAL_CAPTURE_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception as e:
+            print(f"[RecommendationService] eval capture 기록 실패(무시하고 계속): {e}")
+
+    @staticmethod
+    def _build_policy_context(policy: dict) -> str:
+        """_llm_explain_policy 프롬프트에 넣는 정책 상세정보 텍스트를 만든다. eval capture도
+        똑같은 텍스트를 써야 실제 프롬프트와 100% 같은 context로 평가할 수 있어서 분리했다."""
+        return f"""정책명: {policy.get("plcyNm") or ""}
+정책 설명: {policy.get("plcyExplnCn") or ""}
+지원 내용: {policy.get("plcySprtCn") or ""}
+관련 키워드: {policy.get("plcyKywdNm") or ""}
+대상 연령: {policy.get("sprtTrgtMinAge") or ""}세 ~ {policy.get("sprtTrgtMaxAge") or ""}세
+신청 기간: {policy.get("aplyYmd") or ""}
+소득 조건: {policy.get("earnEtcCn") or "제한없음"}
+주관 기관: {policy.get("rgtrInstCdNm") or ""}"""
 
     async def _llm_select_candidate(self, chat: str, candidates: list[dict]) -> dict | None:
         """1단계: 후보 정책 제목만(상세정보 없이) 번호를 매겨 LLM에 보여주고, 사용자 상황에
@@ -254,14 +319,7 @@ class RecommendationService:
         """2단계: 1단계에서 선택된 정책 하나의 상세정보(policy_loader 원본 필드)를 근거로 최종
         설명을 생성한다. 04-hybrid-search/rag.py의 build_context/PROMPT 패턴(제공된 문서만
         근거로 답변)을 참고했다. _llm_select_candidate와 동일한 이유로 asyncio.to_thread를 쓴다."""
-        context = f"""정책명: {policy.get("plcyNm") or ""}
-정책 설명: {policy.get("plcyExplnCn") or ""}
-지원 내용: {policy.get("plcySprtCn") or ""}
-관련 키워드: {policy.get("plcyKywdNm") or ""}
-대상 연령: {policy.get("sprtTrgtMinAge") or ""}세 ~ {policy.get("sprtTrgtMaxAge") or ""}세
-신청 기간: {policy.get("aplyYmd") or ""}
-소득 조건: {policy.get("earnEtcCn") or "제한없음"}
-주관 기관: {policy.get("rgtrInstCdNm") or ""}"""
+        context = self._build_policy_context(policy)
 
         prompt = f"""당신은 제공된 정책 정보만을 근거로 질문에 답변하는 도우미입니다.
 
@@ -373,17 +431,17 @@ class RecommendationService:
         )
 
         return {
-            "available_plcyNos": plcyno_buckets["available_policies"],
-            "closed_plcyNos": plcyno_buckets["closed_policies"],
-            "expired_plcyNos": plcyno_buckets["expired_policies"],
-            "unavailable_plcyNos": plcyno_buckets["unavailable_policies"],
+            "available_plcyNos": plcyno_buckets["available_policies"],       # 조건만족 정책 plcyNo 리스트
+            "closed_plcyNos": plcyno_buckets["closed_policies"],             # 신청마감 정책 plcyNo 리스트
+            "expired_plcyNos": plcyno_buckets["expired_policies"],           # 기간종료 정책 plcyNo 리스트
+            "unavailable_plcyNos": plcyno_buckets["unavailable_policies"],   # 조건불만족 정책 plcyNo 리스트
 
-            "available_policies": buckets["available_policies"],
-            "closed_policies": buckets["closed_policies"],
-            "expired_policies": buckets["expired_policies"],
-            "unavailable_policies": buckets["unavailable_policies"],
+            "available_policies": buckets["available_policies"],             # 조건만족 정책 상세정보 리스트
+            "closed_policies": buckets["closed_policies"],                   # 신청마감 정책 상세정보 리스트
+            "expired_policies": buckets["expired_policies"],                 # 기간종료 정책 상세정보 리스트
+            "unavailable_policies": buckets["unavailable_policies"],         # 조건불만족 정책 상세정보 리스트
 
-            "fail_reasons_by_plcyNo": fail_reasons,
+            "fail_reasons_by_plcyNo": fail_reasons,                          # 조건불만족 정책 plcyNo별 불만족 사유 딕셔너리
         }
 
     def _evaluate_with_cache(self, persona_signature: str, user: dict, policy: dict) -> tuple[dict[str, Any], bool]:

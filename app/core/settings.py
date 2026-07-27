@@ -90,6 +90,11 @@ class Settings(BaseSettings):
     watsonx_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="WATSONX_MODEL_ID")
     enable_llm_summary: bool = Field(True, alias="ENABLE_LLM_SUMMARY")
 
+    # Ragas 정답셋(evaluation/test_cases) 만들 때만 켜는 임시 캡처 스위치. true면 recommend_chat_svc가
+    # 호출될 때마다 chat/후보10개/선택결과/context/answer을 evaluation/collected/raw_capture.jsonl에
+    # 한 줄씩 남긴다. 기본값 false라 평소 운영 중에는 아무 영향이 없다.
+    eval_capture_enabled: bool = Field(False, alias="EVAL_CAPTURE")
+
     # 정책 일정 추출 (rule-engine + LLM)
     schedule_model_id: str = Field("mistralai/mistral-small-3-1-24b-instruct-2503", alias="SCHEDULE_MODEL_ID")
 

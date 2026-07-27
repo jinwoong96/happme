@@ -1,0 +1,11 @@
+# ragas_eval.py 전용 의존성. bene_ai/requirements.txt(서버 실행용)와 분리해서 따로 설치한다.
+#   pip install -r requirements-eval.txt
+ragas
+pandas
+python-dotenv
+
+# judge 모델 4개 연결용 langchain 래퍼
+langchain-ibm        # watsonx (mistral-small-24b, llama-3-3-70b)
+langchain-ollama      # 로컬 Ollama (qwen2.5:32b-instruct)
+langchain-groq        # Groq 무료 API (llama-3.3-70b-versatile)
+langchain-huggingface # ResponseRelevancy용 임베딩 (BAAI/bge-m3, similarity_search.py와 동일 모델)
