@@ -92,6 +92,27 @@ export default function CategoryPage() {
           </div>
         </div>
 
+        <div className="bg-white flex justify-start" style={{ padding: '0 20px 10px' }}>
+          <select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value)}
+            style={{
+              padding: '7px 12px',
+              borderRadius: 999,
+              border: '1px solid #e5e7eb',
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: '#374151',
+              backgroundColor: '#f9fafb',
+            }}
+          >
+            <option value="">전체 지역</option>
+            {REGIONS.map((r) => (
+              <option key={r.code} value={r.code}>{r.name}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="bg-white border-b border-gray-100 overflow-x-auto no-scrollbar" style={{ display: 'flex', gap: 8, padding: '12px 20px', WebkitOverflowScrolling: 'touch' }}>
           {categories.map((cat) => (
             <button key={cat} onClick={() => setActiveTab(cat)}
@@ -110,30 +131,6 @@ export default function CategoryPage() {
             </button>
           ))}
         </div>
-
-        {activeTab === '지역' && (
-          <div className="bg-white" style={{ padding: '0 20px 14px' }}>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 12,
-                border: '1px solid #e5e7eb',
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#374151',
-                backgroundColor: '#f9fafb',
-              }}
-            >
-              <option value="">지역을 선택해주세요</option>
-              {REGIONS.map((r) => (
-                <option key={r.code} value={r.code}>{r.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
 
         <div className="flex justify-between items-center" style={{ padding: '14px 20px 0' }}>
           {sortOption === 'alpha' ? (
@@ -184,9 +181,7 @@ export default function CategoryPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 20px 24px' }}>
-          {activeTab === '지역' && !selectedRegion ? (
-            <div className="text-center py-10 text-[13px] text-gray-400">지역을 선택하면 해당 지역의 정책이 표시됩니다.</div>
-          ) : loading ? (
+          {loading ? (
             <div className="text-center py-10 text-[13px] text-gray-400">불러오는 중...</div>
           ) : items.length === 0 ? (
             <div className="text-center py-10 text-[13px] text-gray-400">

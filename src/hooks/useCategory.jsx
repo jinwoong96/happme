@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { api } from '../utils/api';
 import usePolicyDetail from './usePolicyDetail';
 
-const CATEGORIES = ['전체', '일자리', '주거', '교육', '복지문화', '참여권리', '지역'];
+const CATEGORIES = ['전체', '일자리', '주거', '교육', '복지문화', '참여권리'];
 
 const SORT_OPTIONS = [
   { value: 'none', label: '정렬 안함' },
@@ -74,19 +74,14 @@ export default function useCategory() {
   }, [sortOption]);
 
   useEffect(() => {
-    if (activeTab === '지역' && !selectedRegion) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
     let ignore = false;
     setLoading(true);
 
     const params = new URLSearchParams({ limit: '100' });
-    if (activeTab === '지역') {
+    if (selectedRegion) {
       params.set('region', selectedRegion);
-    } else if (activeTab !== '전체') {
+    }
+    if (activeTab !== '전체') {
       params.set('lclsf', activeTab);
     }
     if (debouncedKeyword) {
