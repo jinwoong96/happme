@@ -43,6 +43,12 @@ from ragas.dataset_schema import SingleTurnSample, EvaluationDataset
 from ragas.metrics import ExactMatch, Faithfulness, ResponseRelevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.run_config import RunConfig
+
+# ragas 기본값(동시요청 16개, 짧은 타임아웃)은 watsonx 레이트리밋/로컬 Ollama 병목에서
+# TimeoutError가 대량 발생함. 동시요청을 확 줄이고 타임아웃을 넉넉히 잡아서 재시도로
+# 커버하도록 완화한다. 느려지는 대신 결과 누락(NaN)을 줄이는 게 목적.
+EVAL_RUN_CONFIG = RunConfig(timeout=300, max_retries=3, max_wait=60, max_workers=3)
 
 load_dotenv()
 
@@ -133,6 +139,17 @@ async def evaluate_selection() -> pd.DataFrame:
     if not cases:
         return pd.DataFrame()
 
+    unlabeled = [c for c in cases if c.get("reference") is None]
+    if unlabeled:
+        print(
+            f"[경고] reference가 아직 null인 케이스 {len(unlabeled)}건은 건너뜁니다 "
+            f"(case_id: {[c.get('case_id') for c in unlabeled]})"
+        )
+    cases = [c for c in cases if c.get("reference") is not None]
+    if not cases:
+        print("[오류] reference가 채워진 케이스가 하나도 없습니다.")
+        return pd.DataFrame()
+
     scorer = ExactMatch()
     rows = []
     for case in cases:
@@ -145,11 +162,49 @@ async def evaluate_selection() -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
     accuracy = df["exact_match"].mean()
-    print(f"\n[1. 선택형 분류] Accuracy: {accuracy:.3f}  ({len(df)}건)")
+
+    # "정확히 몇 번을 골랐나"(accuracy)와 별개로, "애초에 정책이 있다/없다를 제대로
+    # 감지했나"를 이진 탐지 문제로 다시 봐서 Precision/Recall/F1을 낸다.
+    # positive(양성) = 이 상황에 맞는 정책이 실제로/LLM 판단상 있다(번호가 "0"이 아님)
+    #   TP: 실제로 있고, LLM도 있다고 답함 (번호가 정확히 맞았는지는 별개 - accuracy가 그걸 봄)
+    #   FP: 실제로는 없는데(reference="0") LLM이 있다고 답함 (할루시네이션)
+    #   FN: 실제로는 있는데(reference!="0") LLM이 없다고 답함 (기회 손실)
+    #   TN: 실제로도 없고 LLM도 없다고 답함
+    df["actual_positive"] = df["reference"] != "0"
+    df["predicted_positive"] = df["llm_response"].astype(str) != "0"
+    tp = int(((df["actual_positive"]) & (df["predicted_positive"])).sum())
+    fp = int((~df["actual_positive"] & df["predicted_positive"]).sum())
+    fn = int((df["actual_positive"] & ~df["predicted_positive"]).sum())
+    tn = int((~df["actual_positive"] & ~df["predicted_positive"]).sum())
+
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+
+    print(f"\n[1. 선택형 분류] Accuracy(번호까지 정확히 일치): {accuracy:.3f}  ({len(df)}건)")
+    print(
+        f"[1. 존재 탐지(있음/없음)] Precision: {precision:.3f}  Recall: {recall:.3f}  "
+        f"F1: {f1:.3f}  (TP={tp}, FP={fp}, FN={fn}, TN={tn})"
+    )
 
     out_path = RESULTS_DIR / "1_selection_result.csv"
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     print(f"  -> {out_path}")
+
+    summary_path = RESULTS_DIR / "1_selection_summary.json"
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "n": len(df),
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+            },
+            f, ensure_ascii=False, indent=2,
+        )
+    print(f"  -> {summary_path}")
     return df
 
 
@@ -191,6 +246,7 @@ async def evaluate_explanation() -> pd.DataFrame:
                 Faithfulness(llm=judge_llm),
                 ResponseRelevancy(llm=judge_llm, embeddings=embeddings),
             ],
+            run_config=EVAL_RUN_CONFIG,
         )
         result_df = result.to_pandas()
         # NOTE: 컬럼명이 사용 중인 ragas 버전에 따라 answer_relevancy로 나올 수도 있음.

@@ -1,8 +1,9 @@
 # ragas_eval.py 전용 의존성. bene_ai/requirements.txt(서버 실행용)와 분리해서 따로 설치한다.
 #   pip install -r requirements-eval.txt
-ragas
+ragas==0.3.9  # 0.4.3은 langchain_community.chat_models.vertexai import 버그로 실행 자체가 안 됨 (ragas GitHub #2741/#2745)
 pandas
 python-dotenv
+streamlit  # dashboard.py 전용 (결과 뷰어)
 
 # judge 모델 4개 연결용 langchain 래퍼
 langchain-ibm        # watsonx (mistral-small-24b, llama-3-3-70b)
