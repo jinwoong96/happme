@@ -1,0 +1,14 @@
+.env
+__pycache__
+.vscode
+fastapi/
+
+report.html
+report.txt
+scenario_to_testprofile.py
+
+temp/
+
+logging/
+
+notice_Truth_2632.json
