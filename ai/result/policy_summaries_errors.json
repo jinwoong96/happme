@@ -1,0 +1,72 @@
+[
+  {
+    "plcyNo": "BOKJIRO-WLF00003501",
+    "policy_name": "충주시 의료급여 청장년층 틀니임플란트 지원사업",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: context deadline exceeded\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"b93587d9983afcf23aa0e21d1aaa51f7\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00004468",
+    "policy_name": "산모·신생아 건강관리사 지원사업(자체)",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"9a417bc8805591e4deb479f14b770548\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00005780",
+    "policy_name": "주민자치센터 프로그램 수강료 감면",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"6dda160d685d967391bc2654f728e746\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00002884",
+    "policy_name": "독거노인 돌보미 활동 지원",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"6cf256be5516ff176281871a6148b251\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00003945",
+    "policy_name": "공공근로사업",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"6e8984276dc66a5b69455b7b1ba4f440\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00000594",
+    "policy_name": "추모의 집 운영",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"48602d415d097ce4aef978a1429f9dd6\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00000916",
+    "policy_name": "김포청년 내일옷장(면접정장 무료대여)사업",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"9f6b2dc8d820d5a10aa775770b0f7390\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00002171",
+    "policy_name": "다이로움 일자리사업",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"244bf085bc354394a61ff002df673862\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00003317",
+    "policy_name": "임신부 초음파 검사비 지원",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"bcd263ff25644716bd9f14ebc48bf234\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00002705",
+    "policy_name": "행려 사망자 장의비",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"d7d43a76df962f486fb4f6fc42292793\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00005035",
+    "policy_name": "강원도 청년 디딤돌 2배 적금 지원",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"cecc17a7de9a9cdb5b202a247a449ffd\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00005427",
+    "policy_name": "청년 이사비용 지원사업",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"1a92f9d3854e86c7f23dfb509f58a590\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00000652",
+    "policy_name": "행려자 일시구호",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"a4ea0bcc9557276914e06a0253521fbb\",\"status_code\":500}"
+  },
+  {
+    "plcyNo": "BOKJIRO-WLF00002310",
+    "policy_name": "화장장려금지원",
+    "error": "Failure during chat. (POST https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-10-01)\nStatus code: 500, body: {\"errors\":[{\"code\":\"downstream_request_failed\",\"message\":\"Downstream vllm request with Model 'meta-llama/llama-3-3-70b-instruct failed: Post \\\"http://\\u003chost\\u003e:\\u003cport\\u003e/v1/chat/completions\\\": dial tcp [::1]:3000: connect: connection refused\",\"more_info\":\"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat\"}],\"trace\":\"e14aa30875cfde80b0b92dacd9b9c125\",\"status_code\":500}"
+  }
+]
