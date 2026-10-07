@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from app.core.match_timing_debug import timed  # TODO(임시/테스트 전용): 측정 끝나면 이 줄과 @timed(...) 제거
+from app.core.match_timing_debug import timed
 from app.core.settings import settings
 from app.services.recommendation.rule_helpers import make_result
 

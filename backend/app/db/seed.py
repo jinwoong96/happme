@@ -53,6 +53,7 @@ CODE_DATA = [
     ("NOTIFY_TYPE", "INQUIRY_ANSWER", "문의 답변 알림", 5),
 ]
 
+# 로컬 개발용 시드 관리자 계정 (서비스 종료됨). 운영 환경에서는 환경변수로 관리해야 한다.
 ADMIN_EMAIL = "admin@admin"
 ADMIN_PASSWORD = "admin1234!"
 

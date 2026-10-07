@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 
-from app.core.match_timing_debug import timed  # TODO(임시/테스트 전용): 측정 끝나면 이 줄과 각 @timed(...) 제거
+from app.core.match_timing_debug import timed
 from app.services.recommendation.code_mapping import JOB_MAP, MAJOR_MAP, MARRIAGE_MAP, SBIZ_MAP, SCHOOL_MAP
 from app.services.recommendation.region_matcher import RegionMatcher
 from app.services.recommendation.rule_helpers import is_empty_or_unlimited, make_result
